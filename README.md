@@ -1,8 +1,8 @@
-# Bb-component-Festive
-This is a readme for your new Budibase plugin.
+# The Super Container 
+A Multi Layout, Data aware Nestable Container Component for Budibase.
 
 # Description
-A Festive Component for Budibase
+A Multi Layout, Data aware Nestable Container Component for Budibase.
 
 Find out more about [Budibase](https://github.com/Budibase/budibase).
 
