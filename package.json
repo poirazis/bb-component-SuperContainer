@@ -15,8 +15,7 @@
     "@spectrum-css/opacitycheckerboard": "latest",
     "@spectrum-css/splitview": "4.0.3",
     "svelte": "^3.0.0",
-    "svelte-fsm": "^1.2.0",
-    "svelte-legos": "^0.2.1"
+    "svelte-fsm": "^1.2.0"
   },
   "devDependencies": {
     "@budibase/backend-core": "^2.10.2",

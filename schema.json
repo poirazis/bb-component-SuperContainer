@@ -9,13 +9,42 @@
     "hasChildren" : true,
     "showEmptyState" : true,
     "icon": "SelectIntersect",
-    "styles": [ "size", "border", "background", "padding", "shadow" ],
+    "styles": [ "size","padding", "border", "background",  "shadow" ],
     "context": [
       {
         "type": "schema"
       }
     ],
     "settings": [
+      {
+        "type": "select",
+        "key": "mode",
+        "label": "Layout Mode",
+        "options" : [
+          { "label" : "Container", "value" : "container" },
+          { "label" : "SplitView", "value" : "splitview" },
+          { "label" : "Tabs", "value" : "tabs" },
+          { "label" : "Cards", "value" : "grid" },
+          { "label" : "Accordion", "value" : "accordion" },
+          { "label" : "List", "value" : "list" },
+          { "label" : "Treeview", "value" : "tree"},
+          { "label" : "Graph", "value": "graph"},
+          { "label" : "Masonry", "value" : "masonry" },
+          { "label" : "Slider", "value" : "slider" },
+          { "label" : "Scrollbox", "value" : "modal" }
+        ],
+        "defaultValue" : "container"
+      },
+      {
+        "type": "select",
+        "key": "tabsType",
+        "label": "Theme",
+        "options" : [
+          { "label" : "Budibase", "value" : "budibase" },
+          { "label" : "Buttons", "value" : "buttons" }
+        ],
+        "defaultValue" : "budibase"
+      },
       {
         "type": "select",
         "label": "Size",
@@ -39,23 +68,12 @@
         "defaultValue": "shrink"
       },
       {
-        "type": "select",
-        "key": "mode",
-        "label": "Layout Mode",
-        "options" : [
-          { "label" : "Container", "value" : "container" },
-          { "label" : "SplitView", "value" : "splitview" },
-          { "label" : "Tabs", "value" : "tabs" },
-          { "label" : "Cards", "value" : "grid" },
-          { "label" : "Accordion", "value" : "accordion" },
-          { "label" : "List", "value" : "list" },
-          { "label" : "Treeview", "value" : "tree"},
-          { "label" : "Graph", "value": "graph"},
-          { "label" : "Masonry", "value" : "masonry" },
-          { "label" : "Slider", "value" : "slider" },
-          { "label" : "Scrollbox", "value" : "modal" }
-        ],
-        "defaultValue" : "container"
+        "type": "number",
+        "key" : "flexFactor",
+        "label" : "Flex Factor",
+        "min" : 1,
+        "defaultValue": 1,
+        "dependsOn": { "setting": "flex", "value" : "grow" }
       },
       {
         "type": "text",
@@ -92,16 +110,6 @@
         "settings" : [
           {
             "type": "select",
-            "key": "splitViewDirection",
-            "label": "Direction",
-            "options" : [
-              { "label" : "Horizontal", "value" : "horizontal" },
-              { "label" : "Vertical", "value" : "vertical" }
-            ],
-            "defaultValue" : "horizontal"
-          },
-          {
-            "type": "select",
             "key" : "splitViewRatio",
             "label" : "Ratio"
           }
@@ -122,13 +130,13 @@
               {
                 "label": "Column",
                 "value": "column",
-                "barIcon": "ViewColumn",
+                "barIcon": "ArrowDown",
                 "barTitle": "Column layout"
               },
               {
                 "label": "Row",
                 "value": "row",
-                "barIcon": "ViewRow",
+                "barIcon": "ArrowRight",
                 "barTitle": "Row layout"
               }
             ],
@@ -277,14 +285,34 @@
         "dependsOn": { "setting" : "mode", "value" : "tabs" },
         "settings" : [
           {
+            "type": "boolean",
+            "key": "tabsQuiet",
+            "label": "Quiet",
+            "defaultValue": false,
+            "dependsOn" : { "setting" :"tabsType", "value": "budibase"}
+          },
+          {
             "type": "select",
-            "key": "tabsDirection",
-            "label": "Direction",
+            "key": "tabsSize",
+            "label": "Size",
             "options" : [
-              { "label" : "Horizontal", "value" : "horizontal" },
-              { "label" : "Vertical", "value" : "vertical" }
+              { "label" : "Small", "value" : "2.5rem" },
+              { "label" : "Medium", "value" : "3rem" },
+              { "label" : "Large", "value" : "3.5rem" },
+              { "label" : "Extra Large", "value" : "4rem" }
             ],
-            "defaultValue" : "horizontal"
+            "defaultValue" : "3rem"
+          },
+          {
+            "type": "select",
+            "key": "tabsAlignment",
+            "label": "Text Align",
+            "options" : [
+              { "label" : "Left", "value" : "flex-start" },
+              { "label" : "Center", "value" : "center" },
+              { "label" : "Right", "value" : "flex-end" }
+            ],
+            "defaultValue" : "center"
           }
         ]
       }
