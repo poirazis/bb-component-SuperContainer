@@ -19,11 +19,11 @@
   style:--tabIndicatorTop = { vAlign ? tabs[selectedTab]?.offsetTop ?? "0px" : "0px" } 
   style:--tabIndicatorHeight = { vAlign ? tabs[selectedTab]?.clientHeight ?? "0px" : "0px" } 
   >
-  {#each containers as container, idx (container.id) }
+  {#each containers as container, idx }
     <div
       bind:this={tabs[container.id]} 
       class="tab"
-      class:selectedTab={ container.id == selectedTab }
+      class:selectedTab={container.id == selectedTab}
       style:flex={ ( direction == "row" && hAlign == "stretch" )
                   || ( direction == "column" && vAlign == "stretch" ) 
                   ? "auto" : "none"

@@ -8,7 +8,7 @@
   import fsm from "svelte-fsm"
   import { v4 as uuidv4 } from "uuid";
 
-  const { styleable, builderStore, Provider } = getContext("sdk")
+  const { styleable, builderStore, Provider, componentStore } = getContext("sdk")
   const component = getContext("component")
   const parentState = getContext("superLayoutManager")
    
@@ -44,14 +44,18 @@
   let initialHeight
   let grabberPosition
   let selectedTab = undefined
+  let repeatableItem
 
-  const id = uuidv4();
+  let componentID = $component.id
+  let id = uuidv4()
 
   const state = fsm ( mode , {
     "*" : {
-      registerContainer( id, state, title, icon, color ) { 
-        containers = [ ...containers, { id : id, state: state, title: title, icon: icon, color: color  } ] 
+      registerContainer(componentID, id, state, title, icon, color ) {         
+        containers = [ ...containers, {componentID: componentID, id : id, state: state, title: title, icon: icon, color: color  } ] 
         if ( mode == "tabs" && selectedTab ) state.hide(); 
+        if ( mode == "tabs" ) state.setGrow(true);
+        if ( mode == "tabs" && selectedTab == undefined ) selectedTab = id;
       },
       updateContainer ( id , state, title, icon , color ) {
         let index = containers.findIndex( (e) => e.id == id )
@@ -74,13 +78,21 @@
         }
       },
       setMode ( mode ) {
-        console.log("Switching Mode to ", mode )
         this.setResizingGrabbers();
         return mode 
       },
       refresh() { 
         this.refreshTabs( selectedTab );
       },
+      selectChild( compID ) { 
+        if ( mode == "tabs" ) {
+          containers.forEach( ( { componentID, id, state } ) => { 
+            if ( componentID == compID ) {
+              this.selectTab( id )
+            }
+          } )
+        }
+       },
       setGrow ( bool ) { bool ? managedFlexGrow = "1" : managedFlexGrow = undefined },
       setShrink () { managedFlexShrink = "0"},
       setFixedWidth () {},
@@ -102,8 +114,7 @@
       },
       stopResizing( e ) { resizing = false },
       hide() { return "hidden" },
-      show() { return mode },
-      printName() { console.log($component.name, $state , $parentState , containers ) }
+      show() { return mode }
     },
     "hidden" : { },
     "disabled" : {},
@@ -133,23 +144,25 @@
 
     },
     "tabs" : {
-      _enter() { if (containers.length > 0) this.selectTab(containers[0].id) },
+      _enter() { 
+        containers.forEach( ( { id, state }, idx  ) => {
+          if ( idx == 0 ) this.selectTab(id);
+          state.hide(); 
+          state.setGrow(true) 
+        } )
+      },
       _exit() { 
         selectedTab == undefined; 
         containers.forEach( ( { state } ) => { state.show(); state.setGrow(false) } )},
       selectTab ( tabId ) { 
-        console.log("Selecting " , tabId)
-        if ( tabId ) 
-          containers.forEach( ( { id, state } ) => { 
-            if ( id == tabId ) {
-              state.show()
-              state.setGrow( true )
-              selectedTab = tabId
-            }
-            else {
-              state.hide()
-            }
-          })
+        containers.forEach( ( {id, state } ) => { 
+          if ( tabId == id ) {
+            state.show();
+            selectedTab = id;
+          } else {
+            state.hide();
+          }
+        } )
       },
     }
   })
@@ -158,9 +171,16 @@
   $: nested = component ? $component.ancestors[$component.ancestors.length - 2] == "plugin/bb-component-SuperContainer" : false
   $: state.setMode ( mode )
   $: if ( parentState ) parentState.updateContainer( id, state, title, icon, color )
-  $: if ( containers.length > 0 && mode == "tabs" && selectedTab == undefined ) state.selectTab(containers[0].id)
+//  $: if ( containers.length > 0 && mode == "tabs" && selectedTab == undefined ) state.selectTab(containers[0].id)
+  $: {
+    if (
+      $builderStore.inBuilder && parentState
+      && $componentStore.selectedComponentPath?.includes($component.id)
+    ) {
+      parentState.selectChild($component.id)
+    }
+  }
 
-  $: !nested ? console.log(bound,containers) : null 
 
   $: $component.styles = { 
     ...$component.styles,
@@ -191,12 +211,13 @@
    }
 
   onMount(() => {
-    if ( parentState && nested ) parentState.registerContainer( id, state, title, icon, color )
+    if ( parentState && nested ) {
+      parentState.registerContainer(componentID, id, state, title, icon, color )
+    }
   })
 
   onDestroy(() => { 
     if ( parentState && nested ) {
-      console.log("Umounting", )
       parentState.unregisterContainer( id )
     }
   })
