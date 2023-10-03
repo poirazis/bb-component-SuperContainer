@@ -1,16 +1,7 @@
 <script>
   export let inBuilder = true
-  export let empty = true
   export let mode = "container"
 </script>
-
-{#if empty}
-  <p class="welcome">
-    When in Repeater Mode the Super Container will repeat its child components 
-    once for every Record. If you want to use the Layout Capabilities, make sure 
-    you wrap everything in a Super Container.
-  </p>
-{/if}
 
 {#if inBuilder}
 

@@ -2,8 +2,6 @@
   export let grabberPosition
   export let state
   export let resizing
-
-
 </script>
 
 <div 
@@ -20,13 +18,13 @@
 <style>
   .grabber {
     position: absolute;
-    background-color: rgba(255,255,255, 0.085);
+    background-color: var(--spectrum-global-color-gray-200);
     cursor: var(--pointer);
-    --grabber-thickness: 8px;
+    --grabber-thickness: 4px;
   }
 
   .resizing {
-    background-color: rgba(255,255,255, 0.285);
+    background-color: var(--spectrum-global-color-blue-500);
   }
 
   .bottom {

@@ -10,31 +10,30 @@
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-{#key hAlign }
-  {#key vAlign}
+<div
+  class:tabsVertical = { direction == "column" } 
+  class:tabsHorizontal = { direction == "row" } 
+  style:justify-content = { direction == "row" ? hAlign : vAlign }
+  style:--tabIndicatorLeft = { hAlign ? tabs[selectedTab]?.offsetLeft ?? "0px" : "0px" } 
+  style:--tabIndicatorWidth = { hAlign ? tabs[selectedTab]?.clientWidth ?? "0px" : "0px"} 
+  style:--tabIndicatorTop = { vAlign ? tabs[selectedTab]?.offsetTop ?? "0px" : "0px" } 
+  style:--tabIndicatorHeight = { vAlign ? tabs[selectedTab]?.clientHeight ?? "0px" : "0px" } 
+  >
+  {#each containers as container, idx (container.id) }
     <div
-      class:tabsVertical = { direction == "column" } 
-      class:tabsHorizontal = { direction == "row" } 
-      style:justify-content = { direction == "row" ? hAlign : vAlign }
-      style:--tabIndicatorLeft = { tabs[selectedTab]?.offsetLeft ?? "0px" } 
-      style:--tabIndicatorWidth = { tabs[selectedTab]?.clientWidth ?? "0px" } 
-      style:--tabIndicatorTop = { tabs[selectedTab]?.offsetTop ?? "0px" } 
-      style:--tabIndicatorHeight = { tabs[selectedTab]?.clientHeight ?? "0px" } 
-      >
-      {#each containers as container, idx (container.id) }
-        <div
-        bind:this={tabs[container.id]} 
-        class="tab"
-        class:selectedTab={ container.id == selectedTab }
-        style:flex={ ( direction == "row" && hAlign == "stretch" )|| ( direction == "row" && vAlign == "stretch" ) ? "auto" : "none"}
-        on:click={() => state.selectTab(container.id)}
-        >
-          <span class="tabText">{ container.title || "Tab " + idx }</span>
-        </div>
-      {/each}
+      bind:this={tabs[container.id]} 
+      class="tab"
+      class:selectedTab={ container.id == selectedTab }
+      style:flex={ ( direction == "row" && hAlign == "stretch" )
+                  || ( direction == "column" && vAlign == "stretch" ) 
+                  ? "auto" : "none"
+                  }
+      on:click={() => state.selectTab(container.id)}
+    >
+      <span class="tabText">{ container.title || "Tab " + idx }</span>
     </div>
-  {/key}
-{/key}
+  {/each}
+</div>
 
 <style>
   .tabsHorizontal {
@@ -51,7 +50,7 @@
     content: "";
     background-color: rgba(255,255,255, 0.085);
     color: var(--primaryColor);
-    transition: all 230ms ease-out;
+    transition: all 130ms ease-out;
     border-bottom: calc( 0.05 * var(--tab-size)) solid var(--primaryColor);
     z-index: 2;
   }
