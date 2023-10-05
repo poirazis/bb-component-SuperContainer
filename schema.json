@@ -67,12 +67,14 @@
       {
         "type": "icon",
         "key" : "icon",
-        "label": "Icon"
+        "label": "Icon",
+        "dependsOn": "hidden"
       },
       {
         "type": "color",
         "key" : "color",
-        "label": "Color"
+        "label": "Color",
+        "dependsOn": "hidden"
       },
       {
         "type" :"boolean",

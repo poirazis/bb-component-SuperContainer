@@ -57,7 +57,7 @@
     "*": {
       synch(parentState) {
         if (parentState == "grid") return "gridItem";
-        if (parentState == "tabs") return "hidden";
+        if (parentState == "tabs") return "tabItem";
         if (parentState == "container") return "containerItem";
         if (parentState == "accordion") return "accordionItem";
         if (parentState == "splitview") return "splitviewItem";
@@ -68,7 +68,7 @@
     },
     hidden: {
       activate() {
-        return "tabItem";
+        return "activeTabItem";
       },
     },
     disabled: {},
@@ -111,13 +111,23 @@
     tabItem: {
       _enter() {
         this.refresh();
+        },
       },
-    },
-    refresh() {
-      childCssVariables = {
-        flex: "1 0 auto",
-      };
-    },
+      refresh() {
+        childCssVariables = {
+          flex: "1 0 auto",
+        };
+      },
+    activeTabItem : {
+      _enter() {
+        this.refresh();
+      },
+      refresh() {
+        childCssVariables = {
+          flex: "1 0 auto",
+        }
+      }
+    }
   });
 
   const state = fsm(mode, {
@@ -333,8 +343,6 @@
     }
   });
   setContext("superLayoutManager", state);
-
-  $: console.log($childState, $state, containers, theme);
 </script>
 
 <svelte:window
@@ -342,7 +350,7 @@
   on:mousemove={(e) => (resizing ? state.resize(e) : null)}
 />
 
-{#if $childState != "hidden"}
+{#if $childState != "hidden" && $childState != "tabItem" }
   <div
     bind:this={container}
     class:container-item={$childState == "containerItem"}
