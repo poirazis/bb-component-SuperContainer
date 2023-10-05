@@ -24,7 +24,7 @@
           { "label" : "Container", "value" : "container" },
           { "label" : "SplitView", "value" : "splitview" },
           { "label" : "Tabs", "value" : "tabs" },
-          { "label" : "Cards", "value" : "grid" },
+          { "label" : "Grid", "value" : "grid" },
           { "label" : "Accordion", "value" : "accordion" },
           { "label" : "List", "value" : "list" },
           { "label" : "Treeview", "value" : "tree"},
@@ -278,6 +278,27 @@
             "key": "onClick"
           }
         ]
+      },
+      {
+        "section" : true,
+        "name" : "Grid Options",
+        "dependsOn" : { "setting" : "mode", "value" : "grid"},
+        "settings" : [ 
+          {
+            "type": "number",
+            "key" : "gridColumns",
+            "label" : "Columns",
+            "min" : 1,
+            "defaultValue" : 3 
+          }, 
+          {
+            "type": "number",
+            "key" : "gridRows",
+            "label" : "Rows",
+            "min" : 1,
+            "defaultValue" : 3 
+          } 
+      ]
       },
       {
         "section": true,

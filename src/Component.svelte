@@ -27,15 +27,16 @@
   export let tabsAlignment
   export let tabsQuiet
 
+  export let gridColumns = 3
+  export let gridRows = 3 
+
   export let title, icon, color 
 
   export let onClick
 
   let containers = []
-
   let container
-  let managedFlexGrow
-  let managedFlexShrink
+
   let resizing
   let startPointX
   let startPointY
@@ -44,23 +45,73 @@
   let initialHeight
   let grabberPosition
   let selectedTab = undefined
-  let repeatableItem
 
   let componentID = $component.id
   let id = uuidv4()
+  let childCssVariables = {}
+  let cssVariables = {}
+
+  const childState = fsm ( "containerItem", {
+    "*" : {
+      synch ( parentState ) { 
+        if ( parentState == "grid") return "gridItem"
+        if ( parentState == "tabs") return "hideen"
+        if ( parentState == "container") return "containerItem"
+        if ( parentState == "accordion") return "accordionItem"
+        if ( parentState == "splitview") return "splitviewItem"
+       },
+       deactivate() { return "hidden" }
+    },
+    "hidden":  { 
+      activate() { return "tabItem" }
+    },
+    "disabled" : { },
+    "containerItem" :{ 
+      _enter() { this.refresh() },
+      refresh() { 
+        childCssVariables = {}
+      }
+    },
+    "accordionItem" : { },
+    "splitviewIem" : { 
+      _enter() { 
+        this.refresh()
+      },
+      refresh() { 
+        childCssVariables = { "flex-grow" : "1" }
+      }
+    },
+    "gridItem" : { 
+      _enter() { this.refresh() },
+      refresh() {
+        childCssVariables = {
+          "width" : "100%",
+          "height" : "100%"
+        }
+      }
+    },
+    "tabItem" : { 
+      _enter() { 
+        this.refresh() }
+      },
+      refresh() { 
+        childCssVariables = {
+          "flex" : "1 0 auto",
+          "width" : "100%",
+          "height" : "100%"
+        }
+      }
+  } )
 
   const state = fsm ( mode , {
     "*" : {
-      registerContainer(componentID, id, state, title, icon, color ) {         
+      registerContainer(componentID, id, state, title, icon, color ) {  
+        if ( mode == "tabs" && selectedTab == undefined ) selectedTab = id;       
         containers = [ ...containers, {componentID: componentID, id : id, state: state, title: title, icon: icon, color: color  } ] 
-        if ( mode == "tabs" && selectedTab ) state.hide(); 
-        if ( mode == "tabs" ) state.setGrow(true);
-        if ( mode == "tabs" && selectedTab == undefined ) selectedTab = id;
       },
       updateContainer ( id , state, title, icon , color ) {
         let index = containers.findIndex( (e) => e.id == id )
         if ( index > -1 ) {
-          containers[index].state = state
           containers[index].title = title
           containers[index].icon = icon
           containers[index].color = color
@@ -77,26 +128,17 @@
           containers = containers
         }
       },
-      setMode ( mode ) {
-        this.setResizingGrabbers();
-        return mode 
-      },
+      setMode ( mode ) { return mode },
       refresh() { 
-        this.refreshTabs( selectedTab );
+        
       },
       selectChild( compID ) { 
         if ( mode == "tabs" ) {
-          containers.forEach( ( { componentID, id, state } ) => { 
-            if ( componentID == compID ) {
-              this.selectTab( id )
-            }
-          } )
+          let pos = containers.findIndex ( ( v ) => v.componentID == compID )
+          if ( pos > -1 )
+            this.selectTab( containers[pos].id )
         }
        },
-      setGrow ( bool ) { bool ? managedFlexGrow = "1" : managedFlexGrow = undefined },
-      setShrink () { managedFlexShrink = "0"},
-      setFixedWidth () {},
-      setFixedHeight () {},
       setResizing ( pos ) { grabberPosition = pos; },
       startResizing( e ) { 
         resizing = true 
@@ -113,22 +155,55 @@
         }
       },
       stopResizing( e ) { resizing = false },
-      hide() { return "hidden" },
-      show() { return mode }
+      hide() { childState.deactivate() },
+      show() { childState.activate() },
+      synchProperties () { 
+        childState.refresh();
+        this.refresh();
+        return mode 
+      }
     },
-    "hidden" : { },
-    "disabled" : {},
+    "disabled" : { },
+    "accordion" : { },
     "container" : { 
+      _enter() { 
+        this.refresh() 
+      },
+      refresh() { 
+        cssVariables = {
+          "display" : "flex",
+          "flex-direction" : direction,
+          "flex-wrap" : wrap ? "wrap" : "nowrap",
+          "justify-content": direction == "row" ? hAlign : vAlign,
+          "align-items": direction == "row" ? vAlign : hAlign,
+          "align-content": wrap ? direction == "row" ? vAlign : hAlign : null,
+          "gap" : gap 
+        }
+      }
     },
-    "grid" : { },
+    "grid" : { 
+      _enter() { this.refresh() },
+      refresh() {
+        cssVariables = {
+          "justify-items" : hAlign,
+          "align-items" : vAlign,
+          "--grid-columns": gridColumns,
+          "--grid-rows": gridRows,
+          "--grid-gap" : gap 
+        }
+      }
+    },
     "splitview" : {
-      _enter() {
-        this.setResizingGrabbers.debounce( 100 )
+      _enter() { this.refresh() },
+      refresh() { 
+        cssVariables = {
+          "flex-direction" : direction,
+          "justify-content" : "stretch"
+        }
+        this.setResizingGrabbers.debounce( 20 ) 
       },
       setResizingGrabbers() {         
         containers.forEach( ( { state } , idx ) => { 
-          state.show() 
-          state.setGrow( true )
           if ( direction == "row" && idx < containers.length - 1) 
             state.setResizing ( "right" )
           else if ( direction == "column" && idx < containers.length - 1) 
@@ -136,24 +211,23 @@
         }) },
       _exit() {
         containers.forEach( ( { state } ) => { 
-          state.setGrow ( false )
           state.setResizing( null ) }) 
       }
     },
-    "accordion" : {
-
-    },
     "tabs" : {
       _enter() { 
-        containers.forEach( ( { id, state }, idx  ) => {
-          if ( idx == 0 ) this.selectTab(id);
-          state.hide(); 
-          state.setGrow(true) 
-        } )
+        this.refresh() 
       },
-      _exit() { 
-        selectedTab == undefined; 
-        containers.forEach( ( { state } ) => { state.show(); state.setGrow(false) } )},
+      _exit() { selectedTab == undefined; }, 
+      refresh() { 
+        cssVariables = {
+          "flex-direction" : direction == "row" ? "column" : "row",
+          "--tab-size": tabsSize ,
+          "--tab-alignment": tabsAlignment ,
+          "--tab-track-thickness": tabsQuiet ? "0px" : "calc( 0.05 * var(--tab-size) )"
+        }
+        if ( selectedTab ) this.selectTab(selectedTab);
+      },
       selectTab ( tabId ) { 
         containers.forEach( ( {id, state } ) => { 
           if ( tabId == id ) {
@@ -169,9 +243,11 @@
 
   $: randomColor = bound ? "32CD3230" : Math.floor(Math.random()*16777215).toString(16) + "50";
   $: nested = component ? $component.ancestors[$component.ancestors.length - 2] == "plugin/bb-component-SuperContainer" : false
-  $: state.setMode ( mode )
-  $: if ( parentState ) parentState.updateContainer( id, state, title, icon, color )
-//  $: if ( containers.length > 0 && mode == "tabs" && selectedTab == undefined ) state.selectTab(containers[0].id)
+
+  $: state.synchProperties( $$props ) 
+  $: if ( parentState ) childState.synch( $parentState )
+  $: if ( parentState ) parentState.updateContainer( id, title, icon, color )
+
   $: {
     if (
       $builderStore.inBuilder && parentState
@@ -181,32 +257,19 @@
     }
   }
 
-
   $: $component.styles = { 
     ...$component.styles,
     normal: { 
       ...$component.styles.normal,
-      "flex-grow": managedFlexGrow ? managedFlexGrow : flex == "grow" ? flexFactor : "0",
-      "justify-content": mode == "container" ? direction == "row" ? hAlign : vAlign : "stretch",
-      "align-items": mode == "container" ? direction == "row" ? vAlign : hAlign : "stretch",
-      "display": "flex",
-      "flex-direction": mode == "tabs" ? direction == "column" ? "row" : "column" : direction,
-      "gap": mode != "splitview" ? gap : "0",
-      "flex-wrap" : wrap ? "wrap" : "nowrap",
-      "align-content": wrap ? direction == "row" ? vAlign : hAlign : null,
-      "min-width" : width ?? $component.styles.normal.width ?? null,
-      "max-width" : width ?? $component.styles.normal.width ?? null,
-      "min-height": height ?? $component.styles.normal.height ?? null,
-      "max-height": height ?? $component.styles.normal.height ?? null,
-      "overflow" : "auto",
+      ...childCssVariables,
+      ...cssVariables,
+      "flex" : $childState == "tabItem" ? "1 0 auto" : flex == "grow" ? flexFactor + " 0 auto" : "0 0 auto",
       "--random-color" : "#" + randomColor,
-      "--tab-size": mode == "tabs" ? tabsSize : null,
-      "--tab-alignment": mode == "tabs" ? tabsAlignment : null,
-      "--tab-track-thickness": mode == "tabs" ? tabsQuiet ? "0px" : "calc( 0.05 * var(--tab-size) )" : null,
+      "overflow" : "auto",
       "--spectrum-opacity-checkerboard-square-dark": "var(--spectrum-global-color-gray-50)",
       "--spectrum-opacity-checkerboard-square-light": bound ? "var(--random-color)" : "var(--spectrum-global-color-gray-75)",
       "--spectrum-opacity-checkerboard-square-size": "8px",
-      "--spectrum-opacity-checkerboard-position": "left top"
+      "--spectrum-opacity-checkerboard-position": "left top",
     }
    }
 
@@ -221,8 +284,9 @@
       parentState.unregisterContainer( id )
     }
   })
-
   setContext( "superLayoutManager", state )
+
+  $: console.log( $childState, $state, containers)
 </script>
 
 <svelte:window 
@@ -230,15 +294,26 @@
   on:mousemove={ (e) => resizing ? state.resize ( e ) : null }
   />
 
-  {#if $state != "hidden"}
+  {#if $childState != "hidden"}
     <div 
       bind:this={container}
-      class="superContainer"
+
+      class:container-item={$childState == "containerItem"}
+      class:accordion-item={$childState == "accordionItem"}
+      class:grid-item={$childState == "gridItem"}
+      class:tab-item={$childState == "tabItem" || $childState == "hidden"}
+      class:splitview-item={$childState == "splitviewItem"}
+
+      class:container={$state == "container"}
+      class:accordion={$state == "accordion"}
+      class:grid={$state == "grid"}
+      class:tabs={$state == "tabs"}
+      class:splitview={$state == "splitview"}
+
       class:nested={$builderStore.inBuilder && nested}
       class:spectrum-OpacityCheckerboard={$builderStore.inBuilder}
-      class:grid={mode == "grid" }
       use:styleable={$component.styles}
-      >
+    >
 
       {#if mode == "tabs"}
         <TabControl 
@@ -276,28 +351,63 @@
     </div>
   {/if}
 <style>
-  .superContainer {
-    flex: auto;
+  .container {
     position: relative;
-    display: flex;
+  }
+  .container-item {
+    flex: var(--flex-factor);
+  }
+  .grid {
+    display: grid;
+    position: relative;
+    grid-template-columns: repeat(var(--grid-columns), 1fr);
+    grid-template-rows: repeat(var(--grid-rows), 1fr);
+    grid-column-gap: var(--grid-gap);
+    grid-row-gap: var(--grid-gap); 
+  }
+  .grid-item {
+    grid-column-start:  auto;
+    grid-column-end: auto;
+    grid-row-start:  auto;
+    grid-row-end : auto;
+  }
+  .accordion {
+    position: relative;
   }
 
+  .accordion-item {
+    border: 4px solid lime;
+  }
+  .tabs {
+    display: flex;
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  .tab-item {
+    flex: 1 1 auto;
+  }
+
+  .splitview {
+    display: flex;
+  }
+  .splitview-item {
+    width: 100%;
+    height: 100%;
+  }
+
+  .nested {
+    --spectrum-opacity-checkerboard-square-dark: var(--random-color) !important ;
+  }
   .spectrum-OpacityCheckerboard {
     block-size: unset;
     inline-size: unset;
   }
-  .nested {
-    --spectrum-opacity-checkerboard-square-dark: var(--random-color) !important ;
-  }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(3, 1fr);
-    grid-column-gap: 10px;
-    grid-row-gap: 10px; 
-  }
-
   :global(.grid > .component) {
     display: inline;
+    grid-template-columns: repeat(var(--grid-columns), 1fr);
+    grid-template-rows: repeat(var(--grid-rows), 1fr);
+    grid-column-gap: var(--grid-gap);
+    grid-row-gap: var(--grid-gap); 
   }
 </style>

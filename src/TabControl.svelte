@@ -1,4 +1,6 @@
 <script>
+  import { afterUpdate } from "svelte";
+
   export let containers
   export let direction
   export let selectedTab
@@ -6,34 +8,54 @@
   export let vAlign
   export let state
   
-  let tabs = []
+  let tabs = []  
+
+  let indicatorLeft, indicatorWidth, indicatorTop, indicatorHeight
+
+  const getIndicatorPosition = () => {
+    if ( tabs[selectedTab] ) {
+      indicatorLeft = tabs[selectedTab].offsetLeft
+      indicatorWidth = tabs[selectedTab].clientWidth
+      indicatorTop = tabs[selectedTab].offsetTop
+      indicatorHeight = tabs[selectedTab].clientHeight
+    }
+  }
+
+  afterUpdate(() => {
+    if ( tabs[selectedTab] ) {
+      setTimeout( getIndicatorPosition , 50 ); 
+    }
+  })
+
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div
-  class:tabsVertical = { direction == "column" } 
-  class:tabsHorizontal = { direction == "row" } 
-  style:justify-content = { direction == "row" ? hAlign : vAlign }
-  style:--tabIndicatorLeft = { hAlign ? tabs[selectedTab]?.offsetLeft ?? "0px" : "0px" } 
-  style:--tabIndicatorWidth = { hAlign ? tabs[selectedTab]?.clientWidth ?? "0px" : "0px"} 
-  style:--tabIndicatorTop = { vAlign ? tabs[selectedTab]?.offsetTop ?? "0px" : "0px" } 
-  style:--tabIndicatorHeight = { vAlign ? tabs[selectedTab]?.clientHeight ?? "0px" : "0px" } 
-  >
-  {#each containers as container, idx }
-    <div
-      bind:this={tabs[container.id]} 
-      class="tab"
-      class:selectedTab={container.id == selectedTab}
-      style:flex={ ( direction == "row" && hAlign == "stretch" )
-                  || ( direction == "column" && vAlign == "stretch" ) 
-                  ? "auto" : "none"
-                  }
-      on:click={() => state.selectTab(container.id)}
+{#if selectedTab}
+  <div
+    class:tabsVertical = { direction == "column" } 
+    class:tabsHorizontal = { direction == "row" } 
+    style:justify-content = { direction == "row" ? hAlign : vAlign }
+    style:--tabIndicatorLeft = { indicatorLeft } 
+    style:--tabIndicatorWidth = { indicatorWidth } 
+    style:--tabIndicatorTop = { indicatorTop } 
+    style:--tabIndicatorHeight = { indicatorHeight } 
     >
-      <span class="tabText">{ container.title || "Tab " + idx }</span>
-    </div>
-  {/each}
-</div>
+      {#each containers as container, idx }
+        <div
+          bind:this={tabs[container.id]} 
+          class="tab"
+          class:selectedTab={container.id == selectedTab}
+          style:flex={ ( direction == "row" && hAlign == "stretch" )
+                      || ( direction == "column" && vAlign == "stretch" ) 
+                      ? "auto" : "none"
+                      }
+          on:click={() => state.selectTab(container.id)}
+        >
+          <span class="tabText">{ container.title || "Tab " + idx }</span>
+        </div>
+      {/each}
+  </div>
+{/if}
 
 <style>
   .tabsHorizontal {
