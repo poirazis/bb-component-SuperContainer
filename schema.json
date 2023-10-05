@@ -37,16 +37,6 @@
       },
       {
         "type": "select",
-        "key": "tabsType",
-        "label": "Theme",
-        "options" : [
-          { "label" : "Budibase", "value" : "budibase" },
-          { "label" : "Buttons", "value" : "buttons" }
-        ],
-        "defaultValue" : "budibase"
-      },
-      {
-        "type": "select",
         "label": "Size",
         "key": "flex",
         "showInBar": true,
@@ -305,6 +295,16 @@
         "name": "Tab Options",
         "dependsOn": { "setting" : "mode", "value" : "tabs" },
         "settings" : [
+          {
+            "type": "select",
+            "key": "theme",
+            "label": "Theme",
+            "options" : [
+              { "label" : "Budibase", "value" : "budibase" },
+              { "label" : "Buttons", "value" : "buttons" }
+            ],
+            "defaultValue" : "budibase"
+          },
           {
             "type": "boolean",
             "key": "tabsQuiet",

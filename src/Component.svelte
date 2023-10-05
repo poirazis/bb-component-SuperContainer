@@ -26,6 +26,7 @@
   export let tabsSize
   export let tabsAlignment
   export let tabsQuiet
+  export let theme
 
   export let gridColumns = 3
   export let gridRows = 3 
@@ -55,7 +56,7 @@
     "*" : {
       synch ( parentState ) { 
         if ( parentState == "grid") return "gridItem"
-        if ( parentState == "tabs") return "hideen"
+        if ( parentState == "tabs") return "hidden"
         if ( parentState == "container") return "containerItem"
         if ( parentState == "accordion") return "accordionItem"
         if ( parentState == "splitview") return "splitviewItem"
@@ -69,16 +70,24 @@
     "containerItem" :{ 
       _enter() { this.refresh() },
       refresh() { 
-        childCssVariables = {}
+        childCssVariables = {
+          "flex" : flex == "grow" ? flexFactor + " 0 auto" : "0 0 auto"
+        }
       }
     },
     "accordionItem" : { },
-    "splitviewIem" : { 
+    "splitviewItem" : { 
       _enter() { 
         this.refresh()
       },
       refresh() { 
-        childCssVariables = { "flex-grow" : "1" }
+        childCssVariables = { 
+          "flex": flexFactor + " 0 auto",
+          "min-width" : width ? width : "auto",
+          "max-width" : width ? width : "auto",
+          "min-height" : height ? height : "auto",
+          "max-height" : height ? height : "auto"
+        }
       }
     },
     "gridItem" : { 
@@ -96,9 +105,7 @@
       },
       refresh() { 
         childCssVariables = {
-          "flex" : "1 0 auto",
-          "width" : "100%",
-          "height" : "100%"
+          "flex" : "1 0 auto"
         }
       }
   } )
@@ -109,7 +116,7 @@
         if ( mode == "tabs" && selectedTab == undefined ) selectedTab = id;       
         containers = [ ...containers, {componentID: componentID, id : id, state: state, title: title, icon: icon, color: color  } ] 
       },
-      updateContainer ( id , state, title, icon , color ) {
+      updateContainer ( id , title, icon , color ) {
         let index = containers.findIndex( (e) => e.id == id )
         if ( index > -1 ) {
           containers[index].title = title
@@ -121,11 +128,9 @@
       unregisterContainer( id ) { 
         let index = containers.findIndex( (e) => e.id == id )
         if ( index > -1 ) {
-          if ( selectedTab == id ) {
-            selectedTab = undefined
-          }
           containers.splice(index,1)
           containers = containers
+          if ( mode == "tabs" && containers.length > 0 ) selectedTab = containers[0].id ;
         }
       },
       setMode ( mode ) { return mode },
@@ -153,6 +158,8 @@
         } else {
           height = initialHeight + ( e.clientY - startPointY )
         }
+
+        childState.refresh();
       },
       stopResizing( e ) { resizing = false },
       hide() { childState.deactivate() },
@@ -222,9 +229,6 @@
       refresh() { 
         cssVariables = {
           "flex-direction" : direction == "row" ? "column" : "row",
-          "--tab-size": tabsSize ,
-          "--tab-alignment": tabsAlignment ,
-          "--tab-track-thickness": tabsQuiet ? "0px" : "calc( 0.05 * var(--tab-size) )"
         }
         if ( selectedTab ) this.selectTab(selectedTab);
       },
@@ -246,7 +250,7 @@
 
   $: state.synchProperties( $$props ) 
   $: if ( parentState ) childState.synch( $parentState )
-  $: if ( parentState ) parentState.updateContainer( id, title, icon, color )
+  $: parentState?.updateContainer( id, title, icon, color )
 
   $: {
     if (
@@ -263,7 +267,6 @@
       ...$component.styles.normal,
       ...childCssVariables,
       ...cssVariables,
-      "flex" : $childState == "tabItem" ? "1 0 auto" : flex == "grow" ? flexFactor + " 0 auto" : "0 0 auto",
       "--random-color" : "#" + randomColor,
       "overflow" : "auto",
       "--spectrum-opacity-checkerboard-square-dark": "var(--spectrum-global-color-gray-50)",
@@ -286,7 +289,7 @@
   })
   setContext( "superLayoutManager", state )
 
-  $: console.log( $childState, $state, containers)
+  $: console.log( $childState, $state, containers, theme)
 </script>
 
 <svelte:window 
@@ -323,6 +326,10 @@
           {direction}
           {selectedTab}
           {state}
+          {theme}
+          {tabsQuiet}
+          {tabsAlignment}
+          {tabsSize}
         />
       {/if}
 
@@ -390,10 +397,11 @@
 
   .splitview {
     display: flex;
+    align-items: stretch;
+    justify-content: stretch;
   }
   .splitview-item {
-    width: 100%;
-    height: 100%;
+    flex: 1 1 auto;
   }
 
   .nested {

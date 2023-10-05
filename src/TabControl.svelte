@@ -1,12 +1,14 @@
 <script>
-  import { afterUpdate } from "svelte";
-
   export let containers
   export let direction
   export let selectedTab
   export let hAlign
   export let vAlign
   export let state
+  export let theme
+  export let tabsQuiet 
+  export let tabsSize
+  export let tabsAlignment
   
   let tabs = []  
 
@@ -21,47 +23,46 @@
     }
   }
 
-  afterUpdate(() => {
-    if ( tabs[selectedTab] ) {
-      setTimeout( getIndicatorPosition , 50 ); 
-    }
-  })
-
+  $: setTimeout(() => getIndicatorPosition($$props, tabs) , 50 ) 
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-{#if selectedTab}
-  <div
-    class:tabsVertical = { direction == "column" } 
-    class:tabsHorizontal = { direction == "row" } 
-    style:justify-content = { direction == "row" ? hAlign : vAlign }
-    style:--tabIndicatorLeft = { indicatorLeft } 
-    style:--tabIndicatorWidth = { indicatorWidth } 
-    style:--tabIndicatorTop = { indicatorTop } 
-    style:--tabIndicatorHeight = { indicatorHeight } 
-    >
-      {#each containers as container, idx }
-        <div
-          bind:this={tabs[container.id]} 
-          class="tab"
-          class:selectedTab={container.id == selectedTab}
-          style:flex={ ( direction == "row" && hAlign == "stretch" )
-                      || ( direction == "column" && vAlign == "stretch" ) 
-                      ? "auto" : "none"
-                      }
-          on:click={() => state.selectTab(container.id)}
-        >
-          <span class="tabText">{ container.title || "Tab " + idx }</span>
-        </div>
-      {/each}
-  </div>
-{/if}
+<div
+  class:tabsVertical = { direction == "column" } 
+  class:tabsHorizontal = { direction == "row" } 
+  style:justify-content = { direction == "row" ? hAlign : vAlign }
+  style:--tab-size={tabsSize}
+  style:--tab-alignment={ tabsAlignment } 
+  style:--tab-track-thickness={ "calc( 0.1 * var(--tab-size) )" }
+  style:--tabIndicatorLeft = { indicatorLeft } 
+  style:--tabIndicatorWidth = { indicatorWidth } 
+  style:--tabIndicatorTop = { indicatorTop } 
+  style:--tabIndicatorHeight = { indicatorHeight } 
+  style:--tabIndicatorFillColor = { theme == "budibase" ? "transparent" : "rgba(255,255,255, 0.085)"}
+  style:--tabControlFillColor = { theme == "budibase" ? "transparent" : "rgba(0,0,0, 0.085)"}
+  style:--tabControlTrackFillColor = { theme == "budibase" && tabsQuiet ? "transparent" : "var(--spectrum-global-color-gray-200)"}
+  >
+    {#each containers as container, idx }
+      <div
+        bind:this={tabs[container.id]} 
+        class="tab"
+        class:selectedTab={container.id == selectedTab}
+        style:flex={ ( direction == "row" && hAlign == "stretch" )
+                    || ( direction == "column" && vAlign == "stretch" ) 
+                    ? "auto" : "none"
+                    }
+        on:click={() => state.selectTab(container.id)}
+      >
+        <span class="tabText">{ container.title || "Tab " + idx }</span>
+      </div>
+    {/each}
+</div>
 
 <style>
   .tabsHorizontal {
     position: relative;
     display: flex;
-    background-color: rgba(0,0,0, 0.085);
+    background-color: var(--tabControlFillColor );
   }
   .tabsHorizontal::before {
     position: absolute;
@@ -70,10 +71,10 @@
     bottom: 0;
     width: var(--tabIndicatorWidth);
     content: "";
-    background-color: rgba(255,255,255, 0.085);
+    background-color: var(--tabIndicatorFillColor );
     color: var(--primaryColor);
     transition: all 130ms ease-out;
-    border-bottom: calc( 0.05 * var(--tab-size)) solid var(--primaryColor);
+    border-bottom: var(--tab-track-thickness) solid var(--primaryColor);
     z-index: 2;
   }
 
@@ -82,7 +83,7 @@
     height: var(--tab-track-thickness);
     width: 100%;
     bottom: 0px;
-    background-color: rgba(0,0,0, 0.085);
+    background-color: var(--tabControlTrackFillColor);
     z-index: 1;
     content: "";
   }
@@ -92,7 +93,7 @@
     position: relative;
     flex-direction: column;
     min-width: 0;
-    background-color: rgba(0,0,0, 0.385);
+    background-color: var(--tabControlFillColor );
   }
   .tabsVertical::before {
     position: absolute;
@@ -101,9 +102,9 @@
     height: var(--tabIndicatorHeight);
     width: 100%;
     content: "";
-    background-color: rgba(255,255,255, 0.385);
+    background-color: var(--tabIndicatorFillColor );
     transition: all 230ms;
-    border-right: calc( 0.075 * var(--tab-size) ) solid transparent;
+    border-right: calc( 0.075 * var(--tab-size) ) solid var(--primaryColor);
     z-index: 2;
   }
 
@@ -112,7 +113,7 @@
     width: var(--tab-track-thickness);
     height: 100%;
     right: 0px;
-    background-color: rgba(0,0,0, 0.085);
+    background-color: var(--tabControlFillColor );
     z-index: 1;
     content: "";
   }
