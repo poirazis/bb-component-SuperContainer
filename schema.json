@@ -24,14 +24,7 @@
           { "label" : "Container", "value" : "container" },
           { "label" : "SplitView", "value" : "splitview" },
           { "label" : "Tabs", "value" : "tabs" },
-          { "label" : "Grid", "value" : "grid" },
-          { "label" : "Accordion", "value" : "accordion" },
-          { "label" : "List", "value" : "list" },
-          { "label" : "Treeview", "value" : "tree"},
-          { "label" : "Graph", "value": "graph"},
-          { "label" : "Masonry", "value" : "masonry" },
-          { "label" : "Slider", "value" : "slider" },
-          { "label" : "Scrollbox", "value" : "modal" }
+          { "label" : "Grid", "value" : "grid" }
         ],
         "defaultValue" : "container"
       },
