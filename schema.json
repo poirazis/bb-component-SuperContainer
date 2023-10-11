@@ -291,6 +291,11 @@
         "dependsOn": { "setting" : "mode", "value" : "tabs" },
         "settings" : [
           {
+            "type" : "text",
+            "key" : "activeTab",
+            "label" : "Active Tab"
+          },
+          {
             "type": "select",
             "key": "theme",
             "label": "Theme",
