@@ -27,6 +27,7 @@
   export let tabsSize;
   export let tabsAlignment;
   export let tabsQuiet;
+  export let activeTab = 0
   export let theme;
 
   export let gridColumns = 3;
@@ -61,6 +62,9 @@
         if (parentState == "container") return "containerItem";
         if (parentState == "accordion") return "accordionItem";
         if (parentState == "splitview") return "splitviewItem";
+      },
+      activate() {
+        return "activeTabItem";
       },
       deactivate() {
         return "hidden";
@@ -133,7 +137,6 @@
   const state = fsm(mode, {
     "*": {
       registerContainer(componentID, id, state, title, icon, color) {
-        if (mode == "tabs" && selectedTab == undefined) selectedTab = id;
         containers = [
           ...containers,
           {
@@ -276,7 +279,6 @@
         cssVariables = {
           "flex-direction": direction == "row" ? "column" : "row",
         };
-        if (selectedTab) this.selectTab(selectedTab);
       },
       selectTab(tabId) {
         containers.forEach(({ id, state }) => {
@@ -332,6 +334,13 @@
   };
 
   onMount(() => {
+    if ( mode == "tabs" && containers.length > 0 ) 
+    {
+      if ( Number(activeTab) >= 0 && Number(activeTab) < containers.length ) 
+        state.selectTab(containers[Number(activeTab)].id)
+      else
+        state.selectTab(containers[0].id)
+    }
     if (parentState && nested) {
       parentState.registerContainer(componentID, id, state, title, icon, color);
     }
@@ -364,10 +373,10 @@
     class:tabs={$state == "tabs"}
     class:splitview={$state == "splitview"}
     class:nested={$builderStore.inBuilder && nested}
-    class:spectrum-OpacityCheckerboard={$builderStore.inBuilder}
+    class:spectrum-OpacityCheckerboard={$builderStore.inBuilder && $component.children == 0}
     use:styleable={$component.styles}
   >
-    {#if mode == "tabs"}
+    {#if mode == "tabs" && containers.length > 0}
       <TabControl
         {containers}
         {hAlign}

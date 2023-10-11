@@ -23,7 +23,7 @@
     }
   }
 
-  $: setTimeout(() => getIndicatorPosition($$props, tabs) , 50 ) 
+  $: setTimeout(() => getIndicatorPosition($$props, tabs) , 10 ) 
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -92,7 +92,7 @@
     display: flex;
     position: relative;
     flex-direction: column;
-    min-width: 0;
+    min-width: var(--tab-size);
     background-color: var(--tabControlFillColor );
   }
   .tabsVertical::before {
