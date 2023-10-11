@@ -276,6 +276,11 @@
         selectedTab == undefined;
       },
       refresh() {
+        if ( selectedTab )
+          this.selectTab(selectedTab)
+        else {
+          if (containers.length > 0) this.selectTab(containers[0].id)
+        }
         cssVariables = {
           "flex-direction": direction == "row" ? "column" : "row",
         };
