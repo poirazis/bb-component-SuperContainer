@@ -310,7 +310,7 @@
             "key": "tabsQuiet",
             "label": "Quiet",
             "defaultValue": false,
-            "dependsOn" : { "setting" :"tabsType", "value": "budibase"}
+            "dependsOn" : { "setting" :"theme", "value": "budibase"}
           },
           {
             "type": "select",

@@ -49,7 +49,7 @@
         class:selectedTab={container.id == selectedTab}
         style:flex={ ( direction == "row" && hAlign == "stretch" )
                     || ( direction == "column" && vAlign == "stretch" ) 
-                    ? "auto" : "none"
+                    ? "1 1 auto" : "0 0 auto"
                     }
         on:click={() => state.selectTab(container.id)}
       >
@@ -113,7 +113,7 @@
     width: var(--tab-track-thickness);
     height: 100%;
     right: 0px;
-    background-color: var(--tabControlFillColor );
+    background-color: var(--tabControlTrackFillColor);
     z-index: 1;
     content: "";
   }
