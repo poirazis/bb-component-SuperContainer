@@ -5,6 +5,7 @@
     "name": "bb-component-SuperContainer",
     "friendlyName": "Super Container",
     "description": "A Multi Layout Data Aware Container Component for Budibase",
+    "info": "Layout Modes require the immidiate child components to be Super Containers",
     "author" : "Michael Poirazi",
     "hasChildren" : true,
     "showEmptyState" : true,
@@ -27,6 +28,19 @@
           { "label" : "Grid", "value" : "grid" }
         ],
         "defaultValue" : "container"
+      },
+      {
+        "type": "select",
+        "key": "childMode",
+        "label": "Child Mode",
+        "options" : [
+          { "label" : "Container Item", "value" : "containerItem" },
+          { "label" : "SplitView Item", "value" : "splitviewItem" },
+          { "label" : "Tabs Item", "value" : "tabsItem" },
+          { "label" : "Grid Item", "value" : "gridItem" }
+        ],
+        "defaultValue" : "containerItem",
+        "dependsOn" : "hidden"
       },
       {
         "type": "select",
@@ -334,6 +348,27 @@
               { "label" : "Right", "value" : "flex-end" }
             ],
             "defaultValue" : "center"
+          }
+        ]
+      },
+      {
+        "section": true,
+        "name": "Grid Item Options",
+        "dependsOn": { "setting" : "childMode", "value" : "gridItem" },
+        "settings" : [
+          {
+            "type" : "number",
+            "key" : "colSpan",
+            "label" : "Column Span",
+            "min" : 0,
+            "defaultValue" : 1
+          },
+          {
+            "type" : "number",
+            "key" : "rowSpan",
+            "label" : "Row Span",
+            "min" : 0,
+            "defaultValue" : 1
           }
         ]
       }
