@@ -15,14 +15,14 @@
     regenerator-runtime "^0.14.0"
 
 "@budibase/backend-core@^2.10.2":
-  version "2.13.14"
-  resolved "https://registry.yarnpkg.com/@budibase/backend-core/-/backend-core-2.13.14.tgz#3e58c8c160b82024f2b0e072382690d7986e0bf0"
-  integrity sha512-dDGAD8MDo8M1nSn8bGxs4nIgh1rtojeVNBDZFMXeCvVQtW3S//pg29ulNkBZ2+JdjSbVSIIQcOuW9fAxkfVD6g==
+  version "2.13.15"
+  resolved "https://registry.yarnpkg.com/@budibase/backend-core/-/backend-core-2.13.15.tgz#e1a9201b8e12e7c9a74b9d8d66f83f9d7d9ac7cf"
+  integrity sha512-vBoNYWNYi+g59BDLOQhO/P/CfS5061eRRaLwpc3oPeFt9ks1JGm2lViGx9WMqGL7YGsRYBT7i7ztGhCzUBgg7A==
   dependencies:
     "@budibase/nano" "10.1.3"
     "@budibase/pouchdb-replication-stream" "1.2.10"
-    "@budibase/shared-core" "2.13.14"
-    "@budibase/types" "2.13.14"
+    "@budibase/shared-core" "2.13.15"
+    "@budibase/types" "2.13.15"
     "@techpass/passport-openidconnect" "0.3.2"
     aws-cloudfront-sign "3.0.2"
     aws-sdk "2.1030.0"
@@ -54,13 +54,13 @@
     uuid "8.3.2"
 
 "@budibase/bbui@^2.9.36":
-  version "2.13.14"
-  resolved "https://registry.yarnpkg.com/@budibase/bbui/-/bbui-2.13.14.tgz#5400162ad29b1aa5a4f4f2dc440709f47aaf6354"
-  integrity sha512-M4TLJWxUToO2qE6SZ+X0FjCkTO76vJDCAriP0aWA+BtESBLBpnZG9u7q2S6y0dkkgbzT4mI+DmCaTvHjLbGewQ==
+  version "2.13.15"
+  resolved "https://registry.yarnpkg.com/@budibase/bbui/-/bbui-2.13.15.tgz#d3475c3658db1cfb19eaa4692670c2e43fa11797"
+  integrity sha512-qh3p5blsfUeBkOlSpjuT3X2k5WRMpIFBYZo9bb2xBc2Pwc9br0UmhuLoq8WBEhK+/KwCZyePZyYeH/mvuNGE6w==
   dependencies:
     "@adobe/spectrum-css-workflow-icons" "1.2.1"
-    "@budibase/shared-core" "2.13.14"
-    "@budibase/string-templates" "2.13.14"
+    "@budibase/shared-core" "2.13.15"
+    "@budibase/string-templates" "2.13.15"
     "@spectrum-css/accordion" "3.0.24"
     "@spectrum-css/actionbutton" "1.0.1"
     "@spectrum-css/actiongroup" "1.0.1"
@@ -156,17 +156,17 @@
     pouchdb-promise "^6.0.4"
     through2 "^2.0.0"
 
-"@budibase/shared-core@2.13.14", "@budibase/shared-core@^2.10.0":
-  version "2.13.14"
-  resolved "https://registry.yarnpkg.com/@budibase/shared-core/-/shared-core-2.13.14.tgz#ebc4b71a7141e5c19b7c161376cb0565d65c0f5b"
-  integrity sha512-YZG4fqkiSLI1Y8qEwxajHARZK6bh0RZJTJq/OUAE7uE+rAaxx+KJCuOSDSQCY1rXLi/A1gUoxNPzNPFooigR8g==
+"@budibase/shared-core@2.13.15", "@budibase/shared-core@^2.10.0":
+  version "2.13.15"
+  resolved "https://registry.yarnpkg.com/@budibase/shared-core/-/shared-core-2.13.15.tgz#3d6b4608a15c422368cf6101ffbe324e7e2c2275"
+  integrity sha512-cLt+/LwI5xcmurBB+c/5at0vnVqUPk32QG4S5iA8ATLpM/7KB/WRuUjVClGV4y1eTgSPl/HhsLe7EOYZ2QlhfA==
   dependencies:
-    "@budibase/types" "2.13.14"
+    "@budibase/types" "2.13.15"
 
-"@budibase/string-templates@2.13.14":
-  version "2.13.14"
-  resolved "https://registry.yarnpkg.com/@budibase/string-templates/-/string-templates-2.13.14.tgz#b0ddaa3ebb51d14a8ce487e291173e35864c2808"
-  integrity sha512-pNLtZdAAMDlbQzJD7rX9R1jHJ1N+XKqylccTc+QKRAgTlw0at2MMGZZ0iupVF5Klfh4TcAWQPGdoSrQyBtK+eA==
+"@budibase/string-templates@2.13.15":
+  version "2.13.15"
+  resolved "https://registry.yarnpkg.com/@budibase/string-templates/-/string-templates-2.13.15.tgz#5ae28deb3a19a4e1d726b886574e5a5496f500cc"
+  integrity sha512-mZA9X4BjnWw802Z0S8XDcGBGGZFytsWsNCGCS+msUqcSC9D7CPyDgsVwThrIJ6d0bm0REEYLtd1s0E8QubIaig==
   dependencies:
     "@budibase/handlebars-helpers" "^0.11.9"
     dayjs "^1.10.8"
@@ -174,10 +174,10 @@
     lodash "4.17.21"
     vm2 "^3.9.19"
 
-"@budibase/types@2.13.14":
-  version "2.13.14"
-  resolved "https://registry.yarnpkg.com/@budibase/types/-/types-2.13.14.tgz#c2a9a18a33ec70af78e6201da395ce6aa8ee18c4"
-  integrity sha512-t5P8h0q2iGB/ycCBMtnofkR9DoPogkoVS5e3lq+kyhbZJ2rNY4PdrqJOidhc2pvamDy4vsfT6osReHmW3eWdpQ==
+"@budibase/types@2.13.15":
+  version "2.13.15"
+  resolved "https://registry.yarnpkg.com/@budibase/types/-/types-2.13.15.tgz#886eb3a1c735e527da69c894d4aa86585733e194"
+  integrity sha512-Y4jMsBc/2WZU/HgeBEHxiZj1iRk5BitgIXwiseNfUCOZWQePN95RjJevg+la+QSmaevei68pXgczP05W6Job7g==
   dependencies:
     scim-patch "^0.7.0"
 
@@ -1608,9 +1608,9 @@ ecdsa-sig-formatter@1.0.11:
     safe-buffer "^5.0.1"
 
 electron-to-chromium@^1.4.535:
-  version "1.4.590"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.590.tgz#85a428fbabb77265a4804040837ed4f2538e3300"
-  integrity sha512-hohItzsQcG7/FBsviCYMtQwUSWvVF7NVqPOnJCErWsAshsP/CR2LAXdmq276RbESNdhxiAq5/vRo1g2pxGXVww==
+  version "1.4.592"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.592.tgz#1ffd49ba3da3da3077ea20014b066c910d50c913"
+  integrity sha512-D3NOkROIlF+d5ixnz7pAf3Lu/AuWpd6AYgI9O67GQXMXTcCP1gJQRotOq35eQy5Sb4hez33XH1YdTtILA7Udww==
 
 emoji-regex@^8.0.0:
   version "8.0.0"
