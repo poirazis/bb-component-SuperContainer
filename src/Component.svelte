@@ -37,6 +37,10 @@
 
   export let onClick;
 
+  // Grid Child Item Options
+  export let colSpan = 1
+  export let rowSpan = 1
+
   let containers = [];
   let container;
 
@@ -54,12 +58,12 @@
   let childCssVariables = {};
   let cssVariables = {};
 
-  const childState = fsm("containerItem", {
+  const childState = fsm( "containerItem" , {
     "*": {
       synch(parentState) {
-        if (parentState == "grid") return "gridItem";
-        if (parentState == "tabs") return "tabItem";
-        if (parentState == "container") return "containerItem";
+        if (parentState == "grid") { return "gridItem"; }
+        if (parentState == "tabs") { return "tabItem"; }
+        if (!parentState || parentState == "container") { return "containerItem";}
         if (parentState == "accordion") return "accordionItem";
         if (parentState == "splitview") return "splitviewItem";
       },
@@ -109,6 +113,8 @@
         childCssVariables = {
           width: "100%",
           height: "100%",
+          "grid-column" : "span " + colSpan,
+          "grid-row" : "span " + rowSpan
         };
       },
     },
@@ -307,7 +313,7 @@
     : false;
 
   $: state.synchProperties($$props);
-  $: if (parentState) childState.synch($parentState);
+  $: if (parentState && nested) childState.synch($parentState);
   $: parentState?.updateContainer(id, title, icon, color);
 
   $: {
@@ -317,6 +323,8 @@
       $componentStore.selectedComponentPath?.includes($component.id)
     ) {
       parentState.selectChild($component.id);
+      childState.synch($parentState)
+      builderStore.actions.updateProp("childMode", $parentState+"Item")
     }
   }
 
@@ -356,6 +364,7 @@
       parentState.unregisterContainer(id);
     }
   });
+
   setContext("superLayoutManager", state);
 </script>
 
@@ -378,7 +387,7 @@
     class:tabs={$state == "tabs"}
     class:splitview={$state == "splitview"}
     class:nested={$builderStore.inBuilder && nested}
-    class:spectrum-OpacityCheckerboard={$builderStore.inBuilder && $component.children == 0}
+    class:spectrum-OpacityCheckerboard={$builderStore.inBuilder}
     use:styleable={$component.styles}
   >
     {#if mode == "tabs" && containers.length > 0}
@@ -429,6 +438,7 @@
     grid-row-gap: var(--grid-gap);
   }
   .grid-item {
+    display: grid;
     grid-column-start: auto;
     grid-column-end: auto;
     grid-row-start: auto;
@@ -468,12 +478,5 @@
   .spectrum-OpacityCheckerboard {
     block-size: unset;
     inline-size: unset;
-  }
-  :global(.grid > .component) {
-    display: inline;
-    grid-template-columns: repeat(var(--grid-columns), 1fr);
-    grid-template-rows: repeat(var(--grid-rows), 1fr);
-    grid-column-gap: var(--grid-gap);
-    grid-row-gap: var(--grid-gap);
   }
 </style>
