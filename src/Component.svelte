@@ -32,6 +32,11 @@
 
   export let gridColumns = 3;
   export let gridRows = 3;
+  export let colGap = "0.5rem"
+  export let rowGap = "0.5rem"
+
+
+  export let childMode
 
   export let title, icon, color;
 
@@ -97,7 +102,7 @@
       },
       refresh() {
         childCssVariables = {
-          flex: flexFactor + " 0 auto",
+          "flex": flexFactor + " 0 auto",
           "min-width": width ? width : "auto",
           "max-width": width ? width : "auto",
           "min-height": height ? height : "auto",
@@ -111,8 +116,6 @@
       },
       refresh() {
         childCssVariables = {
-          width: "100%",
-          height: "100%",
           "grid-column" : "span " + colSpan,
           "grid-row" : "span " + rowSpan
         };
@@ -142,25 +145,29 @@
 
   const state = fsm(mode, {
     "*": {
-      registerContainer(componentID, id, state, title, icon, color) {
+      registerContainer(componentID, id, state, title, icon, color, colSpan, rowSpan) {
         containers = [
           ...containers,
           {
-            componentID: componentID,
-            id: id,
-            state: state,
-            title: title,
-            icon: icon,
-            color: color,
+            componentID,
+            id,
+            state,
+            title,
+            icon,
+            color,
+            colSpan,
+            rowSpan
           },
         ];
       },
-      updateContainer(id, title, icon, color) {
+      updateContainer(id, title, icon, color, colSpan, rowSpan) {
         let index = containers.findIndex((e) => e.id == id);
         if (index > -1) {
           containers[index].title = title;
           containers[index].icon = icon;
           containers[index].color = color;
+          containers[index].colSpan = colSpan;
+          containers[index].rowSpan = rowSpan;
         }
         containers = containers;
       },
@@ -225,13 +232,12 @@
       },
       refresh() {
         cssVariables = {
-          display: "flex",
           "flex-direction": direction,
           "flex-wrap": wrap ? "wrap" : "nowrap",
           "justify-content": direction == "row" ? hAlign : vAlign,
           "align-items": direction == "row" ? vAlign : hAlign,
           "align-content": wrap ? (direction == "row" ? vAlign : hAlign) : null,
-          gap: gap,
+          "gap": gap
         };
       },
     },
@@ -241,11 +247,13 @@
       },
       refresh() {
         cssVariables = {
+          "display": "grid",
           "justify-items": hAlign,
           "align-items": vAlign,
           "--grid-columns": gridColumns,
           "--grid-rows": gridRows,
-          "--grid-gap": gap,
+          "--grid-column-gap": colGap,
+          "--grid-row-gap": rowGap,
         };
       },
     },
@@ -304,6 +312,8 @@
     },
   });
 
+
+  
   $: randomColor = bound
     ? "32CD3230"
     : Math.floor(Math.random() * 16777215).toString(16) + "50";
@@ -314,7 +324,17 @@
 
   $: state.synchProperties($$props);
   $: if (parentState && nested) childState.synch($parentState);
-  $: parentState?.updateContainer(id, title, icon, color);
+  $: parentState?.updateContainer(id, title, icon, color, colSpan, rowSpan);
+
+  $: totalSlots = gridColumns * gridRows
+  $: nonSuperComponents = $component.children == 0 ? 0 : $component.children - containers?.length
+  $: repeaterGenerated = bound && dataprovider && containers?.length ? dataprovider.rows.length * containers[0]?.colSpan * containers[0]?.rowSpan : 0;
+
+  $: gridPreviewGuides = bound && dataprovider ? new Array ( totalSlots - repeaterGenerated  < 0 ? 0 : totalSlots - repeaterGenerated )
+    : new Array( totalSlots - containers?.reduce( 
+    ( p , c , idx ) => { return p + ( c.colSpan * c.rowSpan ) }, 0 ) - nonSuperComponents  ) 
+
+  $: placeholders = totalSlots - gridPreviewGuides?.length
 
   $: {
     if (
@@ -327,13 +347,22 @@
       builderStore.actions.updateProp("childMode", $parentState+"Item")
     }
   }
+  $: {
+    if (
+      $builderStore.inBuilder
+      && !parentState && childMode != "containerItem" && 
+      $componentStore.selectedComponentPath?.includes($component.id)
+    ) {
+      builderStore.actions.updateProp("childMode", "containerItem")
+    }
+  }
 
   $: $component.styles = {
     ...$component.styles,
     normal: {
       ...$component.styles.normal,
-      ...childCssVariables,
       ...cssVariables,
+      ...childCssVariables,
       "--random-color": "#" + randomColor,
       overflow: "auto",
       "--spectrum-opacity-checkerboard-square-dark":
@@ -355,7 +384,7 @@
         state.selectTab(containers[0].id)
     }
     if (parentState && nested) {
-      parentState.registerContainer(componentID, id, state, title, icon, color);
+      parentState.registerContainer(componentID, id, state, title, icon, color, colSpan, rowSpan);
     }
   });
 
@@ -365,7 +394,9 @@
     }
   });
 
-  setContext("superLayoutManager", state);
+  $: setContext("superLayoutManager", state);
+  $: console.log(containers)
+
 </script>
 
 <svelte:window
@@ -376,33 +407,36 @@
 {#if $childState != "hidden" && $childState != "tabItem" }
   <div
     bind:this={container}
-    class:container-item={$childState == "containerItem"}
-    class:accordion-item={$childState == "accordionItem"}
-    class:grid-item={$childState == "gridItem"}
-    class:tab-item={$childState == "tabItem" || $childState == "hidden"}
-    class:splitview-item={$childState == "splitviewItem"}
     class:container={$state == "container"}
     class:accordion={$state == "accordion"}
-    class:grid={$state == "grid"}
+    class:superGrid={$state == "grid"}
     class:tabs={$state == "tabs"}
     class:splitview={$state == "splitview"}
+    class:container-item={$childState == "containerItem"}
+    class:accordion-item={$childState == "accordionItem"}
+    class:tab-item={$childState == "tabItem" || $childState == "hidden"}
+    class:splitview-item={$childState == "splitviewItem"}
     class:nested={$builderStore.inBuilder && nested}
     class:spectrum-OpacityCheckerboard={$builderStore.inBuilder}
     use:styleable={$component.styles}
   >
-    {#if mode == "tabs" && containers.length > 0}
-      <TabControl
-        {containers}
-        {hAlign}
-        {vAlign}
-        {direction}
-        {selectedTab}
-        {state}
-        {theme}
-        {tabsQuiet}
-        {tabsAlignment}
-        {tabsSize}
-      />
+    {#if mode == "tabs"}
+      {#if containers?.length > 0}
+        <TabControl
+          {containers}
+          {hAlign}
+          {vAlign}
+          {direction}
+          {selectedTab}
+          {state}
+          {theme}
+          {tabsQuiet}
+          {tabsAlignment}
+          {tabsSize}
+        />
+      {:else}
+        <p> You need to have at least one Super Container child component to render tabs </p>
+      {/if}
     {/if}
 
     {#if bound && dataprovider}
@@ -412,8 +446,31 @@
           <slot />
         </Provider>
       {/each}
-    {:else}
+      {#if mode == "grid" && $builderStore.inBuilder}
+        {#each gridPreviewGuides as guide, idx }
+          <div class="grid-guides">
+            {idx + placeholders }
+          </div>
+        {/each}
+      {/if}
+    {:else if mode == "grid" && $builderStore.inBuilder && $component.empty }
+      {#each gridPreviewGuides as guide, idx }
+        <div class="grid-guides">
+          {idx + placeholders }
+          {#if idx == 0}
+            <slot /> 
+          {/if}
+        </div>
+      {/each}
+    {:else if mode == "grid" && $builderStore.inBuilder}
       <slot />
+      {#each gridPreviewGuides as guide, idx }
+        <div class="grid-guides">
+          {idx + placeholders }
+        </div>
+      {/each}
+    {:else}
+        <slot />
     {/if}
 
     {#if grabberPosition}
@@ -424,26 +481,31 @@
 
 <style>
   .container {
+    display: flex;
     position: relative;
   }
   .container-item {
     flex: var(--flex-factor);
   }
-  .grid {
+  .superGrid {
     display: grid;
-    position: relative;
     grid-template-columns: repeat(var(--grid-columns), 1fr);
     grid-template-rows: repeat(var(--grid-rows), 1fr);
-    grid-column-gap: var(--grid-gap);
-    grid-row-gap: var(--grid-gap);
+    column-gap: var(--grid-column-gap);
+    row-gap: var(--grid-row-gap);
   }
-  .grid-item {
+
+  .grid-guides {
+    flex: 1 1 auto;
+    border: 1px dotted var(--spectrum-global-color-gray-700);
+    color: var(--spectrum-global-color-gray-500);
     display: grid;
-    grid-column-start: auto;
-    grid-column-end: auto;
-    grid-row-start: auto;
-    grid-row-end: auto;
+    align-content: center;
+    justify-content: center;
+    align-self: stretch;
+    justify-self: stretch;
   }
+
   .accordion {
     position: relative;
   }

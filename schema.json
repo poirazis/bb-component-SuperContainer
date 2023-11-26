@@ -6,11 +6,11 @@
     "friendlyName": "Super Container",
     "description": "A Multi Layout Data Aware Container Component for Budibase",
     "info": "Layout Modes require the immidiate child components to be Super Containers",
-    "author" : "Michael Poirazi",
-    "hasChildren" : true,
-    "showEmptyState" : true,
+    "author": "Michael Poirazi",
+    "hasChildren": true,
+    "showEmptyState": true,
     "icon": "SelectIntersect",
-    "styles": [ "size","padding", "border", "background",  "shadow" ],
+    "styles": ["size", "padding", "border", "background", "shadow"],
     "context": [
       {
         "type": "schema"
@@ -21,26 +21,26 @@
         "type": "select",
         "key": "mode",
         "label": "Layout Mode",
-        "options" : [
-          { "label" : "Container", "value" : "container" },
-          { "label" : "SplitView", "value" : "splitview" },
-          { "label" : "Tabs", "value" : "tabs" },
-          { "label" : "Grid", "value" : "grid" }
+        "options": [
+          { "label": "Container", "value": "container" },
+          { "label": "SplitView", "value": "splitview" },
+          { "label": "Tabs", "value": "tabs" },
+          { "label": "Grid", "value": "grid" }
         ],
-        "defaultValue" : "container"
+        "defaultValue": "container"
       },
       {
         "type": "select",
         "key": "childMode",
         "label": "Child Mode",
-        "options" : [
-          { "label" : "Container Item", "value" : "containerItem" },
-          { "label" : "SplitView Item", "value" : "splitviewItem" },
-          { "label" : "Tabs Item", "value" : "tabsItem" },
-          { "label" : "Grid Item", "value" : "gridItem" }
+        "options": [
+          { "label": "Container Item", "value": "containerItem" },
+          { "label": "SplitView Item", "value": "splitviewItem" },
+          { "label": "Tabs Item", "value": "tabsItem" },
+          { "label": "Grid Item", "value": "gridItem" }
         ],
-        "defaultValue" : "containerItem",
-        "dependsOn" : "hidden"
+        "defaultValue": "containerItem",
+        "dependsOn" : "_hidden"
       },
       {
         "type": "select",
@@ -62,62 +62,74 @@
             "barTitle": "Grow container"
           }
         ],
-        "defaultValue": "shrink"
+        "defaultValue": "shrink",
+        "dependsOn" : { "setting" : "childMode" , "value" : "containerItem" }
       },
       {
         "type": "number",
-        "key" : "flexFactor",
-        "label" : "Flex Factor",
-        "min" : 1,
+        "key": "flexFactor",
+        "label": "Flex Factor",
+        "min": 1,
         "defaultValue": 1,
-        "dependsOn": { "setting": "flex", "value" : "grow" }
+        "dependsOn": { "setting": "flex", "value": "grow" }
       },
       {
         "type": "text",
-        "key" : "title",
+        "key": "title",
         "label": "Title",
         "defaultValue": "Container"
       },
       {
-        "type": "icon",
-        "key" : "icon",
-        "label": "Icon",
-        "dependsOn": "hidden"
-      },
-      {
-        "type": "color",
-        "key" : "color",
-        "label": "Color",
-        "dependsOn": "hidden"
-      },
-      {
-        "type" :"boolean",
-        "key" : "bound",
-        "label" : "Repeater Mode",
+        "type": "boolean",
+        "key": "bound",
+        "label": "Repeater Mode",
         "defaultValue": false
       },
       {
-        "type" :"dataProvider",
-        "key" : "dataprovider",
-        "label" : "Data Provider",
-        "dependsOn" : "bound"
+        "section": true,
+        "name": "Repeater Settings",
+        "dependsOn": "bound",
+        "settings": [
+          {
+            "type" : "select",
+            "key" : "source",
+            "label" : "Source",
+            "options" : [
+              { "label" : "Data Provider", "value" : "dataprovider" },
+              { "label" : "Array", "value" : "array" }
+            ],
+            "defaultValue" : "dataprovider"
+          },
+          {
+            "type": "dataProvider",
+            "key": "dataprovider",
+            "label": "Data Provider",
+            "dependsOn": { "setting" : "source" , "value" : "dataprovider" }
+          },
+          {
+            "type": "text",
+            "key": "sourceArray",
+            "label": "Source Array",
+            "dependsOn": { "setting" : "source" , "value" : "array" }
+          }
+        ]
       },
       {
         "section": true,
         "name": "SplitView Options",
-        "dependsOn": { "setting" : "mode", "value" : "splitview" },
-        "settings" : [
+        "dependsOn": { "setting": "mode", "value": "splitview" },
+        "settings": [
           {
             "type": "select",
-            "key" : "splitViewRatio",
-            "label" : "Ratio"
+            "key": "splitViewRatio",
+            "label": "Ratio"
           }
         ]
       },
       {
         "section": true,
         "name": "Container Options",
-        "dependsOn": { "setting" : "mode", "value" : "container" },
+        "dependsOn": { "setting": "mode", "value": "container" },
         "settings": [
           {
             "type": "select",
@@ -279,96 +291,125 @@
         ]
       },
       {
-        "section" : true,
-        "name" : "Grid Options",
-        "dependsOn" : { "setting" : "mode", "value" : "grid"},
-        "settings" : [ 
+        "section": true,
+        "name": "Grid Options",
+        "dependsOn": { "setting": "mode", "value": "grid" },
+        "settings": [
           {
             "type": "number",
-            "key" : "gridColumns",
-            "label" : "Columns",
-            "min" : 1,
-            "defaultValue" : 3 
-          }, 
+            "key": "gridColumns",
+            "label": "Columns",
+            "min": 1,
+            "defaultValue": 3
+          },
           {
             "type": "number",
-            "key" : "gridRows",
-            "label" : "Rows",
-            "min" : 1,
-            "defaultValue" : 3 
-          } 
-      ]
+            "key": "gridRows",
+            "label": "Rows",
+            "min": 1,
+            "defaultValue": 3
+          },
+          {
+            "type" : "text",
+            "key" : "colGap",
+            "label" : "Column Gap",
+            "defaultValue" : "0.25rem"
+          },
+          {
+            "type" : "text",
+            "key" : "rowGap",
+            "label" : "Row Gap",
+            "defaultValue" : "0.25rem"
+          }
+        ]
       },
       {
         "section": true,
         "name": "Tab Options",
-        "dependsOn": { "setting" : "mode", "value" : "tabs" },
-        "settings" : [
+        "dependsOn": { "setting": "mode", "value": "tabs" },
+        "settings": [
           {
-            "type" : "text",
-            "key" : "activeTab",
-            "label" : "Active Tab"
+            "type": "text",
+            "key": "activeTab",
+            "label": "Active Tab"
           },
           {
             "type": "select",
             "key": "theme",
             "label": "Theme",
-            "options" : [
-              { "label" : "Budibase", "value" : "budibase" },
-              { "label" : "Buttons", "value" : "buttons" }
+            "options": [
+              { "label": "Budibase", "value": "budibase" },
+              { "label": "Buttons", "value": "buttons" }
             ],
-            "defaultValue" : "budibase"
+            "defaultValue": "budibase"
           },
           {
             "type": "boolean",
             "key": "tabsQuiet",
             "label": "Quiet",
             "defaultValue": false,
-            "dependsOn" : { "setting" :"theme", "value": "budibase"}
+            "dependsOn": { "setting": "theme", "value": "budibase" }
           },
           {
             "type": "select",
             "key": "tabsSize",
             "label": "Size",
-            "options" : [
-              { "label" : "Small", "value" : "2.5rem" },
-              { "label" : "Medium", "value" : "3rem" },
-              { "label" : "Large", "value" : "3.5rem" },
-              { "label" : "Extra Large", "value" : "4rem" }
+            "options": [
+              { "label": "Small", "value": "2.5rem" },
+              { "label": "Medium", "value": "3rem" },
+              { "label": "Large", "value": "3.5rem" },
+              { "label": "Extra Large", "value": "4rem" }
             ],
-            "defaultValue" : "3rem"
+            "defaultValue": "3rem"
           },
           {
             "type": "select",
             "key": "tabsAlignment",
             "label": "Text Align",
-            "options" : [
-              { "label" : "Left", "value" : "flex-start" },
-              { "label" : "Center", "value" : "center" },
-              { "label" : "Right", "value" : "flex-end" }
+            "options": [
+              { "label": "Left", "value": "flex-start" },
+              { "label": "Center", "value": "center" },
+              { "label": "Right", "value": "flex-end" }
             ],
-            "defaultValue" : "center"
+            "defaultValue": "center"
           }
         ]
       },
       {
         "section": true,
         "name": "Grid Item Options",
-        "dependsOn": { "setting" : "childMode", "value" : "gridItem" },
-        "settings" : [
+        "dependsOn": { "setting": "childMode", "value": "gridItem" },
+        "settings": [
           {
-            "type" : "number",
-            "key" : "colSpan",
-            "label" : "Column Span",
-            "min" : 0,
-            "defaultValue" : 1
+            "type": "number",
+            "key": "colSpan",
+            "label": "Column Span",
+            "min": 1,
+            "defaultValue": 1
           },
           {
-            "type" : "number",
-            "key" : "rowSpan",
-            "label" : "Row Span",
-            "min" : 0,
-            "defaultValue" : 1
+            "type": "number",
+            "key": "rowSpan",
+            "label": "Row Span",
+            "min": 1,
+            "defaultValue": 1
+          }
+        ]
+      },
+      {
+        "section": true,
+        "name": "Tab Item Options",
+        "dependsOn": { "setting": "childMode", "value": "tabsItem" },
+        "settings": [
+          {
+            "type": "icon",
+            "key": "icon",
+            "label": "Icon"
+          },
+          {
+            "type": "color",
+            "key": "color",
+            "label": "Color"
           }
         ]
       }
