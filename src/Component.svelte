@@ -347,6 +347,15 @@
       builderStore.actions.updateProp("childMode", $parentState+"Item")
     }
   }
+  $: {
+    if (
+      $builderStore.inBuilder
+      && !parentState && childMode != "containerItem" && 
+      $componentStore.selectedComponentPath?.includes($component.id)
+    ) {
+      builderStore.actions.updateProp("childMode", "containerItem")
+    }
+  }
 
   $: $component.styles = {
     ...$component.styles,
@@ -493,16 +502,10 @@
     display: grid;
     align-content: center;
     justify-content: center;
+    align-self: stretch;
+    justify-self: stretch;
   }
 
-   .container.grid-item {
-    grid-column: var(--col-span);
-    grid-row: var(--row-span);
-    grid-column-start: auto;
-    grid-column-end: auto;
-    grid-row-start: auto;
-    grid-row-end: auto;
-  }
   .accordion {
     position: relative;
   }
