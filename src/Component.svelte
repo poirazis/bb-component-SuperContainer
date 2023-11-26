@@ -32,6 +32,7 @@
 
   export let gridColumns = 3;
   export let gridRows = 3;
+  export let childMode
 
   export let title, icon, color;
 
@@ -232,6 +233,7 @@
           "align-items": direction == "row" ? vAlign : hAlign,
           "align-content": wrap ? (direction == "row" ? vAlign : hAlign) : null,
           gap: gap,
+          "grid-column" : "span " + colSpan
         };
       },
     },
@@ -365,7 +367,8 @@
     }
   });
 
-  setContext("superLayoutManager", state);
+  $: setContext("superLayoutManager", state);
+
 </script>
 
 <svelte:window
