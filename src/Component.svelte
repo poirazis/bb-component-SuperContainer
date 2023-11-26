@@ -311,8 +311,6 @@
       },
     },
   });
-
-
   
   $: randomColor = bound
     ? "32CD3230"
@@ -323,6 +321,7 @@
     : false;
 
   $: state.synchProperties($$props);
+
   $: if (parentState && nested) childState.synch($parentState);
   $: parentState?.updateContainer(id, title, icon, color, colSpan, rowSpan);
 
@@ -344,9 +343,12 @@
     ) {
       parentState.selectChild($component.id);
       childState.synch($parentState)
-      builderStore.actions.updateProp("childMode", $parentState+"Item")
+      if ( childMode != $parentState+"Item" )
+        builderStore.actions.updateProp("childMode", $parentState+"Item")
     }
   }
+
+  // Revert to default childMode if placed outside Super Container
   $: {
     if (
       $builderStore.inBuilder
@@ -394,9 +396,7 @@
     }
   });
 
-  $: setContext("superLayoutManager", state);
-  $: console.log(containers)
-
+  setContext("superLayoutManager", state);
 </script>
 
 <svelte:window
