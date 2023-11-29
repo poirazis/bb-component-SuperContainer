@@ -417,7 +417,7 @@
     class:tab-item={$childState == "tabItem" || $childState == "hidden"}
     class:splitview-item={$childState == "splitviewItem"}
     class:nested={$builderStore.inBuilder && nested}
-    class:spectrum-OpacityCheckerboard={$builderStore.inBuilder}
+    class:spectrum-OpacityCheckerboard={$builderStore.inBuilder && $component.empty}
     use:styleable={$component.styles}
   >
     {#if mode == "tabs"}
@@ -435,7 +435,7 @@
           {tabsSize}
         />
       {:else}
-        <p> You need to have at least one Super Container child component to render tabs </p>
+        <p class="error"> ✋ You need to have at least one Super Container child component to render Tabs </p>
       {/if}
     {/if}
 
@@ -537,6 +537,11 @@
       --random-color
     ) !important ;
   }
+
+  .error {
+    font-size: 18px;
+  }
+
   .spectrum-OpacityCheckerboard {
     block-size: unset;
     inline-size: unset;
