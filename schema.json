@@ -282,11 +282,6 @@
             "showInBar": true,
             "barIcon": "ModernGridView",
             "barTitle": "Wrap"
-          },
-          {
-            "type": "event",
-            "label": "On click",
-            "key": "onClick"
           }
         ]
       },

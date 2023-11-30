@@ -17,7 +17,8 @@
   export let bound;
   export let flex;
   export let flexFactor = 1;
-  export let mode = "container";
+  export let mode = "container"
+  export let childMode = "containerItem"
   export let direction;
   export let hAlign;
   export let vAlign;
@@ -32,19 +33,11 @@
 
   export let gridColumns = 3;
   export let gridRows = 3;
-  export let colGap = "0.5rem"
-  export let rowGap = "0.5rem"
-
-
-  export let childMode
-
   export let title, icon, color;
 
-  export let onClick;
-
   // Grid Child Item Options
-  export let colSpan = 1
-  export let rowSpan = 1
+  export let colSpan
+  export let rowSpan
 
   let containers = [];
   let container;
@@ -63,9 +56,6 @@
   let childCssVariables = {};
   let cssVariables = {};
   let gridPreviewSlots
-  let totalSlots = gridColumns * gridRows
-  let placeholders
-
 
   const childState = fsm( "containerItem" , {
     "*": {
@@ -151,7 +141,7 @@
 
   const state = fsm(mode, {
     "*": {
-      registerContainer(componentID, id, state, title, icon, color, colSpan, rowSpan) {
+      registerContainer(componentID, id, state, title, icon, color, reqcolSpan, reqrowSpan) {
         containers = [
           ...containers,
           {
@@ -161,19 +151,19 @@
             title,
             icon,
             color,
-            colSpan,
-            rowSpan
+            colSpan: reqcolSpan,
+            rowSpan: reqrowSpan
           },
         ];
       },
-      updateContainer(id, title, icon, color, colSpan, rowSpan) {
+      updateContainer(id, title, icon, color, reqcolSpan = 1, reqrowSpan = 1) {
         let index = containers.findIndex((e) => e.id == id);
         if (index > -1) {
           containers[index].title = title;
           containers[index].icon = icon;
           containers[index].color = color;
-          containers[index].colSpan = colSpan;
-          containers[index].rowSpan = rowSpan;
+          containers[index].colSpan = reqcolSpan ?? 1;
+          containers[index].rowSpan = reqrowSpan ?? 1;
         }
         containers = containers;
       },
@@ -254,14 +244,13 @@
       },
       refresh( inBuilder ) {
         if ( inBuilder ) {
-          let repeaterUsedSlots
+          let repeaterUsedSlots = bound && dataprovider && containers?.length ? dataprovider.rows.length * containers[0]?.colSpan * containers[0]?.rowSpan : 0;
+          let totalSlots = gridColumns * gridRows
           let nonSuperComponents = $component.children == 0 ? 0 : $component.children - containers?.length
-          totalSlots = gridColumns * gridRows
-          repeaterUsedSlots = bound && dataprovider && containers?.length ? dataprovider.rows.length * containers[0]?.colSpan * containers[0]?.rowSpan : 0;
-          let childUsedSlots = containers?.reduce( ( p , c , idx ) => { return p + ( c.colSpan * c.rowSpan ) }, 0 ) - nonSuperComponents 
-          let neededPreviewSlots = totalSlots - repeaterUsedSlots - childUsedSlots
+          let childUsedSlots = containers?.reduce( ( p , c , idx ) => { return p + ( c.colSpan * c.rowSpan ) }, 0 ) 
+          let neededPreviewSlots = totalSlots - repeaterUsedSlots - childUsedSlots - nonSuperComponents
+
           gridPreviewSlots = neededPreviewSlots > 0 ? new Array( neededPreviewSlots ) : []
-          placeholders = totalSlots - gridPreviewSlots?.length
         }
 
         cssVariables = {
@@ -270,8 +259,8 @@
           "align-items": vAlign,
           "--grid-columns": gridColumns,
           "--grid-rows": gridRows,
-          "--grid-column-gap": colGap,
-          "--grid-row-gap": rowGap,
+          "--grid-column-gap": gap,
+          "--grid-row-gap": gap,
         };
       },
     },
@@ -353,7 +342,6 @@
         builderStore.actions.updateProp("childMode", $parentState+"Item")
     }
   }
-
   // Revert to default childMode if placed outside Super Container
   $: {
     if (
@@ -364,7 +352,6 @@
       builderStore.actions.updateProp("childMode", "containerItem")
     }
   }
-  $: state.synchProperties($$props);
   
   $: $component.styles = {
     ...$component.styles,
@@ -383,6 +370,8 @@
       "--spectrum-opacity-checkerboard-position": "left top",
     },
   };
+
+  $: state.synchProperties($$props);
 
   onMount(() => {
     if ( mode == "tabs" && containers.length > 0 ) 
@@ -404,7 +393,6 @@
   });
 
   setContext("superLayoutManager", state);
-  $: console.log(totalSlots)
 </script>
 
 <svelte:window
@@ -457,14 +445,14 @@
       {#if mode == "grid" && $builderStore.inBuilder}
         {#each gridPreviewSlots as guide, idx }
           <div class="grid-guides">
-            {idx + placeholders }
+            {idx + gridPreviewSlots?.length }
           </div>
         {/each}
       {/if}
     {:else if mode == "grid" && $builderStore.inBuilder && $component.empty }
       {#each gridPreviewSlots as guide, idx }
         <div class="grid-guides">
-          {idx + placeholders }
+          {idx + gridPreviewSlots?.length }
           {#if idx == 0}
             <slot /> 
           {/if}
@@ -474,7 +462,7 @@
       <slot />
       {#each gridPreviewSlots as guide, idx }
         <div class="grid-guides">
-          {idx + placeholders }
+          {idx + gridPreviewSlots?.length }
         </div>
       {/each}
     {:else}
