@@ -62,6 +62,10 @@
   let id = uuidv4();
   let childCssVariables = {};
   let cssVariables = {};
+  let gridPreviewSlots
+  let totalSlots = gridColumns * gridRows
+  let placeholders
+
 
   const childState = fsm( "containerItem" , {
     "*": {
@@ -92,6 +96,8 @@
       refresh() {
         childCssVariables = {
           flex: flex == "grow" ? flexFactor + " 0 auto" : "0 0 auto",
+          "grid-column" : "span " + colSpan,
+          "grid-row" : "span " + rowSpan
         };
       },
     },
@@ -102,7 +108,7 @@
       },
       refresh() {
         childCssVariables = {
-          "flex": flexFactor + " 0 auto",
+          "flex": flexFactor + " 1 auto",
           "min-width": width ? width : "auto",
           "max-width": width ? width : "auto",
           "min-height": height ? height : "auto",
@@ -219,8 +225,8 @@
         childState.activate();
       },
       synchProperties() {
-        childState.refresh();
-        this.refresh();
+        childState.refresh( );
+        this.refresh( $builderStore.inBuilder  );
         return mode;
       },
     },
@@ -238,15 +244,26 @@
           "align-items": direction == "row" ? vAlign : hAlign,
           "align-content": wrap ? (direction == "row" ? vAlign : hAlign) : null,
           "gap": gap,
-          "--container-flex-mode" : ( direction == "row" && hAlign == "stretch" ) || ( direction == "column" && vAlign == "stretch" ) ? "1" : "0"
+          "--container-flex-mode" : ( direction == "row" && hAlign == "stretch" ) || ( direction == "column" && vAlign == "stretch" ) ? "1" : null
         };
       },
     },
     grid: {
       _enter() {
-        this.refresh();
+        this.refresh( $builderStore.inBuilder );
       },
-      refresh() {
+      refresh( inBuilder ) {
+        if ( inBuilder ) {
+          let repeaterUsedSlots
+          let nonSuperComponents = $component.children == 0 ? 0 : $component.children - containers?.length
+          totalSlots = gridColumns * gridRows
+          repeaterUsedSlots = bound && dataprovider && containers?.length ? dataprovider.rows.length * containers[0]?.colSpan * containers[0]?.rowSpan : 0;
+          let childUsedSlots = containers?.reduce( ( p , c , idx ) => { return p + ( c.colSpan * c.rowSpan ) }, 0 ) - nonSuperComponents 
+          let neededPreviewSlots = totalSlots - repeaterUsedSlots - childUsedSlots
+          gridPreviewSlots = neededPreviewSlots > 0 ? new Array( neededPreviewSlots ) : []
+          placeholders = totalSlots - gridPreviewSlots?.length
+        }
+
         cssVariables = {
           "display": "grid",
           "justify-items": hAlign,
@@ -324,16 +341,6 @@
   $: if (parentState && nested) childState.synch($parentState);
   $: parentState?.updateContainer(id, title, icon, color, colSpan, rowSpan);
 
-  $: totalSlots = gridColumns * gridRows
-  $: nonSuperComponents = $component.children == 0 ? 0 : $component.children - containers?.length
-  $: repeaterGenerated = bound && dataprovider && containers?.length ? dataprovider.rows.length * containers[0]?.colSpan * containers[0]?.rowSpan : 0;
-
-  $: gridPreviewGuides = bound && dataprovider ? new Array ( totalSlots - repeaterGenerated  < 0 ? 0 : totalSlots - repeaterGenerated )
-    : new Array( totalSlots - containers?.reduce( 
-    ( p , c , idx ) => { return p + ( c.colSpan * c.rowSpan ) }, 0 ) - nonSuperComponents  ) 
-
-  $: placeholders = totalSlots - gridPreviewGuides?.length
-
   $: {
     if (
       $builderStore.inBuilder &&
@@ -397,6 +404,7 @@
   });
 
   setContext("superLayoutManager", state);
+  $: console.log(totalSlots)
 </script>
 
 <svelte:window
@@ -404,7 +412,7 @@
   on:mousemove={(e) => (resizing ? state.resize(e) : null)}
 />
 
-{#if $childState != "hidden" && $childState != "tabItem" }
+{#if $childState != "hidden" }
   <div
     bind:this={container}
     class:super-container={$state == "container"}
@@ -447,14 +455,14 @@
         </Provider>
       {/each}
       {#if mode == "grid" && $builderStore.inBuilder}
-        {#each gridPreviewGuides as guide, idx }
+        {#each gridPreviewSlots as guide, idx }
           <div class="grid-guides">
             {idx + placeholders }
           </div>
         {/each}
       {/if}
     {:else if mode == "grid" && $builderStore.inBuilder && $component.empty }
-      {#each gridPreviewGuides as guide, idx }
+      {#each gridPreviewSlots as guide, idx }
         <div class="grid-guides">
           {idx + placeholders }
           {#if idx == 0}
@@ -464,7 +472,7 @@
       {/each}
     {:else if mode == "grid" && $builderStore.inBuilder}
       <slot />
-      {#each gridPreviewGuides as guide, idx }
+      {#each gridPreviewSlots as guide, idx }
         <div class="grid-guides">
           {idx + placeholders }
         </div>
