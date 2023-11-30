@@ -237,7 +237,8 @@
           "justify-content": direction == "row" ? hAlign : vAlign,
           "align-items": direction == "row" ? vAlign : hAlign,
           "align-content": wrap ? (direction == "row" ? vAlign : hAlign) : null,
-          "gap": gap
+          "gap": gap,
+          "--container-flex-mode" : ( direction == "row" && hAlign == "stretch" ) || ( direction == "column" && vAlign == "stretch" ) ? "1" : "0"
         };
       },
     },
@@ -318,9 +319,7 @@
   $: nested = component
     ? $component.ancestors[$component.ancestors.length - 2] ==
       "plugin/bb-component-SuperContainer"
-    : false;
-
-  $: state.synchProperties($$props);
+    : false;  
 
   $: if (parentState && nested) childState.synch($parentState);
   $: parentState?.updateContainer(id, title, icon, color, colSpan, rowSpan);
@@ -358,7 +357,8 @@
       builderStore.actions.updateProp("childMode", "containerItem")
     }
   }
-
+  $: state.synchProperties($$props);
+  
   $: $component.styles = {
     ...$component.styles,
     normal: {
@@ -407,12 +407,12 @@
 {#if $childState != "hidden" && $childState != "tabItem" }
   <div
     bind:this={container}
-    class:container={$state == "container"}
+    class:super-container={$state == "container"}
     class:accordion={$state == "accordion"}
     class:superGrid={$state == "grid"}
     class:tabs={$state == "tabs"}
     class:splitview={$state == "splitview"}
-    class:container-item={$childState == "containerItem"}
+    class:super-container-item={$childState == "containerItem"}
     class:accordion-item={$childState == "accordionItem"}
     class:tab-item={$childState == "tabItem" || $childState == "hidden"}
     class:splitview-item={$childState == "splitviewItem"}
@@ -480,11 +480,16 @@
 {/if}
 
 <style>
-  .container {
+
+  :global(.super-container > .component > * )  {
+    flex: var(--container-flex-mode);
+  }
+
+  .super-container {
     display: flex;
     position: relative;
   }
-  .container-item {
+  .super-container-item {
     flex: var(--flex-factor);
   }
   .superGrid {
