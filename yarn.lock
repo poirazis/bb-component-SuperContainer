@@ -15,14 +15,14 @@
     regenerator-runtime "^0.14.0"
 
 "@budibase/backend-core@^2.10.2":
-  version "2.13.28"
-  resolved "https://registry.yarnpkg.com/@budibase/backend-core/-/backend-core-2.13.28.tgz#0c150ac727f15b45ab4d81188757264152dbf67c"
-  integrity sha512-7fG8oenWkzO+PKg4MgnoqJNOEjN/cI1eZk7bVRzC9q4fwG+KxiPqL/UF4SZ6YwrBAia/jpGQVQYixLfsuVqLlA==
+  version "2.13.30"
+  resolved "https://registry.yarnpkg.com/@budibase/backend-core/-/backend-core-2.13.30.tgz#dff0a3828f1db8f381ac7b80a66b9ea8be595cb9"
+  integrity sha512-JZ5uNrfI38CKYWybF2vhrkRL6hGDfssDyl/ggdu0o9DZKEwyDO0GXEhtYFKdZ5kR456h6xlEWARrHfpKJa8NNQ==
   dependencies:
     "@budibase/nano" "10.1.3"
     "@budibase/pouchdb-replication-stream" "1.2.10"
-    "@budibase/shared-core" "2.13.28"
-    "@budibase/types" "2.13.28"
+    "@budibase/shared-core" "2.13.30"
+    "@budibase/types" "2.13.30"
     "@techpass/passport-openidconnect" "0.3.2"
     aws-cloudfront-sign "3.0.2"
     aws-sdk "2.1030.0"
@@ -54,13 +54,13 @@
     uuid "8.3.2"
 
 "@budibase/bbui@^2.9.36":
-  version "2.13.28"
-  resolved "https://registry.yarnpkg.com/@budibase/bbui/-/bbui-2.13.28.tgz#55cd22520285391331e5c9f2adfc4c7a278f7158"
-  integrity sha512-f7Fv/mGWIvs6p7vx4YSwvP9JiGI8Hau/AuM4BSVcCfT4NIzvm+1gKtlp+fYyet74G2Ug1M7EEUAK0dDA410cOA==
+  version "2.13.30"
+  resolved "https://registry.yarnpkg.com/@budibase/bbui/-/bbui-2.13.30.tgz#8fb67abd2656ef1e15055b25e265051898e96bf8"
+  integrity sha512-oB+pxUz86JRgqePzafI4hZMzO1+QkMNKn2+KsKkpV3eL/wVyQHD2SpGZs5w0IvZqUJURgeapDqdyh2CFO0xUZg==
   dependencies:
     "@adobe/spectrum-css-workflow-icons" "1.2.1"
-    "@budibase/shared-core" "2.13.28"
-    "@budibase/string-templates" "2.13.28"
+    "@budibase/shared-core" "2.13.30"
+    "@budibase/string-templates" "2.13.30"
     "@spectrum-css/accordion" "3.0.24"
     "@spectrum-css/actionbutton" "1.0.1"
     "@spectrum-css/actiongroup" "1.0.1"
@@ -156,17 +156,17 @@
     pouchdb-promise "^6.0.4"
     through2 "^2.0.0"
 
-"@budibase/shared-core@2.13.28", "@budibase/shared-core@^2.10.0":
-  version "2.13.28"
-  resolved "https://registry.yarnpkg.com/@budibase/shared-core/-/shared-core-2.13.28.tgz#1d60807d4b09dbdc064dac46b2f5a8891ba8eefe"
-  integrity sha512-K/BGQa6JL6qzRygTtn3AY3rRjJ4DLle5myUIfx++5Y9FSBQy7VFsSyCS330xXC4bCIa5+OMYMwZeiHGUSUuwkQ==
+"@budibase/shared-core@2.13.30", "@budibase/shared-core@^2.10.0":
+  version "2.13.30"
+  resolved "https://registry.yarnpkg.com/@budibase/shared-core/-/shared-core-2.13.30.tgz#f870493d6cdb68940e61521211287825eb80fdc9"
+  integrity sha512-l06ztYPsC00ihf+5wBxPKK83XC+8mUzYx8GriMJ8YhSX2MAtGVm2d0vdVeifzHwv6SUh1JFvpIifoZ1DrdvTMw==
   dependencies:
-    "@budibase/types" "2.13.28"
+    "@budibase/types" "2.13.30"
 
-"@budibase/string-templates@2.13.28":
-  version "2.13.28"
-  resolved "https://registry.yarnpkg.com/@budibase/string-templates/-/string-templates-2.13.28.tgz#ffbe03d1557264b2b40abfc2db09f33840fc58c6"
-  integrity sha512-TGvrHHaEltU/cLfmwYhV0WjjaGaKZsAmx70FT/UohHJix5KkBe/+NUDyIiz35Q2kMpC83t6qOAtNSLGVLF7etA==
+"@budibase/string-templates@2.13.30":
+  version "2.13.30"
+  resolved "https://registry.yarnpkg.com/@budibase/string-templates/-/string-templates-2.13.30.tgz#78935ba6886c4f99b9aada1efab98278d1550688"
+  integrity sha512-+o7Zj64NZ9KAJ1LaLlkKAZvULEZnfNnJ37kgehBIWA2zIlkGfbv59MlR2cwn7OtqjEg/H2aJYaRS7CeZd+CfwA==
   dependencies:
     "@budibase/handlebars-helpers" "^0.11.9"
     dayjs "^1.10.8"
@@ -174,10 +174,10 @@
     lodash "4.17.21"
     vm2 "^3.9.19"
 
-"@budibase/types@2.13.28":
-  version "2.13.28"
-  resolved "https://registry.yarnpkg.com/@budibase/types/-/types-2.13.28.tgz#1a85f5b348dcaae632def70a872395640da396a2"
-  integrity sha512-F6I6/quB1TXZKmUNuCwZDBzqv3EwZD9eDnpr+9R3L+O1xw3gAPVAvPEMXBxl+oyRat+/gTyZwu+Xm3akq3/8+w==
+"@budibase/types@2.13.30":
+  version "2.13.30"
+  resolved "https://registry.yarnpkg.com/@budibase/types/-/types-2.13.30.tgz#77618f9bc12acf406f7d141c3499793b5f9c823c"
+  integrity sha512-lx6mHPy4HCAh74VDDBQf8Wj9g9qoQST1uZHnBC0TP6gvkC8/r490zSbKeS4XuHtH40UrOMFIqpjXixfVV3tY5g==
   dependencies:
     scim-patch "^0.7.0"
 
@@ -646,9 +646,9 @@
   integrity sha512-a79Yc3TOk6dGdituy8hmTTJXjOkZ7zsFYV10L337ttq/rec8lRMDBpV7fL3uLx6TgbFCa5DU/h8FmIBQPSbU0w==
 
 "@types/node@^20.4.5":
-  version "20.10.1"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.10.1.tgz#d2c96f356c3125fedc983d74c424910c3767141c"
-  integrity sha512-T2qwhjWwGH81vUEx4EXmBKsTJRXFXNZTL4v0gi01+zyBmCwzE6TyHszqX01m+QHTEq+EZNo13NeJIdEqf+Myrg==
+  version "20.10.2"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.10.2.tgz#32a5e8228357f57714ad28d52229ab04880c2814"
+  integrity sha512-37MXfxkb0vuIlRKHNxwCkb60PNBpR94u4efQuN4JgIAm66zfCDXGSAFCef9XUWFovX2R1ok6Z7MHhtdVXXkkIw==
   dependencies:
     undici-types "~5.26.4"
 
@@ -1608,9 +1608,9 @@ ecdsa-sig-formatter@1.0.11:
     safe-buffer "^5.0.1"
 
 electron-to-chromium@^1.4.535:
-  version "1.4.598"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.598.tgz#aaf1f64286001915b59210158d21b6284e96acbc"
-  integrity sha512-0JnipX0scPUlwsptQVCZggoCpREv+IrVD3h0ZG+sldmK9L27tSV3QjV8+QdaA4qQTzDf3PluNS45YYJky1oASw==
+  version "1.4.601"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.601.tgz#cac69868548aee89961ffe63ff5a7716f0685b75"
+  integrity sha512-SpwUMDWe9tQu8JX5QCO1+p/hChAi9AE9UpoC3rcHVc+gdCGlbT3SGb5I1klgb952HRIyvt9wZhSz9bNBYz9swA==
 
 emoji-regex@^8.0.0:
   version "8.0.0"
@@ -3228,9 +3228,9 @@ node-gyp-build@~4.1.0:
   integrity sha512-dSq1xmcPDKPZ2EED2S6zw/b9NKsqzXRE6dVr8TVQnI3FJOTteUMuqF3Qqs6LZg+mLGYJWqQzMbIjMtJqTv87nQ==
 
 node-releases@^2.0.13:
-  version "2.0.13"
-  resolved "https://registry.yarnpkg.com/node-releases/-/node-releases-2.0.13.tgz#d5ed1627c23e3461e819b02e57b75e4899b1c81d"
-  integrity sha512-uYr7J37ae/ORWdZeQ1xxMJe3NtdmqMC/JZK+geofDrkLUApKRHPd18/TxtBOJ4A0/+uUIliorNrfYV6s1b02eQ==
+  version "2.0.14"
+  resolved "https://registry.yarnpkg.com/node-releases/-/node-releases-2.0.14.tgz#2ffb053bceb8b2be8495ece1ab6ce600c4461b0b"
+  integrity sha512-y10wOWt8yZpqXmOgRo77WaHEmhYQYGNA6y421PKsKYWEK8aW+cqAphborZDhqfyKrbZEN92CN1X2KbafY2s7Yw==
 
 nopt@^5.0.0:
   version "5.0.0"
