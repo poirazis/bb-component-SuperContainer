@@ -9,6 +9,8 @@
   export let tabsQuiet 
   export let tabsSize
   export let tabsAlignment
+  export let tabsIconsOnly
+  export let tabsEmphasized
   
   let tabs = []  
 
@@ -27,42 +29,57 @@
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div
-  class:tabsVertical = { direction == "column" } 
-  class:tabsHorizontal = { direction == "row" } 
-  style:justify-content = { direction == "row" ? hAlign : vAlign }
-  style:--tab-size={tabsSize}
-  style:--tab-alignment={ tabsAlignment } 
-  style:--tab-track-thickness={ "calc( 0.1 * var(--tab-size) )" }
-  style:--tabIndicatorLeft = { indicatorLeft } 
-  style:--tabIndicatorWidth = { indicatorWidth } 
-  style:--tabIndicatorTop = { indicatorTop } 
-  style:--tabIndicatorHeight = { indicatorHeight } 
-  style:--tabIndicatorFillColor = { theme == "budibase" ? "transparent" : "rgba(255,255,255, 0.085)"}
-  style:--tabControlFillColor = { theme == "budibase" ? "transparent" : "rgba(0,0,0, 0.085)"}
-  style:--tabControlTrackFillColor = { theme == "budibase" && tabsQuiet ? "transparent" : "var(--spectrum-global-color-gray-200)"}
-  >
-    {#each containers as container, idx }
-      <div
-        bind:this={tabs[container.id]} 
-        class="tab"
-        class:selectedTab={container.id == selectedTab}
-        style:flex={ ( direction == "row" && hAlign == "stretch" )
-                    || ( direction == "column" && vAlign == "stretch" ) 
-                    ? "1 1 auto" : "0 0 auto"
-                    }
-        on:click={() => state.selectTab(container.id)}
-      >
-        <span class="tabText">{ container.title || "Tab " + idx }</span>
-      </div>
-    {/each}
-</div>
+{#if containers?.length}
+  <div
+    class:tabsVertical = { direction == "column" } 
+    class:tabsHorizontal = { direction == "row" } 
+    style:justify-content = { direction == "row" ? hAlign : vAlign }
+    style:--tab-width={ direction == "row" ? "auto" : "8rem" }
+    style:--tab-height={ direction == "row" ? "3rem" : "3rem"}
+    style:--tab-padding={ direction == "row" ? "0.25rem" : "0.75rem" }
+    style:--tab-alignment={ tabsAlignment } 
+    style:--tab-track-thickness={ "2px" }
+    style:--tab-selected-color={tabsEmphasized ? "var(--primaryColor)" : "var(--spectrum-global-color-gray-900)"}
+    style:--tabIndicatorLeft = { indicatorLeft } 
+    style:--tabIndicatorWidth = { indicatorWidth } 
+    style:--tabIndicatorTop = { indicatorTop } 
+    style:--tabIndicatorHeight = { indicatorHeight } 
+    style:--tabIndicatorFillColor = { theme == "budibase" ? "transparent" : "rgba(255,255,255, 0.085)"}
+    style:--tabControlFillColor = { theme == "budibase" ? "transparent" : "rgba(0,0,0, 0.085)"}
+    style:--tabControlTrackFillColor = { theme == "budibase" && tabsQuiet ? "transparent" : "var(--spectrum-global-color-gray-200)"}
+    >
+      {#each containers as container, idx }
+        <div
+          bind:this={tabs[container.id]} 
+          class="tab"
+          class:selectedTab={container.id == selectedTab}
+          style:flex={ ( direction == "row" && hAlign == "stretch" )
+                      || ( direction == "column" && vAlign == "stretch" ) 
+                      ? "1 1 auto" : "0 0 auto"
+                      }
+          on:click={() => state.selectTab(container.id)}
+        >
+          {#if container.icon}
+            <div class="tabIcon" style:color={container.id == selectedTab ? container?.color : null } style:--tab-icon-size={tabsIconsOnly ? "24px" : "20px"}>
+              {@html container?.icon}
+            </div>
+          {/if}
+          {#if !tabsIconsOnly || !container.icon}
+            <span class="tabText">
+              { container.title || "Tab " + idx }
+            </span>
+          {/if}
+        </div>
+      {/each}
+  </div>
+{/if}
 
 <style>
   .tabsHorizontal {
     position: relative;
     display: flex;
     background-color: var(--tabControlFillColor );
+    gap: 1rem;
   }
   .tabsHorizontal::before {
     position: absolute;
@@ -92,19 +109,22 @@
     display: flex;
     position: relative;
     flex-direction: column;
-    min-width: var(--tab-size);
+    align-items: stretch;
     background-color: var(--tabControlFillColor );
+  }
+
+  .tabsVertical > .selectedTab {
+    margin-left: 0.25rem;
   }
   .tabsVertical::before {
     position: absolute;
     top: var(--tabIndicatorTop);
-    right: 0px;
+    left: 0px;
     height: var(--tabIndicatorHeight);
-    width: 100%;
     content: "";
     background-color: var(--tabIndicatorFillColor );
     transition: all 230ms;
-    border-right: calc( 0.075 * var(--tab-size) ) solid var(--primaryColor);
+    border-right: var(--tab-track-thickness) solid var(--tab-selected-color);
     z-index: 2;
   }
 
@@ -112,21 +132,23 @@
     position: absolute;
     width: var(--tab-track-thickness);
     height: 100%;
-    right: 0px;
+    left: 0px;
     background-color: var(--tabControlTrackFillColor);
     z-index: 1;
     content: "";
   }
 
   .tab {
-    height: var(--tab-size);
-    width: calc( 2.85 * var(--tab-size) );
-    padding-left: calc( 0.25 * var(--tab-size) );
-    padding-right: calc( 0.25 * var(--tab-size) );
+    height: var(--tab-height);
+    width: var(--tab-width);
+    padding-left: var(--tab-padding);
+    padding-right: var(--tab-padding);
     box-sizing: border-box;
     display: flex;
     align-items: center;
+    gap: 0.5rem;
     justify-content: var(--tab-alignment);
+    color: var(--spectrum-global-color-gray-600);
   }
 
   .tabText {
@@ -134,13 +156,22 @@
     white-space: nowrap;
     overflow: hidden;
   }
+
+  .tabIcon {
+    display: grid;
+    align-items: center;
+  }
+
+  :global( .tabIcon > svg ) {
+    height: var(--tab-icon-size);
+  }
+
   .tab:hover {
     cursor: pointer;
-    background-color: rgba(0,0,0, 0.055);
+    color: var(--spectrum-global-color-gray-800);
   }
 
   .selectedTab {
     color: var(--spectrum-global-color-gray-900);
-    font-weight: bold;
   }
 </style>

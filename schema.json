@@ -288,7 +288,7 @@
             "type": "boolean",
             "label": "Wrap",
             "key": "wrap",
-            "showInBar": true,
+            "showInBar": false,
             "barIcon": "ModernGridView",
             "barTitle": "Wrap"
           }
@@ -343,16 +343,28 @@
             "dependsOn": { "setting": "theme", "value": "budibase" }
           },
           {
+            "type": "boolean",
+            "key": "tabsEmphasized",
+            "label": "Emphasized",
+            "defaultValue": false,
+            "dependsOn": { "setting": "theme", "value": "budibase" }
+          },
+          {
+            "type": "boolean",
+            "key": "tabsIconsOnly",
+            "label": "Icons Only",
+            "defaultValue": false
+          },
+          {
             "type": "select",
             "key": "tabsSize",
             "label": "Size",
             "options": [
-              { "label": "Small", "value": "2.5rem" },
-              { "label": "Medium", "value": "3rem" },
-              { "label": "Large", "value": "3.5rem" },
-              { "label": "Extra Large", "value": "4rem" }
+              { "label": "Small", "value": "S" },
+              { "label": "Medium", "value": "M" },
+              { "label": "Large", "value": "L" }
             ],
-            "defaultValue": "3rem"
+            "defaultValue": "M"
           },
           {
             "type": "select",
@@ -363,7 +375,7 @@
               { "label": "Center", "value": "center" },
               { "label": "Right", "value": "flex-end" }
             ],
-            "defaultValue": "center"
+            "defaultValue": "flex-start"
           }
         ]
       },
@@ -400,7 +412,7 @@
             "defaultValue": "New Tab"
           },
           {
-            "type": "icon",
+            "type": "text",
             "key": "icon",
             "label": "Icon"
           },
