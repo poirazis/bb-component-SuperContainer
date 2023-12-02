@@ -8,13 +8,14 @@
   import fsm from "svelte-fsm";
   import { v4 as uuidv4 } from "uuid";
 
-  const { styleable, builderStore, Provider, componentStore } =
-    getContext("sdk");
+  const { styleable, builderStore, Provider, componentStore } = getContext("sdk");
   const component = getContext("component");
-  const parentState = getContext("superLayoutManager");
+  const parentState = getContext("superContainer");
 
   export let dataprovider;
+  export let sourceArray
   export let bound;
+
   export let flex;
   export let flexFactor = 1;
   export let mode = "container"
@@ -56,7 +57,25 @@
   let childCssVariables = {};
   let cssVariables = {};
   let gridPreviewSlots
+  let slots
 
+  $: if (bound && sourceArray) 
+    slots = safeParse(sourceArray) 
+  else 
+    slots = null
+
+  function safeParse(str) {
+    let parsed;
+
+    try {
+      parsed = JSON.parse(str);
+    } catch (error) {
+      console.error(error);
+    }
+    return parsed;
+  }
+
+  // The State machine that handles the child role of the super container if nested
   const childState = fsm( "containerItem" , {
     "*": {
       synch(parentState) {
@@ -139,6 +158,7 @@
     }
   });
 
+  // The State machine that handles the parent role of the super container 
   const state = fsm(mode, {
     "*": {
       registerContainer(componentID, id, state, title, icon, color, reqcolSpan, reqrowSpan) {
@@ -303,7 +323,7 @@
           if (containers.length > 0) this.selectTab(containers[0].id)
         }
         cssVariables = {
-          "flex-direction": direction == "row" ? "column" : "row",
+          "flex-direction": error ? "column" : direction == "row" ? "column" : "row",
         };
       },
       selectTab(tabId) {
@@ -319,15 +339,16 @@
     },
   });
   
-  $: randomColor = bound
+  $: randomColor = $builderStore.inBuilder && bound
     ? "32CD3230"
-    : Math.floor(Math.random() * 16777215).toString(16) + "50";
+    : Math.floor(Math.random() * 16777215).toString(16) + "30";
+
   $: nested = component
     ? $component.ancestors[$component.ancestors.length - 2] ==
       "plugin/bb-component-SuperContainer"
     : false;  
 
-  $: if (parentState && nested) childState.synch($parentState);
+  $: childState.synch($parentState);
   $: parentState?.updateContainer(id, title, icon, color, colSpan, rowSpan);
 
   $: {
@@ -337,10 +358,10 @@
       $componentStore.selectedComponentPath?.includes($component.id)
     ) {
       parentState.selectChild($component.id);
-      childState.synch($parentState)
+      // childState.synch($parentState)
       if ( childMode != $parentState+"Item" )
         builderStore.actions.updateProp("childMode", $parentState+"Item")
-    }
+    } 
   }
   // Revert to default childMode if placed outside Super Container
   $: {
@@ -360,7 +381,6 @@
       ...cssVariables,
       ...childCssVariables,
       "--random-color": "#" + randomColor,
-      overflow: "auto",
       "--spectrum-opacity-checkerboard-square-dark":
         "var(--spectrum-global-color-gray-50)",
       "--spectrum-opacity-checkerboard-square-light": bound
@@ -372,6 +392,10 @@
   };
 
   $: state.synchProperties($$props);
+  $: error = mode == "tabs" && containers?.length < 1 ? "- At least one child Super Container needed to render Tabs"
+           : mode == "splitview" && containers?.length < 2 ? "- At least two child Super Containers needed to render a Split View"
+           : bound == "array" && !Array.isArray(slots) ? "- Invalid Source - Unable to parse array"
+           : undefined
 
   onMount(() => {
     if ( mode == "tabs" && containers.length > 0 ) 
@@ -392,7 +416,7 @@
     }
   });
 
-  setContext("superLayoutManager", state);
+  setContext("superContainer", state);
 </script>
 
 <svelte:window
@@ -405,7 +429,7 @@
     bind:this={container}
     class:super-container={$state == "container"}
     class:accordion={$state == "accordion"}
-    class:superGrid={$state == "grid"}
+    class:super-grid={$state == "grid"}
     class:tabs={$state == "tabs"}
     class:splitview={$state == "splitview"}
     class:super-container-item={$childState == "containerItem"}
@@ -416,8 +440,11 @@
     class:spectrum-OpacityCheckerboard={$builderStore.inBuilder && $component.empty}
     use:styleable={$component.styles}
   >
-    {#if mode == "tabs"}
-      {#if containers?.length > 0}
+      {#if error && $builderStore.inBuilder}
+        <p class="error"> 🛑 {error}</p>
+      {/if}
+
+      {#if mode == "tabs" && containers?.length > 0}
         <TabControl
           {containers}
           {hAlign}
@@ -430,48 +457,63 @@
           {tabsAlignment}
           {tabsSize}
         />
-      {:else}
-        <p class="error"> ✋ You need to have at least one Super Container child component to render Tabs </p>
       {/if}
-    {/if}
 
-    {#if bound && dataprovider}
-      <RepeaterPreview inBuilder={$builderStore.inBuilder} {mode} />
-      {#each dataprovider.rows as row}
-        <Provider data={row}>
-          <slot />
-        </Provider>
-      {/each}
-      {#if mode == "grid" && $builderStore.inBuilder}
-        {#each gridPreviewSlots as guide, idx }
+      <!-- In Repeater Mode with Data Provider -->
+      {#if bound == "dataprovider" && dataprovider}
+        <RepeaterPreview inBuilder={$builderStore.inBuilder} {mode} />
+        {#each dataprovider.rows as row}
+          <Provider data={row}>
+            <slot />
+          </Provider>
+        {/each}
+        {#if mode == "grid" && $builderStore.inBuilder}
+          {#each gridPreviewSlots as guide, idx }
+            <div class="grid-guides">
+              {idx + gridPreviewSlots?.length }
+            </div>
+          {/each}
+        {/if}
+      <!-- In Repeater Mode with Array -->
+      {:else if bound == "array" && slots && !error}
+        <RepeaterPreview inBuilder={$builderStore.inBuilder} {mode} />
+        {#each slots as row, idx }
+          <Provider data={ { index: idx, item:row, total: slots?.length } }>
+            <slot />
+          </Provider>
+        {/each}
+        {#if mode == "grid" && $builderStore.inBuilder}
+          {#each gridPreviewSlots as guide, idx }
+            <div class="grid-guides">
+              {idx + gridPreviewSlots?.length }
+            </div>
+          {/each}
+        {/if}
+      <!-- In unbound mode -->
+      {:else if mode == "grid" && $builderStore.inBuilder && $component.empty }
+        {#each gridPreviewSlots as _, idx }
+          <div class="grid-guides">
+            {idx + gridPreviewSlots?.length }
+            {#if idx == 0}
+              <slot /> 
+            {/if}
+          </div>
+        {/each}
+      {:else if mode == "grid" && $builderStore.inBuilder}
+        <slot />
+        {#each gridPreviewSlots as _, idx }
           <div class="grid-guides">
             {idx + gridPreviewSlots?.length }
           </div>
         {/each}
-      {/if}
-    {:else if mode == "grid" && $builderStore.inBuilder && $component.empty }
-      {#each gridPreviewSlots as guide, idx }
-        <div class="grid-guides">
-          {idx + gridPreviewSlots?.length }
-          {#if idx == 0}
-            <slot /> 
-          {/if}
-        </div>
-      {/each}
-    {:else if mode == "grid" && $builderStore.inBuilder}
-      <slot />
-      {#each gridPreviewSlots as guide, idx }
-        <div class="grid-guides">
-          {idx + gridPreviewSlots?.length }
-        </div>
-      {/each}
-    {:else}
+      {:else}
         <slot />
-    {/if}
+      {/if}
 
-    {#if grabberPosition}
-      <Grabber {grabberPosition} {resizing} {state} />
-    {/if}
+      {#if grabberPosition}
+        <Grabber {grabberPosition} {resizing} {state} />
+      {/if}
+
   </div>
 {/if}
 
@@ -488,7 +530,7 @@
   .super-container-item {
     flex: var(--flex-factor);
   }
-  .superGrid {
+  .super-grid {
     display: grid;
     grid-template-columns: repeat(var(--grid-columns), 1fr);
     grid-template-rows: repeat(var(--grid-rows), 1fr);
@@ -540,7 +582,9 @@
   }
 
   .error {
-    font-size: 18px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--primaryColor);
   }
 
   .spectrum-OpacityCheckerboard {

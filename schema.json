@@ -5,7 +5,6 @@
     "name": "bb-component-SuperContainer",
     "friendlyName": "Super Container",
     "description": "A Multi Layout Data Aware Container Component for Budibase",
-    "info": "Layout Modes require the immidiate child components to be Super Containers",
     "author": "Michael Poirazi",
     "hasChildren": true,
     "showEmptyState": true,
@@ -14,18 +13,67 @@
     "context": [
       {
         "type": "schema"
+      },
+      {
+        "type": "static",
+        "values" : [
+          { "label" : "Index" , "key" : "index", "type" : "number" },
+          { "label" : "Item" , "key" : "item", "type" : "object" },
+          { "label" : "Total" , "key" : "total", "type" : "number" }
+        ]
       }
     ],
     "settings": [
       {
+        "section" : true,
+        "name" : "Sizing",
+        "dependsOn" : { "setting": "childMode" , "value" : "containerItem"},
+        "settings": [
+          {
+            "type": "select",
+            "label": "Flex Mode",
+            "showLabel" : false,
+            "key": "flex",
+            "showInBar": true,
+            "barStyle": "buttons",
+            "options": [
+              {
+                "label": "Shrink",
+                "value": "shrink",
+                "barIcon": "Minimize",
+                "barTitle": "Shrink container"
+              },
+              {
+                "label": "Grow",
+                "value": "grow",
+                "barIcon": "Maximize",
+                "barTitle": "Grow container"
+              }
+            ],
+            "defaultValue": "shrink",
+            "dependsOn" : { "setting" : "childMode" , "value" : "containerItem" }
+          },
+          {
+            "type": "number",
+            "key": "flexFactor",
+            "label": "Flex Factor",
+            "min": 1,
+            "defaultValue": 1,
+            "dependsOn": { "setting": "flex", "value": "grow" }
+          } 
+        ]
+      },
+      {
         "type": "select",
         "key": "mode",
         "label": "Layout Mode",
+        "showInBar" : true,
+        "barStyle" : "buttons",
         "options": [
-          { "label": "Container", "value": "container" },
-          { "label": "SplitView", "value": "splitview" },
-          { "label": "Tabs", "value": "tabs" },
-          { "label": "Grid", "value": "grid" }
+          { "label": "Container", "value": "container", "barIcon" : "SelectIntersect", "barTitle" : "Container" },
+          { "label": "Grid", "value": "grid", "barIcon" : "ClassicGridView", "barTitle" : "Grid" },
+          { "label": "Tabs", "value": "tabs", "barIcon" : "FolderOutline", "barTitle" : "Tabs Control" },
+          { "label": "SplitView", "value": "splitview", "barIcon" : "SplitView", "barTitle" : "Resizable Splitview" }
         ],
         "defaultValue": "container"
       },
@@ -40,50 +88,20 @@
           { "label": "Grid Item", "value": "gridItem" }
         ],
         "defaultValue": "containerItem",
-        "dependsOn" : "_hidden"
+        "hidden": true
       },
       {
         "type": "select",
-        "label": "Size",
-        "key": "flex",
-        "showInBar": true,
-        "barStyle": "buttons",
-        "options": [
-          {
-            "label": "Shrink",
-            "value": "shrink",
-            "barIcon": "Minimize",
-            "barTitle": "Shrink container"
-          },
-          {
-            "label": "Grow",
-            "value": "grow",
-            "barIcon": "Maximize",
-            "barTitle": "Grow container"
-          }
-        ],
-        "defaultValue": "shrink",
-        "dependsOn" : { "setting" : "childMode" , "value" : "containerItem" }
-      },
-      {
-        "type": "number",
-        "key": "flexFactor",
-        "label": "Flex Factor",
-        "min": 1,
-        "defaultValue": 1,
-        "dependsOn": { "setting": "flex", "value": "grow" }
-      },
-      {
-        "type": "text",
-        "key": "title",
-        "label": "Title",
-        "defaultValue": "Container"
-      },
-      {
-        "type": "boolean",
         "key": "bound",
         "label": "Repeater Mode",
-        "defaultValue": false
+        "showInBar": true,
+        "barStyle": "buttons",
+        "options" : [
+          { "label" : "Off", "value" : false, "barIcon" : "Cancel" },
+          { "label" : "Data Provider", "value" : "dataprovider", "barIcon" : "Data" },
+          { "label" : "Array", "value" : "array" , "barIcon" : "FlashOn"}
+        ],
+        "defaultValue" : false
       },
       {
         "section": true,
@@ -91,26 +109,17 @@
         "dependsOn": "bound",
         "settings": [
           {
-            "type" : "select",
-            "key" : "source",
-            "label" : "Source",
-            "options" : [
-              { "label" : "Data Provider", "value" : "dataprovider" },
-              { "label" : "Array", "value" : "array" }
-            ],
-            "defaultValue" : "dataprovider"
-          },
-          {
             "type": "dataProvider",
             "key": "dataprovider",
             "label": "Data Provider",
-            "dependsOn": { "setting" : "source" , "value" : "dataprovider" }
+            "dependsOn": { "setting" : "bound" , "value" : "dataprovider" }
           },
           {
             "type": "text",
             "key": "sourceArray",
             "label": "Source Array",
-            "dependsOn": { "setting" : "source" , "value" : "array" }
+            "resetOn" : "bound",
+            "dependsOn": { "setting" : "bound" , "value" : "array" }
           }
         ]
       },
@@ -303,18 +312,6 @@
             "label": "Rows",
             "min": 1,
             "defaultValue": 3
-          },
-          {
-            "type" : "text",
-            "key" : "colGap",
-            "label" : "Column Gap",
-            "defaultValue" : "0.25rem"
-          },
-          {
-            "type" : "text",
-            "key" : "rowGap",
-            "label" : "Row Gap",
-            "defaultValue" : "0.25rem"
           }
         ]
       },
@@ -396,6 +393,12 @@
         "name": "Tab Item Options",
         "dependsOn": { "setting": "childMode", "value": "tabsItem" },
         "settings": [
+          {
+            "type": "text",
+            "key": "title",
+            "label": "Title",
+            "defaultValue": "New Tab"
+          },
           {
             "type": "icon",
             "key": "icon",
