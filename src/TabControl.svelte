@@ -153,6 +153,7 @@
   .tab {
     position: relative;
     box-sizing: border-box;
+    padding: var(--tab-padding);
     display: flex;
     align-items: center;
     gap: 0.5rem;
