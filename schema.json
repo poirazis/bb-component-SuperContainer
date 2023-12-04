@@ -321,11 +321,6 @@
         "dependsOn": { "setting": "mode", "value": "tabs" },
         "settings": [
           {
-            "type": "text",
-            "key": "activeTab",
-            "label": "Active Tab"
-          },
-          {
             "type": "select",
             "key": "theme",
             "label": "Theme",
@@ -334,26 +329,6 @@
               { "label": "Buttons", "value": "buttons" }
             ],
             "defaultValue": "budibase"
-          },
-          {
-            "type": "boolean",
-            "key": "tabsQuiet",
-            "label": "Quiet",
-            "defaultValue": false,
-            "dependsOn": { "setting": "theme", "value": "budibase" }
-          },
-          {
-            "type": "boolean",
-            "key": "tabsEmphasized",
-            "label": "Emphasized",
-            "defaultValue": false,
-            "dependsOn": { "setting": "theme", "value": "budibase" }
-          },
-          {
-            "type": "boolean",
-            "key": "tabsIconsOnly",
-            "label": "Icons Only",
-            "defaultValue": false
           },
           {
             "type": "select",
@@ -376,6 +351,29 @@
               { "label": "Right", "value": "flex-end" }
             ],
             "defaultValue": "flex-start"
+          },
+          {
+            "type": "text",
+            "key": "activeTab",
+            "label": "Active Tab"
+          },
+          {
+            "type": "boolean",
+            "key": "tabsQuiet",
+            "label": "Quiet",
+            "defaultValue": false
+          },
+          {
+            "type": "boolean",
+            "key": "tabsEmphasized",
+            "label": "Emphasized",
+            "defaultValue": false
+          },
+          {
+            "type": "boolean",
+            "key": "tabsIconsOnly",
+            "label": "Icons Only",
+            "defaultValue": false
           }
         ]
       },
@@ -412,7 +410,7 @@
             "defaultValue": "New Tab"
           },
           {
-            "type": "text",
+            "type": "icon",
             "key": "icon",
             "label": "Icon"
           },
