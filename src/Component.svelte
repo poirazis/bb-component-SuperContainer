@@ -327,7 +327,7 @@
           if (containers.length > 0) this.selectTab(containers[0].id)
         }
         cssVariables = {
-          "flex-direction": direction == "row" || error ? "column" : "row",
+          "flex-direction": direction == "row" ? "column" : "row",
         };
       },
       selectTab(tabId) {
@@ -583,6 +583,7 @@
   }
   .tabs {
     display: flex;
+    flex-direction: column;
     align-items: stretch;
     justify-content: stretch;
   }

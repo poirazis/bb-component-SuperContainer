@@ -16,56 +16,73 @@
 
   let indicatorLeft, indicatorWidth, indicatorTop, indicatorHeight
 
+  const tabHeights = {
+    "S" : "2.25rem",
+    "M" : "2.5rem",
+    "L" : "3rem"
+  }
+  const tabWidths = {
+    "S" : "7.5rem",
+    "M" : "8rem",
+    "L" : "10rem"
+  }
+  const tabPaddings = {
+    "S" : "0.85rem",
+    "M" : "1rem",
+    "L" : "1.25rem"
+  }
+
   const getIndicatorPosition = () => {
-    if ( tabs[selectedTab] ) {
+    if ( tabs[selectedTab] && theme == "budibase") {
       indicatorLeft = tabs[selectedTab].offsetLeft
       indicatorWidth = tabs[selectedTab].clientWidth
       indicatorTop = tabs[selectedTab].offsetTop
       indicatorHeight = tabs[selectedTab].clientHeight
+    } else {
+      indicatorLeft = null
+      indicatorWidth = null
+      indicatorTop = null
+      indicatorHeight = null
     }
   }
 
-  $: setTimeout(() => getIndicatorPosition($$props, tabs) , 10 ) 
+  $: setTimeout(() => getIndicatorPosition($$props, tabs) , 10 )  
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 {#if containers?.length}
   <div
-    class:tabsVertical = { direction == "column" } 
-    class:tabsHorizontal = { direction == "row" } 
+    class="tabs"
+    class:tabs-vertical = { direction == "column" }
+    class:tabs-buttons = { theme == "buttons" }
     style:justify-content = { direction == "row" ? hAlign : vAlign }
-    style:--tab-width={ direction == "row" ? "auto" : "8rem" }
-    style:--tab-height={ direction == "row" ? "3rem" : "3rem"}
-    style:--tab-padding={ direction == "row" ? "0.25rem" : "0.75rem" }
+    style:--tab-width={ tabWidths[tabsSize]}
+    style:--tab-height={ tabHeights[tabsSize] }
+    style:--tab-padding={ tabPaddings[tabsSize] }
     style:--tab-alignment={ tabsAlignment } 
     style:--tab-track-thickness={ "2px" }
-    style:--tab-selected-color={tabsEmphasized ? "var(--primaryColor)" : "var(--spectrum-global-color-gray-900)"}
+    style:--tab-selected-color={ tabsEmphasized ? "var(--primaryColor)" : "var(--spectrum-global-color-gray-900)" }
     style:--tabIndicatorLeft = { indicatorLeft } 
-    style:--tabIndicatorWidth = { indicatorWidth } 
+    style:--tabIndicatorWidth = { indicatorWidth  } 
     style:--tabIndicatorTop = { indicatorTop } 
     style:--tabIndicatorHeight = { indicatorHeight } 
-    style:--tabIndicatorFillColor = { theme == "budibase" ? "transparent" : "rgba(255,255,255, 0.085)"}
-    style:--tabControlFillColor = { theme == "budibase" ? "transparent" : "rgba(0,0,0, 0.085)"}
-    style:--tabControlTrackFillColor = { theme == "budibase" && tabsQuiet ? "transparent" : "var(--spectrum-global-color-gray-200)"}
     >
       {#each containers as container, idx }
         <div
           bind:this={tabs[container.id]} 
           class="tab"
-          class:selectedTab={container.id == selectedTab}
-          style:flex={ ( direction == "row" && hAlign == "stretch" )
-                      || ( direction == "column" && vAlign == "stretch" ) 
-                      ? "1 1 auto" : "0 0 auto"
-                      }
+          class:tab-vertical={direction == "column"}
+          class:tab-button={theme == "buttons"}
+          class:selected={container.id == selectedTab}
           on:click={() => state.selectTab(container.id)}
         >
+
           {#if container.icon}
-            <div class="tabIcon" style:color={container.id == selectedTab ? container?.color : null } style:--tab-icon-size={tabsIconsOnly ? "24px" : "20px"}>
-              {@html container?.icon}
-            </div>
+            <i class={container.icon} style:font-size={tabsIconsOnly ? "20px" : null } style:color={ container.id == selectedTab ? container?.color : null }/>
           {/if}
+
           {#if !tabsIconsOnly || !container.icon}
-            <span class="tabText">
+            <span class="tab-text">
               { container.title || "Tab " + idx }
             </span>
           {/if}
@@ -75,103 +92,117 @@
 {/if}
 
 <style>
-  .tabsHorizontal {
+
+  .tabs {
     position: relative;
     display: flex;
-    background-color: var(--tabControlFillColor );
-    gap: 1rem;
+    gap: 0.85rem;
   }
-  .tabsHorizontal::before {
+
+  .tabs::before {
     position: absolute;
     left: var(--tabIndicatorLeft);
     height: 100%;
     bottom: 0;
     width: var(--tabIndicatorWidth);
     content: "";
-    background-color: var(--tabIndicatorFillColor );
-    color: var(--primaryColor);
     transition: all 130ms ease-out;
-    border-bottom: var(--tab-track-thickness) solid var(--primaryColor);
-    z-index: 2;
+    border-bottom: var(--tab-track-thickness) solid var(--tab-selected-color);
   }
 
-  .tabsHorizontal::after {
+  .tabs::after {
     position: absolute;
-    height: var(--tab-track-thickness);
+    border-bottom: var(--tab-track-thickness) solid var(--spectrum-global-color-gray-200);
     width: 100%;
     bottom: 0px;
-    background-color: var(--tabControlTrackFillColor);
-    z-index: 1;
     content: "";
+    z-index: -2;
   }
-
-  .tabsVertical {
-    display: flex;
+  .tabs.tabs-vertical {
     position: relative;
+    height: 100%;
+    width: var(--tab-width);
     flex-direction: column;
-    align-items: stretch;
-    background-color: var(--tabControlFillColor );
+    gap: 0px;
   }
 
-  .tabsVertical > .selectedTab {
-    margin-left: 0.25rem;
-  }
-  .tabsVertical::before {
+  .tabs-vertical::before {
     position: absolute;
     top: var(--tabIndicatorTop);
-    left: 0px;
+    right: 0px;
     height: var(--tabIndicatorHeight);
     content: "";
-    background-color: var(--tabIndicatorFillColor );
     transition: all 230ms;
+    border: none;
     border-right: var(--tab-track-thickness) solid var(--tab-selected-color);
-    z-index: 2;
+  }
+  .tabs-vertical::after {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    border: none;
+    border-right: var(--tab-track-thickness) solid var(--spectrum-global-color-gray-200);
+    content: "";
+    z-index: -2;
   }
 
-  .tabsVertical::after {
-    position: absolute;
-    width: var(--tab-track-thickness);
-    height: 100%;
-    left: 0px;
-    background-color: var(--tabControlTrackFillColor);
-    z-index: 1;
-    content: "";
+  .tabs-buttons {
+    gap: 0.25rem;
   }
 
   .tab {
-    height: var(--tab-height);
-    width: var(--tab-width);
-    padding-left: var(--tab-padding);
-    padding-right: var(--tab-padding);
+    position: relative;
     box-sizing: border-box;
     display: flex;
     align-items: center;
     gap: 0.5rem;
     justify-content: var(--tab-alignment);
     color: var(--spectrum-global-color-gray-600);
+    height: var(--tab-height);
+    width: var(--tab-width);
   }
 
-  .tabText {
+  .tab-button {
+    padding: var(--tab-padding);
+    height: var(--tab-height);
+    width: var(--tab-width);
+    justify-content: var(--tab-alignment);
+  }
+  .selected.tab-button::before {
+    content: "";
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    bottom: 4px;
+    right: 4px;
+    z-index: -1;
+    border-radius: 5px;
+    background-color: var(--spectrum-global-color-gray-200);
+  }
+
+  .tab:hover > span {
+    cursor: pointer;
+    color: var(--spectrum-global-color-gray-800);
+  }
+  .tab-vertical {
+    border: none;
+    padding-left: 0.85rem;
+    height: var(--tab-height);
+  }
+
+  .tab-text {
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
   }
-
-  .tabIcon {
-    display: grid;
-    align-items: center;
+  .selected {
+    color: var(--tab-selected-color);
+  }
+  .selected:hover {
+    color: var(--tab-selected-color);
   }
 
-  :global( .tabIcon > svg ) {
-    height: var(--tab-icon-size);
-  }
-
-  .tab:hover {
-    cursor: pointer;
-    color: var(--spectrum-global-color-gray-800);
-  }
-
-  .selectedTab {
-    color: var(--spectrum-global-color-gray-900);
+  .tab-vertical.selected {
+    padding-left: 1rem;
   }
 </style>
