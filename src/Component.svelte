@@ -67,12 +67,16 @@
   // The State machine that handles the child role of the super container if nested
   const childState = fsm( "containerItem" , {
     "*": {
-      synch(parentState) {
-        if (parentState == "grid") { return "gridItem"; }
-        if (parentState == "tabs") { return "tabItem"; }
-        if (!parentState || parentState == "container") { return "containerItem";}
-        if (parentState == "accordion") return "accordionItem";
-        if (parentState == "splitview") return "splitviewItem";
+      synch(parentState,inFieldGroup ) {
+        if ( inFieldGroup ) {
+          return "gridItem"
+        } else {
+          if (parentState == "grid" ) { return "gridItem"; }
+          if (parentState == "tabs") { return "tabItem"; }
+          if (parentState == "accordion") return "accordionItem";
+          if (parentState == "splitview") return "splitviewItem";
+          if (!parentState || parentState == "container") { return "containerItem";}
+        }
       },
       activate() {
         return "activeTabItem";
@@ -119,10 +123,17 @@
         this.refresh();
       },
       refresh() {
-        childCssVariables = {
-          "grid-column" : "span " + Math.min( colSpan, $parentGridStore?.gridColumns ),
-          "grid-row" : "span " + Math.min( rowSpan, $parentGridStore?.gridRows),
-        };
+        if ( parentGridStore ) {
+          childCssVariables = {
+            "grid-column" : "span " + Math.min( colSpan, $parentGridStore?.gridColumns ),
+            "grid-row" : "span " + Math.min( rowSpan, $parentGridStore?.gridRows),
+          } 
+        } else {
+          childCssVariables = {
+            "grid-column" : "span " + (colSpan * 6),
+            "grid-row" : "span " + rowSpan,
+          } 
+        }
       },
     },
     tabItem: {
@@ -352,9 +363,14 @@
       "plugin/bb-component-SuperContainer"
     : false;  
 
+  $: inSuperFieldGroup = component
+    ? $component.ancestors[$component.ancestors.length - 2] ==
+      "plugin/bb-component-SuperFieldGroup"
+    : false;  
+
   $: if ( bound == "array" && sourceArray ) slots = safeParse(sourceArray) 
 
-  $: childState.synch($parentState);
+  $: childState.synch($parentState, inSuperFieldGroup);
   $: parentState?.updateContainer(id, title, icon, color, Math.min(colSpan, $parentGridStore?.gridColumns ), Math.min( rowSpan, $parentGridStore?.gridRows));
 
   $: {
@@ -366,6 +382,12 @@
       parentState.selectChild($component.id);
       if ( childMode != $parentState+"Item" )
         builderStore.actions.updateProp("childMode", $parentState+"Item")
+    } else if (
+      $builderStore.inBuilder
+      && !parentState && inSuperFieldGroup &&
+      $componentStore.selectedComponentPath?.includes($component.id)
+    ) {
+      builderStore.actions.updateProp("childMode", "gridItem")
     } else if (
       $builderStore.inBuilder
       && !parentState && childMode != "containerItem" && 
@@ -435,6 +457,8 @@
 
   setContext("superContainer", state);
   setContext("superContainerParams", gridStore )
+
+  $: console.log($parentState, $childState, inSuperFieldGroup)
 </script>
 
 <svelte:window
