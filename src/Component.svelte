@@ -13,8 +13,6 @@
   const parentState = getContext("superContainer");
   const parentGridStore = getContext("superContainerParams");
 
-  $: console.log($parentGridStore)
-
   export let dataprovider
   export let sourceArray
   export let bound = false
@@ -268,12 +266,11 @@
             nonSuperComponents = $component.children - ( containers.length / slots.length );
             repeaterUsedSlots = $component.children ? slots.length * nonSuperComponents : slots.length
           } else {
-            nonSuperComponents = 1
+            nonSuperComponents = $component.children - containers?.length
           }
           
           
-          let neededPreviewSlots = totalSlots - repeaterUsedSlots - childUsedSlots 
-          console.log( totalSlots,repeaterUsedSlots,childUsedSlots,nonSuperComponents,dataprovider?.rows.length ,slots?.length )
+          let neededPreviewSlots = totalSlots - repeaterUsedSlots - childUsedSlots - nonSuperComponents
           gridPreviewSlots = neededPreviewSlots > 0 ? new Array( neededPreviewSlots ) : []
         }
 
@@ -345,7 +342,6 @@
 
   let gridStore = new writable({})
   $: $gridStore = { gridColumns, gridRows }
-  $: console.log($gridStore)
   
   $: randomColor = $builderStore.inBuilder && bound
     ? "32CD3230"
