@@ -1,10 +1,12 @@
 <script>
   import { getContext, onDestroy, onMount, setContext } from "svelte";
+  import fsm from "svelte-fsm";
+
   import "@spectrum-css/opacitycheckerboard/dist/index-vars.css";
   import RepeaterPreview from "./RepeaterPreview.svelte";
   import TabControl from "./TabControl.svelte";
   import Grabber from "./Grabber.svelte";
-  import fsm from "svelte-fsm";
+
   import { writable } from "svelte/store";
 
   const { styleable, builderStore, Provider, componentStore } = getContext("sdk");
@@ -159,10 +161,9 @@
   });
 
   // The State machine that handles the parent role of the super container 
-  const state = fsm(mode, {
+  const state = fsm("container", {
     "*": {
       registerContainer(componentID, id, state, title, icon, color, reqcolSpan, reqrowSpan) {
-        console.log(containers, id)
         containers = [
           ...containers,
           {
@@ -371,7 +372,7 @@
   $: if ( bound == "array" && sourceArray ) slots = safeParse(sourceArray) 
 
   $: childState.synch($parentState, inSuperFieldGroup);
-  $: parentState?.updateContainer(id, title, icon, color, Math.min(colSpan, $parentGridStore?.gridColumns ), Math.min( rowSpan, $parentGridStore?.gridRows));
+  $: parentState?.updateContainer(id, title, icon, color, gridColumns, gridRows );
 
   $: {
     if (
@@ -420,9 +421,7 @@
   $: error = mode == "tabs" && containers?.length < 1 ? "At least one child Super Container needed to render Tabs"
            : mode == "splitview" && containers?.length < 2 ? "At least two child Super Containers needed to render a Split View"
            : bound == "dataprovider" && !dataprovider ? "Please place inside a Data Provider"
-           : bound == "array" && !slots ? "Error Parsing Source Array"
-           : $parentState == "grid" && colSpan > $parentGridStore.gridColumns ? "Out of Grid Bounds - Parent has only " + $parentGridStore.gridColumns  + " Columns"
-           : $parentState == "grid" && rowSpan > $parentGridStore.gridRows ? "Out of Grid Bounds - Parent has only " + $parentGridStore.gridRows + " Rows"
+           : bound == "array" && !slots ? "Error Parsing Source Array"           
            : undefined
 
   function safeParse(str) {
@@ -458,7 +457,6 @@
   setContext("superContainer", state);
   setContext("superContainerParams", gridStore )
 
-  $: console.log($parentState, $childState, inSuperFieldGroup)
 </script>
 
 <svelte:window
