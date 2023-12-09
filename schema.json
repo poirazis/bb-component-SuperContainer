@@ -9,7 +9,7 @@
     "hasChildren": true,
     "showEmptyState": true,
     "icon": "SelectIntersect",
-    "styles": ["size", "padding", "border", "background", "shadow"],
+    "styles": ["padding", "size", "border", "background"],
     "context": [
       {
         "type": "schema"
