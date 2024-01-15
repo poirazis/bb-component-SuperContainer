@@ -482,10 +482,6 @@
     setContext("field-group-label-width", undefined )
     setContext("field-group-disabled", undefined ) 
   }
-
-
-
-  $: if ( childMode == "fieldgroupItem" ) console.log(cssVariables,childCssVariables)
 </script>
 
 <svelte:window
