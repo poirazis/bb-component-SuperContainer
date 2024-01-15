@@ -39,9 +39,13 @@
   export let gridRows = 3;
   export let title, icon, color;
 
+  export let labelPos
+  export let labelWidth = "6rem"
+  export let disabled
+
   // Grid Child Item Options
-  export let colSpan
-  export let rowSpan
+  export let colSpan = 1
+  export let rowSpan = 1
 
   let containers = [];
   let container;
@@ -64,20 +68,225 @@
   // The array of slots to be rendered in array repeater mode
   let slots
 
-  // The State machine that handles the child role of the super container if nested
-  const childState = fsm( "containerItem" , {
-    "*": {
-      synch(parentState,inFieldGroup ) {
-        if ( inFieldGroup ) {
-          return "gridItem"
+  // The State machine that handles the parent role of the super container 
+  const state = fsm(mode, {
+  "*": {
+    registerContainer(componentID, id, state, title, icon, color, reqcolSpan, reqrowSpan) {
+      containers = [
+        ...containers,
+        {
+          componentID,
+          id,
+          state,
+          title,
+          icon,
+          color,
+          colSpan: reqcolSpan,
+          rowSpan: reqrowSpan
+        },
+      ];
+    },
+    updateContainer(id, title, icon, color, reqcolSpan = 1, reqrowSpan = 1) {
+      let index = containers.findIndex((e) => e.id == id);
+      if (index > -1) {
+        containers[index].title = title;
+        containers[index].icon = icon;
+        containers[index].color = color;
+        containers[index].colSpan = reqcolSpan;
+        containers[index].rowSpan = reqrowSpan;
+      }
+      containers = containers;
+    },
+    unregisterContainer(id) {
+      let index = containers.findIndex((e) => e.id == id);
+      if (index > -1) {
+        containers.splice(index, 1);
+        containers = containers;
+        if (mode == "tabs" && containers.length > 0)
+          selectedTab = containers[0].id;
+      }
+    },
+    setMode(mode) {
+      return mode;
+    },
+    refresh() {},
+    selectChild(compID) {
+      if (mode == "tabs") {
+        let pos = containers.findIndex((v) => v.componentID == compID);
+        if (pos > -1) this.selectTab(containers[pos].id);
+      }
+    },
+    setResizing(pos) {
+      grabberPosition = pos;
+    },
+    startResizing(e) {
+      resizing = true;
+      startPointX = e.clientX;
+      startPointY = e.clientY;
+      initialWidth = container.clientWidth;
+      initialHeight = container.clientHeight;
+    },
+    resize(e) {
+      if (grabberPosition == "right") {
+        width = initialWidth + (e.clientX - startPointX);
+      } else {
+        height = initialHeight + (e.clientY - startPointY);
+      }
+
+      childState.refresh();
+    },
+    stopResizing(e) {
+      resizing = false;
+    },
+    hide() {
+      childState.deactivate();
+    },
+    show() {
+      childState.activate();
+    },
+    synchProperties() {
+      childState.refresh( );
+      this.refresh( $builderStore.inBuilder  );
+      return mode;
+    },
+  },
+  disabled: {},
+  accordion: {},
+  container: {
+    _enter() {
+      this.refresh();
+    },
+    refresh() {
+      cssVariables = {
+        "flex-direction": direction,
+        "flex-wrap": wrap ? "wrap" : "nowrap",
+        "justify-content": direction == "row" ? hAlign : vAlign,
+        "align-items": direction == "row" ? vAlign : hAlign,
+        "align-content": wrap ? (direction == "row" ? vAlign : hAlign) : null,
+        "gap": gap,
+        "--container-flex-mode" : ( direction == "row" && hAlign == "stretch" ) || ( direction == "column" && vAlign == "stretch" ) ? "1" : null
+      };
+    },
+  },
+  grid: {
+    _enter() {
+      this.refresh( $builderStore.inBuilder );
+    },
+    refresh( inBuilder ) {
+      let repeaterUsedSlots = 0
+      let nonSuperComponents = 0
+      let totalSlots = gridColumns * gridRows
+      let childUsedSlots = containers?.reduce( ( p , c , idx ) => { return p + ( c.colSpan * c.rowSpan ) }, 0 ) 
+
+      if ( inBuilder ) {
+        if ( bound == "dataprovider" && dataprovider ) {
+          nonSuperComponents = $component.children - ( containers.length / dataprovider?.rows.length );
+          repeaterUsedSlots = $component.children ? dataprovider?.rows.length * nonSuperComponents : dataprovider?.rows.length
+        } else if ( bound == "array" && slots?.length ) {
+          nonSuperComponents = $component.children - ( containers.length / slots.length );
+          repeaterUsedSlots = $component.children ? slots.length * nonSuperComponents : slots.length
         } else {
+          nonSuperComponents = $component.children - containers?.length
+        }
+        
+        
+        let neededPreviewSlots = totalSlots - repeaterUsedSlots - childUsedSlots - nonSuperComponents
+        gridPreviewSlots = neededPreviewSlots > 0 ? new Array( neededPreviewSlots ) : []
+      }
+
+      cssVariables = {
+        "display": "grid",
+        "justify-items": hAlign,
+        "align-items": vAlign,
+        "--grid-columns": gridColumns,
+        "--grid-rows": gridRows,
+        "--grid-column-gap": gap,
+        "--grid-row-gap": gap,
+      };
+    },
+  },
+  splitview: {
+    _enter() {
+      this.refresh();
+    },
+    refresh() {
+      cssVariables = {
+        "flex-direction": direction,
+        "justify-content": "stretch",
+      };
+      this.setResizingGrabbers.debounce(20);
+    },
+    setResizingGrabbers() {
+      containers.forEach(({ state }, idx) => {
+        if (direction == "row" && idx < containers.length - 1)
+          state.setResizing("right");
+        else if (direction == "column" && idx < containers.length - 1)
+          state.setResizing("bottom");
+      });
+    },
+    _exit() {
+      containers.forEach(({ state }) => {
+        state.setResizing(null);
+      });
+    },
+  },
+  tabs: {
+    _enter() {
+      this.refresh();
+    },
+    _exit() {
+      selectedTab == undefined;
+    },
+    refresh() {
+      if ( selectedTab )
+        this.selectTab(selectedTab)
+      else {
+        if (containers.length > 0) this.selectTab(containers[0].id)
+      }
+      cssVariables = {
+        "flex-direction": direction == "row" ? "column" : "row",
+      };
+    },
+    selectTab(tabId) {
+      containers.forEach(({ id, state }) => {
+        if (tabId == id) {
+          state.show();
+          selectedTab = id;
+        } else {
+          state.hide();
+        }
+      });
+    },
+  },
+  fieldgroup: {
+    _enter() { this.refresh() },
+    refresh() {
+      cssVariables = {
+        "display": "grid",
+        "justify-items": "stretch",
+        "align-items": vAlign,
+        "--grid-columns": gridColumns * 6,
+        "--grid-rows": gridRows,
+        "--grid-column-gap": gap,
+        "--grid-row-gap": gap
+      };
+    }
+
+  }
+  });
+
+
+  // The State machine that handles the child role of the super container if nested
+  const childState = fsm( childMode ?? "containerItem", {
+    "*": {
+      synch(parentState) {
           if (parentState == "grid" ) { return "gridItem"; }
           if (parentState == "tabs") { return "tabItem"; }
           if (parentState == "accordion") return "accordionItem";
           if (parentState == "splitview") return "splitviewItem";
+          if (parentState == "fieldgroup") return "fieldgroupItem";
           if (!parentState || parentState == "container") { return "containerItem";}
-        }
-      },
+        },
       activate() {
         return "activeTabItem";
       },
@@ -155,200 +364,17 @@
           flex: "1 0 auto",
         }
       }
+    },
+    fieldgroupItem : {
+      _enter() { this.refresh() },
+      refresh() { 
+        childCssVariables = {
+          "fieldgroupitem" : "yes",
+          "grid-column" : "span " + (colSpan * 6),
+          "grid-row" : "span " + rowSpan
+          }
+      }
     }
-  });
-
-  // The State machine that handles the parent role of the super container 
-  const state = fsm(mode, {
-    "*": {
-      registerContainer(componentID, id, state, title, icon, color, reqcolSpan, reqrowSpan) {
-        console.log(containers, id)
-        containers = [
-          ...containers,
-          {
-            componentID,
-            id,
-            state,
-            title,
-            icon,
-            color,
-            colSpan: reqcolSpan,
-            rowSpan: reqrowSpan
-          },
-        ];
-      },
-      updateContainer(id, title, icon, color, reqcolSpan = 1, reqrowSpan = 1) {
-        let index = containers.findIndex((e) => e.id == id);
-        if (index > -1) {
-          containers[index].title = title;
-          containers[index].icon = icon;
-          containers[index].color = color;
-          containers[index].colSpan = reqcolSpan;
-          containers[index].rowSpan = reqrowSpan;
-        }
-        containers = containers;
-      },
-      unregisterContainer(id) {
-        let index = containers.findIndex((e) => e.id == id);
-        if (index > -1) {
-          containers.splice(index, 1);
-          containers = containers;
-          if (mode == "tabs" && containers.length > 0)
-            selectedTab = containers[0].id;
-        }
-      },
-      setMode(mode) {
-        return mode;
-      },
-      refresh() {},
-      selectChild(compID) {
-        if (mode == "tabs") {
-          let pos = containers.findIndex((v) => v.componentID == compID);
-          if (pos > -1) this.selectTab(containers[pos].id);
-        }
-      },
-      setResizing(pos) {
-        grabberPosition = pos;
-      },
-      startResizing(e) {
-        resizing = true;
-        startPointX = e.clientX;
-        startPointY = e.clientY;
-        initialWidth = container.clientWidth;
-        initialHeight = container.clientHeight;
-      },
-      resize(e) {
-        if (grabberPosition == "right") {
-          width = initialWidth + (e.clientX - startPointX);
-        } else {
-          height = initialHeight + (e.clientY - startPointY);
-        }
-
-        childState.refresh();
-      },
-      stopResizing(e) {
-        resizing = false;
-      },
-      hide() {
-        childState.deactivate();
-      },
-      show() {
-        childState.activate();
-      },
-      synchProperties() {
-        childState.refresh( );
-        this.refresh( $builderStore.inBuilder  );
-        return mode;
-      },
-    },
-    disabled: {},
-    accordion: {},
-    container: {
-      _enter() {
-        this.refresh();
-      },
-      refresh() {
-        cssVariables = {
-          "flex-direction": direction,
-          "flex-wrap": wrap ? "wrap" : "nowrap",
-          "justify-content": direction == "row" ? hAlign : vAlign,
-          "align-items": direction == "row" ? vAlign : hAlign,
-          "align-content": wrap ? (direction == "row" ? vAlign : hAlign) : null,
-          "gap": gap,
-          "--container-flex-mode" : ( direction == "row" && hAlign == "stretch" ) || ( direction == "column" && vAlign == "stretch" ) ? "1" : null
-        };
-      },
-    },
-    grid: {
-      _enter() {
-        this.refresh( $builderStore.inBuilder );
-      },
-      refresh( inBuilder ) {
-        let repeaterUsedSlots = 0
-        let nonSuperComponents = 0
-        let totalSlots = gridColumns * gridRows
-        let childUsedSlots = containers?.reduce( ( p , c , idx ) => { return p + ( c.colSpan * c.rowSpan ) }, 0 ) 
-
-        if ( inBuilder ) {
-          if ( bound == "dataprovider" && dataprovider ) {
-            nonSuperComponents = $component.children - ( containers.length / dataprovider?.rows.length );
-            repeaterUsedSlots = $component.children ? dataprovider?.rows.length * nonSuperComponents : dataprovider?.rows.length
-          } else if ( bound == "array" && slots?.length ) {
-            nonSuperComponents = $component.children - ( containers.length / slots.length );
-            repeaterUsedSlots = $component.children ? slots.length * nonSuperComponents : slots.length
-          } else {
-            nonSuperComponents = $component.children - containers?.length
-          }
-          
-          
-          let neededPreviewSlots = totalSlots - repeaterUsedSlots - childUsedSlots - nonSuperComponents
-          gridPreviewSlots = neededPreviewSlots > 0 ? new Array( neededPreviewSlots ) : []
-        }
-
-        cssVariables = {
-          "display": "grid",
-          "justify-items": hAlign,
-          "align-items": vAlign,
-          "--grid-columns": gridColumns,
-          "--grid-rows": gridRows,
-          "--grid-column-gap": gap,
-          "--grid-row-gap": gap,
-        };
-      },
-    },
-    splitview: {
-      _enter() {
-        this.refresh();
-      },
-      refresh() {
-        cssVariables = {
-          "flex-direction": direction,
-          "justify-content": "stretch",
-        };
-        this.setResizingGrabbers.debounce(20);
-      },
-      setResizingGrabbers() {
-        containers.forEach(({ state }, idx) => {
-          if (direction == "row" && idx < containers.length - 1)
-            state.setResizing("right");
-          else if (direction == "column" && idx < containers.length - 1)
-            state.setResizing("bottom");
-        });
-      },
-      _exit() {
-        containers.forEach(({ state }) => {
-          state.setResizing(null);
-        });
-      },
-    },
-    tabs: {
-      _enter() {
-        this.refresh();
-      },
-      _exit() {
-        selectedTab == undefined;
-      },
-      refresh() {
-        if ( selectedTab )
-          this.selectTab(selectedTab)
-        else {
-          if (containers.length > 0) this.selectTab(containers[0].id)
-        }
-        cssVariables = {
-          "flex-direction": direction == "row" ? "column" : "row",
-        };
-      },
-      selectTab(tabId) {
-        containers.forEach(({ id, state }) => {
-          if (tabId == id) {
-            state.show();
-            selectedTab = id;
-          } else {
-            state.hide();
-          }
-        });
-      },
-    },
   });
 
   let gridStore = new writable({})
@@ -363,14 +389,9 @@
       "plugin/bb-component-SuperContainer"
     : false;  
 
-  $: inSuperFieldGroup = component
-    ? $component.ancestors[$component.ancestors.length - 2] ==
-      "plugin/bb-component-SuperFieldGroup"
-    : false;  
-
   $: if ( bound == "array" && sourceArray ) slots = safeParse(sourceArray) 
 
-  $: childState.synch($parentState, inSuperFieldGroup);
+  $: childState.synch($parentState);
   $: parentState?.updateContainer(id, title, icon, color, Math.min(colSpan, $parentGridStore?.gridColumns ), Math.min( rowSpan, $parentGridStore?.gridRows));
 
   $: {
@@ -382,12 +403,6 @@
       parentState.selectChild($component.id);
       if ( childMode != $parentState+"Item" )
         builderStore.actions.updateProp("childMode", $parentState+"Item")
-    } else if (
-      $builderStore.inBuilder
-      && !parentState && inSuperFieldGroup &&
-      $componentStore.selectedComponentPath?.includes($component.id)
-    ) {
-      builderStore.actions.updateProp("childMode", "gridItem")
     } else if (
       $builderStore.inBuilder
       && !parentState && childMode != "containerItem" && 
@@ -456,9 +471,21 @@
   });
 
   setContext("superContainer", state);
-  setContext("superContainerParams", gridStore )
+  $: if (mode == "grid") setContext("superContainerParams", gridStore )
 
-  $: console.log($parentState, $childState, inSuperFieldGroup)
+  $: if (labelPos && mode == "fieldgroup" ) { 
+    setContext("field-group", labelPos ) 
+    setContext("field-group-label-width", labelWidth )
+    setContext("field-group-disabled", disabled ) 
+  } else {  
+    setContext("field-group", undefined)
+    setContext("field-group-label-width", undefined )
+    setContext("field-group-disabled", undefined ) 
+  }
+
+
+
+  $: if ( childMode == "fieldgroupItem" ) console.log(cssVariables,childCssVariables)
 </script>
 
 <svelte:window
@@ -466,107 +493,116 @@
   on:mousemove={(e) => (resizing ? state.resize(e) : null)}
 />
 
-{#if $childState != "hidden" && $childState != "tabItem" }
-  <div
-    bind:this={container}
-    class:super-container={$state == "container"}
-    class:accordion={$state == "accordion"}
-    class:super-grid={$state == "grid"}
-    class:tabs={$state == "tabs"}
-    class:splitview={$state == "splitview"}
-    class:super-container-item={$childState == "containerItem"}
-    class:accordion-item={$childState == "accordionItem"}
-    class:tab-item={$childState == "tabItem" || $childState == "hidden"}
-    class:splitview-item={$childState == "splitviewItem"}
-    class:nested={$builderStore.inBuilder && nested}
-    class:spectrum-OpacityCheckerboard={$builderStore.inBuilder && $component.empty}
-    use:styleable={$component.styles}
-  >
-      {#if error && $builderStore.inBuilder}
-        <p class="error"> 🔔 {error}</p>
-      {/if}
+{#key mode}
+  {#if $childState != "hidden" && $childState != "tabItem" }
+    <div
+      bind:this={container}
+      class:super-container={$state == "container"}
+      class:accordion={$state == "accordion"}
+      class:super-grid={$state == "grid" }
+      class:tabs={$state == "tabs"}
+      class:splitview={$state == "splitview"}
+      class:super-fieldgroup={$state == "fieldgroup"}
+      class:super-container-item={$childState == "containerItem"}
+      class:accordion-item={$childState == "accordionItem"}
+      class:tab-item={$childState == "tabItem" || $childState == "hidden"}
+      class:splitview-item={$childState == "splitviewItem"}
+      class:super-fieldgroup-item={$childState == "fieldgroupItem"}
+      class:nested={$builderStore.inBuilder && nested}
+      class:spectrum-OpacityCheckerboard={$builderStore.inBuilder && $component.empty}
+      use:styleable={$component.styles}
+    >
+        {#if error && $builderStore.inBuilder}
+          <p class="error"> 🔔 {error}</p>
+        {/if}
 
-      {#if mode == "tabs" && containers?.length > 0}
-        <TabControl
-          {containers}
-          {hAlign}
-          {vAlign}
-          {direction}
-          {selectedTab}
-          {state}
-          {theme}
-          {tabsQuiet}
-          {tabsAlignment}
-          {tabsSize}
-          {tabsIconsOnly}
-          {tabsEmphasized}
-        />
-      {/if}
+        {#if mode == "tabs" && containers?.length > 0}
+          <TabControl
+            {containers}
+            {hAlign}
+            {vAlign}
+            {direction}
+            {selectedTab}
+            {state}
+            {theme}
+            {tabsQuiet}
+            {tabsAlignment}
+            {tabsSize}
+            {tabsIconsOnly}
+            {tabsEmphasized}
+          />
+        {/if}
 
-      <!-- In Repeater Mode with Data Provider -->
-      {#if bound == "dataprovider" && dataprovider}
-        <RepeaterPreview inBuilder={$builderStore.inBuilder} {mode} />
-        {#each dataprovider.rows as row}
-          <Provider data={row}>
-            <slot />
-          </Provider>
-        {/each}
-        {#if mode == "grid" && $builderStore.inBuilder}
-          {#each gridPreviewSlots as guide, idx }
+        <!-- In Repeater Mode with Data Provider -->
+        {#if bound == "dataprovider" && dataprovider}
+          <RepeaterPreview inBuilder={$builderStore.inBuilder} {mode} />
+          {#each dataprovider.rows as row}
+            <Provider data={row}>
+              <slot />
+            </Provider>
+          {/each}
+          {#if mode == "grid" && $builderStore.inBuilder}
+            {#each gridPreviewSlots as guide, idx }
+              <div class="grid-guides">
+                {idx + ( gridColumns * gridRows ) - gridPreviewSlots?.length }
+              </div>
+            {/each}
+          {/if}
+        <!-- In Repeater Mode with Array -->
+        {:else if bound == "array" && slots?.length}
+          <RepeaterPreview inBuilder={$builderStore.inBuilder} {mode} />
+          {#each slots as row, idx }
+            <Provider data={ { index: idx, item:row, total: slots?.length } }>
+              <slot />
+            </Provider>
+          {/each}
+          {#if mode == "grid" && $builderStore.inBuilder}
+            {#each gridPreviewSlots as guide, idx }
+              <div class="grid-guides">
+                {idx + ( gridColumns * gridRows ) - gridPreviewSlots?.length }
+              </div>
+            {/each}
+          {/if}
+        <!-- In unbound mode -->
+        {:else if mode == "grid" && $builderStore.inBuilder && $component.empty }
+          {#each gridPreviewSlots as _, idx }
             <div class="grid-guides">
               {idx + ( gridColumns * gridRows ) - gridPreviewSlots?.length }
+              {#if idx == 0}
+                <slot /> 
+              {/if}
             </div>
           {/each}
-        {/if}
-      <!-- In Repeater Mode with Array -->
-      {:else if bound == "array" && slots?.length}
-        <RepeaterPreview inBuilder={$builderStore.inBuilder} {mode} />
-        {#each slots as row, idx }
-          <Provider data={ { index: idx, item:row, total: slots?.length } }>
-            <slot />
-          </Provider>
-        {/each}
-        {#if mode == "grid" && $builderStore.inBuilder}
-          {#each gridPreviewSlots as guide, idx }
+        {:else if mode == "grid" && $builderStore.inBuilder}
+          <slot />
+          {#each gridPreviewSlots as _, idx }
             <div class="grid-guides">
-              {idx + ( gridColumns * gridRows ) - gridPreviewSlots?.length }
+              {idx + gridPreviewSlots?.length }
             </div>
           {/each}
+        {:else}
+          {#key labelPos + labelWidth}
+            <slot />
+          {/key}
         {/if}
-      <!-- In unbound mode -->
-      {:else if mode == "grid" && $builderStore.inBuilder && $component.empty }
-        {#each gridPreviewSlots as _, idx }
-          <div class="grid-guides">
-            {idx + ( gridColumns * gridRows ) - gridPreviewSlots?.length }
-            {#if idx == 0}
-              <slot /> 
-            {/if}
-          </div>
-        {/each}
-      {:else if mode == "grid" && $builderStore.inBuilder}
-        <slot />
-        {#each gridPreviewSlots as _, idx }
-          <div class="grid-guides">
-            {idx + gridPreviewSlots?.length }
-          </div>
-        {/each}
-      {:else}
-        <slot />
-      {/if}
 
-      {#if grabberPosition}
-        <Grabber {grabberPosition} {resizing} {state} />
-      {/if}
+        {#if grabberPosition}
+          <Grabber {grabberPosition} {resizing} {state} />
+        {/if}
 
-  </div>
-{/if}
+    </div>
+  {/if}
+{/key}
+
 
 <style>
 
   :global(.super-container > .component > * )  {
     flex: var(--container-flex-mode);
   }
-
+  :global(.super-fieldgroup > .component > * )  {
+    grid-column : span 6;
+  }
   .super-container {
     display: flex;
     position: relative;
@@ -579,6 +615,13 @@
     position: relative;
     grid-template-columns: repeat(var(--grid-columns), 1fr);
     grid-template-rows: repeat(var(--grid-rows), 1fr);
+    column-gap: var(--grid-column-gap);
+    row-gap: var(--grid-row-gap);
+  }
+  .super-fieldgroup {
+    display: grid;
+    position: relative;
+    grid-template-columns: repeat(var(--grid-columns), 1fr);
     column-gap: var(--grid-column-gap);
     row-gap: var(--grid-row-gap);
   }
@@ -619,6 +662,9 @@
   }
   .splitview-item {
     flex: 1 1 auto;
+  }
+  .super-fieldgroup-item {
+    border: 1px solid lime;
   }
 
   .nested {

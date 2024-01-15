@@ -9,7 +9,7 @@
     "hasChildren": true,
     "showEmptyState": true,
     "icon": "SelectIntersect",
-    "styles": ["size", "padding", "border", "background", "shadow"],
+    "styles": ["padding", "size", "border", "background"],
     "context": [
       {
         "type": "schema"
@@ -73,7 +73,8 @@
           { "label": "Container", "value": "container", "barIcon" : "SelectIntersect", "barTitle" : "Container" },
           { "label": "Grid", "value": "grid", "barIcon" : "ClassicGridView", "barTitle" : "Grid" },
           { "label": "Tabs", "value": "tabs", "barIcon" : "FolderOutline", "barTitle" : "Tabs Control" },
-          { "label": "SplitView", "value": "splitview", "barIcon" : "SplitView", "barTitle" : "Resizable Splitview" }
+          { "label": "SplitView", "value": "splitview", "barIcon" : "SplitView", "barTitle" : "Resizable Splitview" },
+          { "label": "Field Group", "value": "fieldgroup", "barIcon" : "Group", "barTitle" : "Field Group" }
         ],
         "defaultValue": "container"
       },
@@ -85,7 +86,8 @@
           { "label": "Container Item", "value": "containerItem" },
           { "label": "SplitView Item", "value": "splitviewItem" },
           { "label": "Tabs Item", "value": "tabsItem" },
-          { "label": "Grid Item", "value": "gridItem" }
+          { "label": "Grid Item", "value": "gridItem" },
+          { "label": "Grid Item", "value": "fieldgroupItem" }
         ],
         "defaultValue": "containerItem",
         "hidden": true
@@ -96,6 +98,7 @@
         "label": "Repeater Mode",
         "showInBar": true,
         "barStyle": "buttons",
+        "dependsOn": {"setting" : "mode", "value" : "fieldgroup", "invert" : true},
         "options" : [
           { "label" : "Off", "value" : false, "barIcon" : "Cancel" },
           { "label" : "Data Provider", "value" : "dataprovider", "barIcon" : "Data" },
@@ -378,9 +381,61 @@
         ]
       },
       {
+        "section" : true,
+        "name" : "Field Group Options",
+        "dependsOn" : { "setting":"mode", "value":"fieldgroup" },
+        "settings" : [
+          {
+            "type" : "select",
+            "key" : "labelPos",
+            "label" : "Label Position",
+            "options" : [
+              { "label" : "Left", "value" : "left" },
+              { "label" : "Above", "value" : "above" }
+            ],
+            "defaultValue" : "above"
+          },
+          {
+            "type" : "text",
+            "key" : "labelWidth",
+            "label" : "Label Width",
+            "placeholder" : "6rem",
+            "dependsOn" : { "setting" : "labelPos" , "value" : "left" }
+          },
+          {
+            "type": "number",
+            "key": "gridColumns",
+            "label": "Columns",
+            "min": 1,
+            "defaultValue": 3
+          }
+        ]
+      },
+      {
         "section": true,
         "name": "Grid Item Options",
         "dependsOn": { "setting": "childMode", "value": "gridItem" },
+        "settings": [
+          {
+            "type": "number",
+            "key": "colSpan",
+            "label": "Column Span",
+            "min": 1,
+            "defaultValue": 1
+          },
+          {
+            "type": "number",
+            "key": "rowSpan",
+            "label": "Row Span",
+            "min": 1,
+            "defaultValue": 1
+          }
+        ]
+      },
+      {
+        "section": true,
+        "name": "Field Group Item Options",
+        "dependsOn": { "setting": "childMode", "value": "fieldgroupItem" },
         "settings": [
           {
             "type": "number",
