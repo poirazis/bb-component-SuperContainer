@@ -663,9 +663,6 @@
   .splitview-item {
     flex: 1 1 auto;
   }
-  .super-fieldgroup-item {
-    border: 1px solid lime;
-  }
 
   .nested {
     --spectrum-opacity-checkerboard-square-dark: var(
