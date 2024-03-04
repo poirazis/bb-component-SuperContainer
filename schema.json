@@ -12,15 +12,8 @@
     "styles": ["padding", "size", "border", "background"],
     "context": [
       {
-        "type": "schema"
-      },
-      {
-        "type": "static",
-        "values" : [
-          { "label" : "Index" , "key" : "index", "type" : "number" },
-          { "label" : "Item" , "key" : "item", "type" : "object" },
-          { "label" : "Total" , "key" : "total", "type" : "number" }
-        ]
+        "type": "schema",
+        "scope": "local"
       }
     ],
     "settings": [
@@ -408,6 +401,11 @@
             "label": "Columns",
             "min": 1,
             "defaultValue": 3
+          },
+          {
+            "type" : "boolean",
+            "key" : "disabled",
+            "label" : "Disabled"
           }
         ]
       },
@@ -473,6 +471,37 @@
             "type": "color",
             "key": "color",
             "label": "Color"
+          }
+        ]
+      },
+      {
+        "section": true,
+        "tag" : "style",
+        "name" : "Borders",
+        "settings" : [
+          {
+            "type" : "boolean",
+            "key"  : "borderTop",
+            "label" : "Top",
+            "defaultValue" : true
+          },
+          {
+            "type" : "boolean",
+            "key"  : "borderRight",
+            "label" : "Right",
+            "defaultValue" : true
+          },
+          {
+            "type" : "boolean",
+            "key"  : "borderBottom",
+            "label" : "Bottom",
+            "defaultValue" : true
+          },
+          {
+            "type" : "boolean",
+            "key"  : "borderLeft",
+            "label" : "Left",
+            "defaultValue" : true
           }
         ]
       }
