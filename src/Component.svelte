@@ -7,7 +7,7 @@
   import fsm from "svelte-fsm";
   import { writable } from "svelte/store";
 
-  const { styleable, builderStore, Provider, componentStore } = getContext("sdk");
+  const { styleable, builderStore, Provider, ContextScopes, componentStore } = getContext("sdk");
   const component = getContext("component");
 
   const parentState = getContext("superContainer");
@@ -43,6 +43,11 @@
   export let labelWidth = "6rem"
   export let disabled
 
+  export let borderTop
+  export let borderRight
+  export let borderBottom
+  export let borderLeft
+
   // Grid Child Item Options
   export let colSpan = 1
   export let rowSpan = 1
@@ -63,7 +68,7 @@
   let id = Math.random() * 10;
   let childCssVariables = {};
   let cssVariables = {};
-  let gridPreviewSlots
+  let scope = ContextScopes.Local
 
   // The array of slots to be rendered in array repeater mode
   let slots
@@ -170,30 +175,9 @@
   },
   grid: {
     _enter() {
-      this.refresh( $builderStore.inBuilder );
+      this.refresh( );
     },
-    refresh( inBuilder ) {
-      let repeaterUsedSlots = 0
-      let nonSuperComponents = 0
-      let totalSlots = gridColumns * gridRows
-      let childUsedSlots = containers?.reduce( ( p , c , idx ) => { return p + ( c.colSpan * c.rowSpan ) }, 0 ) 
-
-      if ( inBuilder ) {
-        if ( bound == "dataprovider" && dataprovider ) {
-          nonSuperComponents = $component.children - ( containers.length / dataprovider?.rows.length );
-          repeaterUsedSlots = $component.children ? dataprovider?.rows.length * nonSuperComponents : dataprovider?.rows.length
-        } else if ( bound == "array" && slots?.length ) {
-          nonSuperComponents = $component.children - ( containers.length / slots.length );
-          repeaterUsedSlots = $component.children ? slots.length * nonSuperComponents : slots.length
-        } else {
-          nonSuperComponents = $component.children - containers?.length
-        }
-        
-        
-        let neededPreviewSlots = totalSlots - repeaterUsedSlots - childUsedSlots - nonSuperComponents
-        gridPreviewSlots = neededPreviewSlots > 0 ? new Array( neededPreviewSlots ) : []
-      }
-
+    refresh() {
       cssVariables = {
         "display": "grid",
         "justify-items": hAlign,
@@ -306,9 +290,7 @@
       },
       refresh() {
         childCssVariables = {
-          flex: flex == "grow" ? flexFactor + " 0 auto" : "0 0 auto",
-          "grid-column" : "span " + colSpan,
-          "grid-row" : "span " + rowSpan
+          flex: flex == "grow" ? flexFactor + " 1 auto" : "0 1 auto"
         };
       },
     },
@@ -336,6 +318,7 @@
           childCssVariables = {
             "grid-column" : "span " + Math.min( colSpan, $parentGridStore?.gridColumns ),
             "grid-row" : "span " + Math.min( rowSpan, $parentGridStore?.gridRows),
+            "override" : "hidden",
           } 
         } else {
           childCssVariables = {
@@ -379,6 +362,7 @@
 
   let gridStore = new writable({})
   $: $gridStore = { gridColumns, gridRows }
+  $: coords = new Array( gridColumns * gridRows)
   
   $: randomColor = $builderStore.inBuilder && bound
     ? "32CD3230"
@@ -392,6 +376,7 @@
   $: if ( bound == "array" && sourceArray ) slots = safeParse(sourceArray) 
 
   $: childState.synch($parentState);
+  $: state.synchProperties($$props);
   $: parentState?.updateContainer(id, title, icon, color, Math.min(colSpan, $parentGridStore?.gridColumns ), Math.min( rowSpan, $parentGridStore?.gridRows));
 
   $: {
@@ -418,9 +403,12 @@
       ...$component.styles.normal,
       ...cssVariables,
       ...childCssVariables,
+      "border-top-width" : borderTop ? $component.styles.normal["border-width"] ?? 0 : 0,
+      "border-right-width" : borderRight ? $component.styles.normal["border-width"] ?? 0 : 0,
+      "border-bottom-width" : borderBottom ? $component.styles.normal["border-width"] ?? 0 : 0,
+      "border-left-width" : borderLeft ? $component.styles.normal["border-width"] ?? 0 : 0,
       "--random-color": "#" + randomColor,
-      "--spectrum-opacity-checkerboard-square-dark":
-        "var(--spectrum-global-color-gray-50)",
+      "--spectrum-opacity-checkerboard-square-dark":"var(--spectrum-global-color-gray-200)",
       "--spectrum-opacity-checkerboard-square-light": bound
         ? "var(--random-color)"
         : "var(--spectrum-global-color-gray-75)",
@@ -428,8 +416,6 @@
       "--spectrum-opacity-checkerboard-position": "left top",
     },
   };
-
-  $: state.synchProperties($$props);
 
   // Catch Erroneous states last after all reactive statememtns
   $: error = mode == "tabs" && containers?.length < 1 ? "At least one child Super Container needed to render Tabs"
@@ -471,6 +457,7 @@
   });
 
   setContext("superContainer", state);
+  
   $: if (mode == "grid") setContext("superContainerParams", gridStore )
 
   $: if (labelPos && mode == "fieldgroup" ) { 
@@ -489,6 +476,7 @@
   on:mousemove={(e) => (resizing ? state.resize(e) : null)}
 />
 
+{#key disabled}
 {#key mode}
   {#if $childState != "hidden" && $childState != "tabItem" }
     <div
@@ -505,11 +493,19 @@
       class:splitview-item={$childState == "splitviewItem"}
       class:super-fieldgroup-item={$childState == "fieldgroupItem"}
       class:nested={$builderStore.inBuilder && nested}
-      class:spectrum-OpacityCheckerboard={$builderStore.inBuilder && $component.empty}
+      class:spectrum-OpacityCheckerboard={$builderStore.inBuilder && $component.empty && mode != "grid"}
       use:styleable={$component.styles}
     >
+        {#if mode == "grid" && $builderStore.inBuilder }
+          <div class="underlay">
+            {#each coords as _, idx}
+              <div class="placeholder spectrum-OpacityCheckerboard"> {idx} </div>  
+            {/each}
+          </div>
+        {/if}
+
         {#if error && $builderStore.inBuilder}
-          <p class="error"> 🔔 {error}</p>
+          <p class="error">{error}</p>
         {/if}
 
         {#if mode == "tabs" && containers?.length > 0}
@@ -533,17 +529,10 @@
         {#if bound == "dataprovider" && dataprovider}
           <RepeaterPreview inBuilder={$builderStore.inBuilder} {mode} />
           {#each dataprovider.rows as row}
-            <Provider data={row}>
+            <Provider data={row} {scope}>
               <slot />
             </Provider>
           {/each}
-          {#if mode == "grid" && $builderStore.inBuilder}
-            {#each gridPreviewSlots as guide, idx }
-              <div class="grid-guides">
-                {idx + ( gridColumns * gridRows ) - gridPreviewSlots?.length }
-              </div>
-            {/each}
-          {/if}
         <!-- In Repeater Mode with Array -->
         {:else if bound == "array" && slots?.length}
           <RepeaterPreview inBuilder={$builderStore.inBuilder} {mode} />
@@ -552,30 +541,9 @@
               <slot />
             </Provider>
           {/each}
-          {#if mode == "grid" && $builderStore.inBuilder}
-            {#each gridPreviewSlots as guide, idx }
-              <div class="grid-guides">
-                {idx + ( gridColumns * gridRows ) - gridPreviewSlots?.length }
-              </div>
-            {/each}
-          {/if}
         <!-- In unbound mode -->
-        {:else if mode == "grid" && $builderStore.inBuilder && $component.empty }
-          {#each gridPreviewSlots as _, idx }
-            <div class="grid-guides">
-              {idx + ( gridColumns * gridRows ) - gridPreviewSlots?.length }
-              {#if idx == 0}
-                <slot /> 
-              {/if}
-            </div>
-          {/each}
-        {:else if mode == "grid" && $builderStore.inBuilder}
+        {:else if mode == "grid"}
           <slot />
-          {#each gridPreviewSlots as _, idx }
-            <div class="grid-guides">
-              {idx + gridPreviewSlots?.length }
-            </div>
-          {/each}
         {:else}
           {#key labelPos + labelWidth}
             <slot />
@@ -589,24 +557,28 @@
     </div>
   {/if}
 {/key}
+{/key}
 
 
 <style>
 
-  :global(.super-container > .component > * )  {
-    flex: var(--container-flex-mode);
-  }
   :global(.super-fieldgroup > .component > * )  {
     grid-column : span 6;
+  }
+
+  :global(.super-grid > .component > * ) {
+    overflow: hidden;
   }
   .super-container {
     display: flex;
     position: relative;
+    overflow: hidden;
   }
   .super-container-item {
     flex: var(--flex-factor);
   }
-  .super-grid {
+  .super-grid 
+  {
     display: grid;
     position: relative;
     grid-template-columns: repeat(var(--grid-columns), 1fr);
@@ -614,23 +586,36 @@
     column-gap: var(--grid-column-gap);
     row-gap: var(--grid-row-gap);
   }
+
+  .underlay {
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(var(--grid-columns), 1fr);
+    grid-template-rows: repeat(var(--grid-rows), 1fr);
+    column-gap: var(--grid-column-gap);
+    row-gap: var(--grid-row-gap);
+    background-color: var(--spectrum-global-color-gray-200);
+  }
+
+  .placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--spectrum-global-color-gray-500);
+    border: 1px solid var(--spectrum-global-color-gray-400);
+  }
+
   .super-fieldgroup {
     display: grid;
     position: relative;
     grid-template-columns: repeat(var(--grid-columns), 1fr);
     column-gap: var(--grid-column-gap);
     row-gap: var(--grid-row-gap);
-  }
-
-  .grid-guides {
-    flex: 1 1 auto;
-    border: 1px dotted var(--spectrum-global-color-gray-700);
-    color: var(--spectrum-global-color-gray-500);
-    display: grid;
-    align-content: center;
-    justify-content: center;
-    align-self: stretch;
-    justify-self: stretch;
   }
 
   .accordion {
@@ -667,13 +652,10 @@
   }
 
   .error {
-    font-size: 16px;
-    font-weight: 500;
     padding: 1rem;
     width: 100%;
     border: 1px solid var(--spectrum-global-color-red-500);
-    border-radius: 4px;
-    background-color: var(--backgroundColoe);
+    border-radius: 2px;
   }
 
   .spectrum-OpacityCheckerboard {
