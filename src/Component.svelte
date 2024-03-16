@@ -7,20 +7,23 @@
   import fsm from "svelte-fsm";
   import { writable } from "svelte/store";
 
-  const { styleable, builderStore, Provider, ContextScopes, componentStore } = getContext("sdk");
+  const { styleable, builderStore, Provider, ContextScopes, componentStore } =
+    getContext("sdk");
   const component = getContext("component");
 
   const parentState = getContext("superContainer");
   const parentGridStore = getContext("superContainerParams");
 
-  export let dataprovider
-  export let sourceArray
-  export let bound = false
+  export let dataprovider;
+  export let sourceArray;
+  export let bound = false;
+  export let hideIfEmpty = false;
+  export let emptyMessage = "No Records Found";
 
   export let flex;
   export let flexFactor = 1;
-  export let mode = "container"
-  export let childMode = "containerItem"
+  export let mode = "container";
+  export let childMode = "containerItem";
   export let direction;
   export let hAlign;
   export let vAlign;
@@ -30,27 +33,27 @@
   export let tabsSize;
   export let tabsAlignment;
   export let tabsQuiet;
-  export let tabsEmphasized
-  export let activeTab = 0
-  export let tabsIconsOnly = false
+  export let tabsEmphasized;
+  export let activeTab = 0;
+  export let tabsIconsOnly = false;
   export let theme;
 
   export let gridColumns = 3;
   export let gridRows = 3;
   export let title, icon, color;
 
-  export let labelPos
-  export let labelWidth = "6rem"
-  export let disabled
+  export let labelPos;
+  export let labelWidth = "6rem";
+  export let disabled;
 
-  export let borderTop
-  export let borderRight
-  export let borderBottom
-  export let borderLeft
+  export let borderTop;
+  export let borderRight;
+  export let borderBottom;
+  export let borderLeft;
 
   // Grid Child Item Options
-  export let colSpan = 1
-  export let rowSpan = 1
+  export let colSpan = 1;
+  export let rowSpan = 1;
 
   let containers = [];
   let container;
@@ -68,209 +71,284 @@
   let id = Math.random() * 10;
   let childCssVariables = {};
   let cssVariables = {};
-  let scope = ContextScopes.Local
+  let scope = ContextScopes.Local;
 
   // The array of slots to be rendered in array repeater mode
-  let slots
+  let slots;
+  let refresh;
 
-  // The State machine that handles the parent role of the super container 
+  // The State machine that handles the parent role of the super container
   const state = fsm(mode, {
-  "*": {
-    registerContainer(componentID, id, state, title, icon, color, reqcolSpan, reqrowSpan) {
-      containers = [
-        ...containers,
-        {
-          componentID,
-          id,
-          state,
-          title,
-          icon,
-          color,
-          colSpan: reqcolSpan,
-          rowSpan: reqrowSpan
-        },
-      ];
-    },
-    updateContainer(id, title, icon, color, reqcolSpan = 1, reqrowSpan = 1) {
-      let index = containers.findIndex((e) => e.id == id);
-      if (index > -1) {
-        containers[index].title = title;
-        containers[index].icon = icon;
-        containers[index].color = color;
-        containers[index].colSpan = reqcolSpan;
-        containers[index].rowSpan = reqrowSpan;
-      }
-      containers = containers;
-    },
-    unregisterContainer(id) {
-      let index = containers.findIndex((e) => e.id == id);
-      if (index > -1) {
-        containers.splice(index, 1);
-        containers = containers;
-        if (mode == "tabs" && containers.length > 0)
-          selectedTab = containers[0].id;
-      }
-    },
-    setMode(mode) {
-      return mode;
-    },
-    refresh() {},
-    selectChild(compID) {
-      if (mode == "tabs") {
-        let pos = containers.findIndex((v) => v.componentID == compID);
-        if (pos > -1) this.selectTab(containers[pos].id);
-      }
-    },
-    setResizing(pos) {
-      grabberPosition = pos;
-    },
-    startResizing(e) {
-      resizing = true;
-      startPointX = e.clientX;
-      startPointY = e.clientY;
-      initialWidth = container.clientWidth;
-      initialHeight = container.clientHeight;
-    },
-    resize(e) {
-      if (grabberPosition == "right") {
-        width = initialWidth + (e.clientX - startPointX);
-      } else {
-        height = initialHeight + (e.clientY - startPointY);
-      }
-
-      childState.refresh();
-    },
-    stopResizing(e) {
-      resizing = false;
-    },
-    hide() {
-      childState.deactivate();
-    },
-    show() {
-      childState.activate();
-    },
-    synchProperties() {
-      childState.refresh( );
-      this.refresh( $builderStore.inBuilder  );
-      return mode;
-    },
-  },
-  disabled: {},
-  accordion: {},
-  container: {
-    _enter() {
-      this.refresh();
-    },
-    refresh() {
-      cssVariables = {
-        "flex-direction": direction,
-        "flex-wrap": wrap ? "wrap" : "nowrap",
-        "justify-content": direction == "row" ? hAlign : vAlign,
-        "align-items": direction == "row" ? vAlign : hAlign,
-        "align-content": wrap ? (direction == "row" ? vAlign : hAlign) : null,
-        "gap": gap,
-        "--container-flex-mode" : ( direction == "row" && hAlign == "stretch" ) || ( direction == "column" && vAlign == "stretch" ) ? "1" : null
-      };
-    },
-  },
-  grid: {
-    _enter() {
-      this.refresh( );
-    },
-    refresh() {
-      cssVariables = {
-        "display": "grid",
-        "justify-items": hAlign,
-        "align-items": vAlign,
-        "--grid-columns": gridColumns,
-        "--grid-rows": gridRows,
-        "--grid-column-gap": gap,
-        "--grid-row-gap": gap,
-      };
-    },
-  },
-  splitview: {
-    _enter() {
-      this.refresh();
-    },
-    refresh() {
-      cssVariables = {
-        "flex-direction": direction,
-        "justify-content": "stretch",
-      };
-      this.setResizingGrabbers.debounce(20);
-    },
-    setResizingGrabbers() {
-      containers.forEach(({ state }, idx) => {
-        if (direction == "row" && idx < containers.length - 1)
-          state.setResizing("right");
-        else if (direction == "column" && idx < containers.length - 1)
-          state.setResizing("bottom");
-      });
-    },
-    _exit() {
-      containers.forEach(({ state }) => {
-        state.setResizing(null);
-      });
-    },
-  },
-  tabs: {
-    _enter() {
-      this.refresh();
-    },
-    _exit() {
-      selectedTab == undefined;
-    },
-    refresh() {
-      if ( selectedTab )
-        this.selectTab(selectedTab)
-      else {
-        if (containers.length > 0) this.selectTab(containers[0].id)
-      }
-      cssVariables = {
-        "flex-direction": direction == "row" ? "column" : "row",
-      };
-    },
-    selectTab(tabId) {
-      containers.forEach(({ id, state }) => {
-        if (tabId == id) {
-          state.show();
-          selectedTab = id;
-        } else {
-          state.hide();
+    "*": {
+      registerContainer(
+        componentID,
+        id,
+        state,
+        title,
+        icon,
+        color,
+        reqcolSpan,
+        reqrowSpan
+      ) {
+        containers = [
+          ...containers,
+          {
+            componentID,
+            id,
+            state,
+            title,
+            icon,
+            color,
+            colSpan: reqcolSpan,
+            rowSpan: reqrowSpan,
+          },
+        ];
+      },
+      updateContainer(id, title, icon, color, reqcolSpan = 1, reqrowSpan = 1) {
+        let index = containers.findIndex((e) => e.id == id);
+        if (index > -1) {
+          containers[index].title = title;
+          containers[index].icon = icon;
+          containers[index].color = color;
+          containers[index].colSpan = reqcolSpan;
+          containers[index].rowSpan = reqrowSpan;
         }
-      });
-    },
-  },
-  fieldgroup: {
-    _enter() { this.refresh() },
-    refresh() {
-      cssVariables = {
-        "display": "grid",
-        "justify-items": "stretch",
-        "align-items": vAlign,
-        "--grid-columns": gridColumns * 6,
-        "--grid-rows": gridRows,
-        "--grid-column-gap": gap,
-        "--grid-row-gap": gap
-      };
-    }
+        containers = containers;
+      },
+      unregisterContainer(id) {
+        let index = containers.findIndex((e) => e.id == id);
+        if (index > -1) {
+          containers.splice(index, 1);
+          containers = containers;
+          if (mode == "tabs" && containers.length > 0)
+            selectedTab = containers[0].id;
+        }
+      },
+      setMode(mode) {
+        return mode;
+      },
+      refresh() {},
+      selectChild(compID) {
+        if (mode == "tabs") {
+          let pos = containers.findIndex((v) => v.componentID == compID);
+          if (pos > -1) this.selectTab(containers[pos].id);
+        }
+      },
+      setResizing(pos) {
+        grabberPosition = pos;
+      },
+      startResizing(e) {
+        resizing = true;
+        startPointX = e.clientX;
+        startPointY = e.clientY;
+        initialWidth = container.clientWidth;
+        initialHeight = container.clientHeight;
+      },
+      resize(e) {
+        if (grabberPosition == "right") {
+          width = initialWidth + (e.clientX - startPointX);
+        } else {
+          height = initialHeight + (e.clientY - startPointY);
+        }
 
-  }
+        childState.refresh();
+      },
+      stopResizing(e) {
+        resizing = false;
+      },
+      hide() {
+        childState.deactivate();
+      },
+      show() {
+        childState.activate();
+      },
+      synchProperties() {
+        this.refresh($builderStore.inBuilder);
+        childState.refresh();
+        $component.styles = {
+          ...$component.styles,
+          normal: {
+            ...$component.styles.normal,
+            ...cssVariables,
+            ...childCssVariables,
+            "border-top-width": borderTop
+              ? $component.styles.normal["border-width"] ?? 0
+              : 0,
+            "border-right-width": borderRight
+              ? $component.styles.normal["border-width"] ?? 0
+              : 0,
+            "border-bottom-width": borderBottom
+              ? $component.styles.normal["border-width"] ?? 0
+              : 0,
+            "border-left-width": borderLeft
+              ? $component.styles.normal["border-width"] ?? 0
+              : 0,
+            "--random-color": "#" + randomColor,
+            "--spectrum-opacity-checkerboard-square-dark":
+              "var(--spectrum-global-color-gray-200)",
+            "--spectrum-opacity-checkerboard-square-light": bound
+              ? "var(--random-color)"
+              : "var(--spectrum-global-color-gray-75)",
+            "--spectrum-opacity-checkerboard-square-size": "8px",
+            "--spectrum-opacity-checkerboard-position": "left top",
+          },
+        };
+        return mode;
+      },
+    },
+    disabled: {},
+    accordion: {},
+    container: {
+      _enter() {
+        this.refresh();
+      },
+      refresh() {
+        cssVariables = {
+          "flex-direction": direction,
+          "flex-wrap": wrap ? "wrap" : "nowrap",
+          "justify-content": direction == "row" ? hAlign : vAlign,
+          "align-items": direction == "row" ? vAlign : hAlign,
+          "align-content": wrap ? (direction == "row" ? vAlign : hAlign) : null,
+          gap: gap,
+          "--container-flex-mode":
+            (direction == "row" && hAlign == "stretch") ||
+            (direction == "column" && vAlign == "stretch")
+              ? "1"
+              : null,
+        };
+      },
+    },
+    grid: {
+      _enter() {
+        this.refresh();
+      },
+      refresh() {
+        cssVariables = {
+          display: "grid",
+          "justify-items": hAlign,
+          "align-items": vAlign,
+          "--grid-columns": gridColumns,
+          "--grid-rows": gridRows,
+          "--grid-column-gap": gap,
+          "--grid-row-gap": gap,
+        };
+      },
+    },
+    splitview: {
+      _enter() {
+        this.refresh();
+      },
+      refresh() {
+        cssVariables = {
+          "flex-direction": direction,
+          "justify-content": "stretch",
+        };
+        this.setResizingGrabbers.debounce(20);
+      },
+      setResizingGrabbers() {
+        containers.forEach(({ state }, idx) => {
+          if (direction == "row" && idx < containers.length - 1)
+            state.setResizing("right");
+          else if (direction == "column" && idx < containers.length - 1)
+            state.setResizing("bottom");
+        });
+      },
+      _exit() {
+        containers.forEach(({ state }) => {
+          state.setResizing(null);
+        });
+      },
+    },
+    tabs: {
+      _enter() {
+        this.refresh();
+      },
+      _exit() {
+        selectedTab == undefined;
+      },
+      refresh() {
+        if (selectedTab) this.selectTab(selectedTab);
+        else {
+          if (containers.length > 0) this.selectTab(containers[0].id);
+        }
+        cssVariables = {
+          "flex-direction": direction == "row" ? "column" : "row",
+        };
+      },
+      selectTab(tabId) {
+        containers.forEach(({ id, state }) => {
+          if (tabId == id) {
+            state.show();
+            selectedTab = id;
+          } else {
+            state.hide();
+          }
+        });
+      },
+    },
+    fieldgroup: {
+      _enter() {
+        this.refresh();
+      },
+      refresh() {
+        cssVariables = {
+          display: "grid",
+          "justify-items": "stretch",
+          "align-items": vAlign,
+          "--grid-columns": gridColumns * 6,
+          "--grid-rows": gridRows,
+          "--grid-column-gap": gap,
+          "--grid-row-gap": gap,
+        };
+      },
+    },
   });
 
-
   // The State machine that handles the child role of the super container if nested
-  const childState = fsm( childMode ?? "containerItem", {
+  const childState = fsm(childMode ?? "containerItem", {
     "*": {
       synch(parentState) {
-          if (parentState == "grid" ) { return "gridItem"; }
-          if (parentState == "tabs") { return "tabItem"; }
-          if (parentState == "accordion") return "accordionItem";
-          if (parentState == "splitview") return "splitviewItem";
-          if (parentState == "fieldgroup") return "fieldgroupItem";
-          if (!parentState || parentState == "container") { return "containerItem";}
-        },
+        if (parentState == "grid") {
+          return "gridItem";
+        }
+        if (parentState == "tabs") {
+          return "tabItem";
+        }
+        if (parentState == "accordion") return "accordionItem";
+        if (parentState == "splitview") return "splitviewItem";
+        if (parentState == "fieldgroup") return "fieldgroupItem";
+        if (!parentState || parentState == "container") {
+          return "containerItem";
+        }
+        $component.styles = {
+          ...$component.styles,
+          normal: {
+            ...$component.styles.normal,
+            ...cssVariables,
+            ...childCssVariables,
+            "border-top-width": borderTop
+              ? $component.styles.normal["border-width"] ?? 0
+              : 0,
+            "border-right-width": borderRight
+              ? $component.styles.normal["border-width"] ?? 0
+              : 0,
+            "border-bottom-width": borderBottom
+              ? $component.styles.normal["border-width"] ?? 0
+              : 0,
+            "border-left-width": borderLeft
+              ? $component.styles.normal["border-width"] ?? 0
+              : 0,
+            "--random-color": "#" + randomColor,
+            "--spectrum-opacity-checkerboard-square-dark":
+              "var(--spectrum-global-color-gray-200)",
+            "--spectrum-opacity-checkerboard-square-light": bound
+              ? "var(--random-color)"
+              : "var(--spectrum-global-color-gray-75)",
+            "--spectrum-opacity-checkerboard-square-size": "8px",
+            "--spectrum-opacity-checkerboard-position": "left top",
+          },
+        };
+      },
       activate() {
         return "activeTabItem";
       },
@@ -290,7 +368,7 @@
       },
       refresh() {
         childCssVariables = {
-          flex: flex == "grow" ? flexFactor + " 1 auto" : "0 1 auto"
+          flex: flex == "grow" ? flexFactor + " 1 auto" : "0 1 auto",
         };
       },
     },
@@ -301,7 +379,7 @@
       },
       refresh() {
         childCssVariables = {
-          "flex": flexFactor + " 1 auto",
+          flex: flexFactor + " 1 auto",
           "min-width": width ? width : "auto",
           "max-width": width ? width : "auto",
           "min-height": height ? height : "auto",
@@ -314,70 +392,79 @@
         this.refresh();
       },
       refresh() {
-        if ( parentGridStore ) {
+        if (parentGridStore) {
           childCssVariables = {
-            "grid-column" : "span " + Math.min( colSpan, $parentGridStore?.gridColumns ),
-            "grid-row" : "span " + Math.min( rowSpan, $parentGridStore?.gridRows),
-            "override" : "hidden",
-          } 
+            "grid-column":
+              "span " + Math.min(colSpan, $parentGridStore?.gridColumns),
+            "grid-row": "span " + Math.min(rowSpan, $parentGridStore?.gridRows),
+            override: "hidden",
+          };
         } else {
           childCssVariables = {
-            "grid-column" : "span " + (colSpan * 6),
-            "grid-row" : "span " + rowSpan,
-          } 
+            "grid-column": "span " + colSpan * 6,
+            "grid-row": "span " + rowSpan,
+          };
         }
       },
     },
     tabItem: {
       _enter() {
         this.refresh();
-        },
       },
-      refresh() {
-        childCssVariables = {
-          flex: "1 0 auto",
-        };
-      },
-    activeTabItem : {
+    },
+    refresh() {
+      childCssVariables = {
+        flex: "1 0 auto",
+      };
+    },
+    activeTabItem: {
       _enter() {
         this.refresh();
       },
       refresh() {
         childCssVariables = {
           flex: "1 0 auto",
-        }
-      }
+        };
+      },
     },
-    fieldgroupItem : {
-      _enter() { this.refresh() },
-      refresh() { 
+    fieldgroupItem: {
+      _enter() {
+        this.refresh();
+      },
+      refresh() {
         childCssVariables = {
-          "fieldgroupitem" : "yes",
-          "grid-column" : "span " + (colSpan * 6),
-          "grid-row" : "span " + rowSpan
-          }
-      }
-    }
+          fieldgroupitem: "yes",
+          "grid-column": "span " + colSpan * 6,
+          "grid-row": "span " + rowSpan,
+        };
+      },
+    },
   });
 
-  let gridStore = new writable({})
-  $: $gridStore = { gridColumns, gridRows }
-  $: coords = new Array( gridColumns * gridRows)
-  
-  $: randomColor = $builderStore.inBuilder && bound
-    ? "32CD3230"
-    : Math.floor(Math.random() * 16777215).toString(16) + "10";
+  let gridStore = new writable({});
+  $: $gridStore = { gridColumns, gridRows };
+  $: coords = new Array(gridColumns * gridRows);
+
+  $: randomColor =
+    $builderStore.inBuilder && bound
+      ? "32CD3230"
+      : Math.floor(Math.random() * 16777215).toString(16) + "10";
 
   $: nested = component
     ? $component.ancestors[$component.ancestors.length - 2] ==
       "plugin/bb-component-SuperContainer"
-    : false;  
+    : false;
 
-  $: if ( bound == "array" && sourceArray ) slots = safeParse(sourceArray) 
-
+  $: if (bound == "array") slots = safeParse(sourceArray);
   $: childState.synch($parentState);
-  $: state.synchProperties($$props);
-  $: parentState?.updateContainer(id, title, icon, color, Math.min(colSpan, $parentGridStore?.gridColumns ), Math.min( rowSpan, $parentGridStore?.gridRows));
+  $: parentState?.updateContainer(
+    id,
+    title,
+    icon,
+    color,
+    Math.min(colSpan, $parentGridStore?.gridColumns),
+    Math.min(rowSpan, $parentGridStore?.gridRows)
+  );
 
   $: {
     if (
@@ -386,67 +473,67 @@
       $componentStore.selectedComponentPath?.includes($component.id)
     ) {
       parentState.selectChild($component.id);
-      if ( childMode != $parentState+"Item" )
-        builderStore.actions.updateProp("childMode", $parentState+"Item")
+      if (childMode != $parentState + "Item")
+        builderStore.actions.updateProp("childMode", $parentState + "Item");
     } else if (
-      $builderStore.inBuilder
-      && !parentState && childMode != "containerItem" && 
+      $builderStore.inBuilder &&
+      !parentState &&
+      childMode != "containerItem" &&
       $componentStore.selectedComponentPath?.includes($component.id)
     ) {
-      builderStore.actions.updateProp("childMode", "containerItem")
+      builderStore.actions.updateProp("childMode", "containerItem");
     }
   }
-  
-  $: $component.styles = {
-    ...$component.styles,
-    normal: {
-      ...$component.styles.normal,
-      ...cssVariables,
-      ...childCssVariables,
-      "border-top-width" : borderTop ? $component.styles.normal["border-width"] ?? 0 : 0,
-      "border-right-width" : borderRight ? $component.styles.normal["border-width"] ?? 0 : 0,
-      "border-bottom-width" : borderBottom ? $component.styles.normal["border-width"] ?? 0 : 0,
-      "border-left-width" : borderLeft ? $component.styles.normal["border-width"] ?? 0 : 0,
-      "--random-color": "#" + randomColor,
-      "--spectrum-opacity-checkerboard-square-dark":"var(--spectrum-global-color-gray-200)",
-      "--spectrum-opacity-checkerboard-square-light": bound
-        ? "var(--random-color)"
-        : "var(--spectrum-global-color-gray-75)",
-      "--spectrum-opacity-checkerboard-square-size": "8px",
-      "--spectrum-opacity-checkerboard-position": "left top",
-    },
-  };
 
+  $: state.synchProperties($$props);
   // Catch Erroneous states last after all reactive statememtns
-  $: error = mode == "tabs" && containers?.length < 1 ? "At least one child Super Container needed to render Tabs"
-           : mode == "splitview" && containers?.length < 2 ? "At least two child Super Containers needed to render a Split View"
-           : bound == "dataprovider" && !dataprovider ? "Please place inside a Data Provider"
-           : bound == "array" && !slots ? "Error Parsing Source Array"
-           : $parentState == "grid" && colSpan > $parentGridStore.gridColumns ? "Out of Grid Bounds - Parent has only " + $parentGridStore.gridColumns  + " Columns"
-           : $parentState == "grid" && rowSpan > $parentGridStore.gridRows ? "Out of Grid Bounds - Parent has only " + $parentGridStore.gridRows + " Rows"
-           : undefined
+  $: error =
+    mode == "tabs" && containers?.length < 1
+      ? "At least one child Super Container needed to render Tabs"
+      : mode == "splitview" && containers?.length < 2
+        ? "At least two child Super Containers needed to render a Split View"
+        : bound == "dataprovider" && !dataprovider
+          ? "Please place inside a Data Provider"
+          : bound == "array" && !slots
+            ? "Error Parsing Source Array"
+            : $parentState == "grid" && colSpan > $parentGridStore.gridColumns
+              ? "Out of Grid Bounds - Parent has only " +
+                $parentGridStore.gridColumns +
+                " Columns"
+              : $parentState == "grid" && rowSpan > $parentGridStore.gridRows
+                ? "Out of Grid Bounds - Parent has only " +
+                  $parentGridStore.gridRows +
+                  " Rows"
+                : undefined;
 
   function safeParse(str) {
-    let parsed;
+    let parsed = [];
 
     try {
       parsed = JSON.parse(str);
     } catch (error) {
-      console.debug(error)
+      console.debug(error);
     }
     return parsed;
   }
 
   onMount(() => {
-    if ( mode == "tabs" && containers.length > 0 ) 
-    {
-      if ( Number(activeTab) >= 0 && Number(activeTab) < containers.length ) 
-        state.selectTab(containers[Number(activeTab)].id)
-      else
-        state.selectTab(containers[0].id)
+    if (mode == "tabs" && containers.length > 0) {
+      if (Number(activeTab) >= 0 && Number(activeTab) < containers.length)
+        state.selectTab(containers[Number(activeTab)].id);
+      else state.selectTab(containers[0].id);
     }
     if (parentState && nested) {
-      parentState.registerContainer(componentID, id, state, title, icon, color, colSpan, rowSpan);
+      parentState.registerContainer(
+        componentID,
+        id,
+        state,
+        title,
+        icon,
+        color,
+        colSpan,
+        rowSpan
+      );
     }
   });
 
@@ -457,17 +544,17 @@
   });
 
   setContext("superContainer", state);
-  
-  $: if (mode == "grid") setContext("superContainerParams", gridStore )
 
-  $: if (labelPos && mode == "fieldgroup" ) { 
-    setContext("field-group", labelPos ) 
-    setContext("field-group-label-width", labelWidth )
-    setContext("field-group-disabled", disabled ) 
-  } else {  
-    setContext("field-group", undefined)
-    setContext("field-group-label-width", undefined )
-    setContext("field-group-disabled", undefined ) 
+  $: if (mode == "grid") setContext("superContainerParams", gridStore);
+
+  $: if (labelPos && mode == "fieldgroup") {
+    setContext("field-group", labelPos);
+    setContext("field-group-label-width", labelWidth);
+    setContext("field-group-disabled", disabled);
+  } else {
+    setContext("field-group", undefined);
+    setContext("field-group-label-width", undefined);
+    setContext("field-group-disabled", undefined);
   }
 </script>
 
@@ -477,35 +564,33 @@
 />
 
 {#key disabled}
-{#key mode}
-  {#if $childState != "hidden" && $childState != "tabItem" }
-    <div
-      bind:this={container}
-      class:super-container={$state == "container"}
-      class:accordion={$state == "accordion"}
-      class:super-grid={$state == "grid" }
-      class:tabs={$state == "tabs"}
-      class:splitview={$state == "splitview"}
-      class:super-fieldgroup={$state == "fieldgroup"}
-      class:super-container-item={$childState == "containerItem"}
-      class:accordion-item={$childState == "accordionItem"}
-      class:tab-item={$childState == "tabItem" || $childState == "hidden"}
-      class:splitview-item={$childState == "splitviewItem"}
-      class:super-fieldgroup-item={$childState == "fieldgroupItem"}
-      class:nested={$builderStore.inBuilder && nested}
-      class:spectrum-OpacityCheckerboard={$builderStore.inBuilder && $component.empty && mode != "grid"}
-      use:styleable={$component.styles}
-    >
-        {#if mode == "grid" && $builderStore.inBuilder }
+  {#key mode}
+    {#if $childState != "hidden" && $childState != "tabItem"}
+      <div
+        bind:this={container}
+        class:super-container={$state == "container"}
+        class:accordion={$state == "accordion"}
+        class:super-grid={$state == "grid"}
+        class:tabs={$state == "tabs"}
+        class:splitview={$state == "splitview"}
+        class:super-fieldgroup={$state == "fieldgroup"}
+        class:super-container-item={$childState == "containerItem"}
+        class:accordion-item={$childState == "accordionItem"}
+        class:tab-item={$childState == "tabItem" || $childState == "hidden"}
+        class:splitview-item={$childState == "splitviewItem"}
+        class:super-fieldgroup-item={$childState == "fieldgroupItem"}
+        class:nested={$builderStore.inBuilder && nested}
+        class:spectrum-OpacityCheckerboard={$builderStore.inBuilder &&
+          $component.empty &&
+          mode != "grid"}
+        use:styleable={$component.styles}
+      >
+        {#if mode == "grid" && $builderStore.inBuilder}
           <div class="underlay">
             {#each coords as _, idx}
-              <div class="placeholder spectrum-OpacityCheckerboard"> {idx} </div>  
+              <div class="placeholder spectrum-OpacityCheckerboard">{idx}</div>
             {/each}
           </div>
-        {/if}
-
-        {#if error && $builderStore.inBuilder}
-          <p class="error">{error}</p>
         {/if}
 
         {#if mode == "tabs" && containers?.length > 0}
@@ -533,15 +618,26 @@
               <slot />
             </Provider>
           {/each}
-        <!-- In Repeater Mode with Array -->
-        {:else if bound == "array" && slots?.length}
-          <RepeaterPreview inBuilder={$builderStore.inBuilder} {mode} />
-          {#each slots as row, idx }
-            <Provider data={ { index: idx, item:row, total: slots?.length } }>
+          <!-- In Repeater Mode with Array -->
+        {:else if bound == "array"}
+          {#if slots?.length}
+            {#each slots as row, idx}
+              <Provider
+                data={{ index: idx, value: row }}
+                scope={ContextScopes.Local}
+              >
+                <slot />
+              </Provider>
+            {/each}
+          {:else}
+            <Provider
+              data={{ index: -1, value: {} }}
+              scope={ContextScopes.Local}
+            >
               <slot />
             </Provider>
-          {/each}
-        <!-- In unbound mode -->
+          {/if}
+          <!-- In unbound mode -->
         {:else if mode == "grid"}
           <slot />
         {:else}
@@ -553,20 +649,17 @@
         {#if grabberPosition}
           <Grabber {grabberPosition} {resizing} {state} />
         {/if}
-
-    </div>
-  {/if}
+      </div>
+    {/if}
+  {/key}
 {/key}
-{/key}
-
 
 <style>
-
-  :global(.super-fieldgroup > .component > * )  {
-    grid-column : span 6;
+  :global(.super-fieldgroup > .component > *) {
+    grid-column: span 6;
   }
 
-  :global(.super-grid > .component > * ) {
+  :global(.super-grid > .component > *) {
     overflow: hidden;
   }
   .super-container {
@@ -577,8 +670,7 @@
   .super-container-item {
     flex: var(--flex-factor);
   }
-  .super-grid 
-  {
+  .super-grid {
     display: grid;
     position: relative;
     grid-template-columns: repeat(var(--grid-columns), 1fr);
@@ -652,7 +744,7 @@
   }
 
   .error {
-    padding: 1rem;
+    padding: 0rem 1rem;
     width: 100%;
     border: 1px solid var(--spectrum-global-color-red-500);
     border-radius: 2px;

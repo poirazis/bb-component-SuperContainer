@@ -14,18 +14,26 @@
       {
         "type": "schema",
         "scope": "local"
+      },
+      {
+        "type": "static",
+        "scope": "local",
+        "values": [
+          { "key": "value", "label": "value", "type": "object" },
+          { "key": "index", "label": "index", "type": "number" }
+        ]
       }
     ],
     "settings": [
       {
-        "section" : true,
-        "name" : "Sizing",
-        "dependsOn" : { "setting": "childMode" , "value" : "containerItem"},
+        "section": true,
+        "name": "Sizing",
+        "dependsOn": { "setting": "childMode", "value": "containerItem" },
         "settings": [
           {
             "type": "select",
             "label": "Flex Mode",
-            "showLabel" : false,
+            "showLabel": false,
             "key": "flex",
             "showInBar": true,
             "barStyle": "buttons",
@@ -44,7 +52,7 @@
               }
             ],
             "defaultValue": "shrink",
-            "dependsOn" : { "setting" : "childMode" , "value" : "containerItem" }
+            "dependsOn": { "setting": "childMode", "value": "containerItem" }
           },
           {
             "type": "number",
@@ -53,21 +61,46 @@
             "min": 1,
             "defaultValue": 1,
             "dependsOn": { "setting": "flex", "value": "grow" }
-          } 
+          }
         ]
       },
       {
         "type": "select",
         "key": "mode",
         "label": "Layout Mode",
-        "showInBar" : true,
-        "barStyle" : "buttons",
+        "showInBar": true,
+        "barStyle": "buttons",
         "options": [
-          { "label": "Container", "value": "container", "barIcon" : "SelectIntersect", "barTitle" : "Container" },
-          { "label": "Grid", "value": "grid", "barIcon" : "ClassicGridView", "barTitle" : "Grid" },
-          { "label": "Tabs", "value": "tabs", "barIcon" : "FolderOutline", "barTitle" : "Tabs Control" },
-          { "label": "SplitView", "value": "splitview", "barIcon" : "SplitView", "barTitle" : "Resizable Splitview" },
-          { "label": "Field Group", "value": "fieldgroup", "barIcon" : "Group", "barTitle" : "Field Group" }
+          {
+            "label": "Container",
+            "value": "container",
+            "barIcon": "SelectIntersect",
+            "barTitle": "Container"
+          },
+          {
+            "label": "Grid",
+            "value": "grid",
+            "barIcon": "ClassicGridView",
+            "barTitle": "Grid"
+          },
+          {
+            "label": "Tabs",
+            "value": "tabs",
+            "barIcon": "FolderOutline",
+            "barTitle": "Tabs Control"
+          },
+          {
+            "label": "SplitView",
+            "value": "splitview",
+            "barIcon": "SplitView",
+            "barTitle": "Resizable Splitview"
+          },
+          {
+            "label": "Field Group",
+            "value": "fieldgroup",
+            "barIcon": "Group",
+            "barTitle": "Field Group"
+          }
         ],
         "defaultValue": "container"
       },
@@ -91,13 +124,21 @@
         "label": "Repeater Mode",
         "showInBar": true,
         "barStyle": "buttons",
-        "dependsOn": {"setting" : "mode", "value" : "fieldgroup", "invert" : true},
-        "options" : [
-          { "label" : "Off", "value" : false, "barIcon" : "Cancel" },
-          { "label" : "Data Provider", "value" : "dataprovider", "barIcon" : "Data" },
-          { "label" : "Array", "value" : "array" , "barIcon" : "FlashOn"}
+        "dependsOn": {
+          "setting": "mode",
+          "value": "fieldgroup",
+          "invert": true
+        },
+        "options": [
+          { "label": "Off", "value": false, "barIcon": "Cancel" },
+          {
+            "label": "Data Provider",
+            "value": "dataprovider",
+            "barIcon": "Data"
+          },
+          { "label": "Array", "value": "array", "barIcon": "FlashOn" }
         ],
-        "defaultValue" : false
+        "defaultValue": false
       },
       {
         "section": true,
@@ -108,14 +149,14 @@
             "type": "dataProvider",
             "key": "dataprovider",
             "label": "Data Provider",
-            "dependsOn": { "setting" : "bound" , "value" : "dataprovider" }
+            "dependsOn": { "setting": "bound", "value": "dataprovider" }
           },
           {
             "type": "text",
             "key": "sourceArray",
             "label": "Source Array",
-            "resetOn" : "bound",
-            "dependsOn": { "setting" : "bound" , "value" : "array" }
+            "resetOn": "bound",
+            "dependsOn": { "setting": "bound", "value": "array" }
           }
         ]
       },
@@ -374,26 +415,26 @@
         ]
       },
       {
-        "section" : true,
-        "name" : "Field Group Options",
-        "dependsOn" : { "setting":"mode", "value":"fieldgroup" },
-        "settings" : [
+        "section": true,
+        "name": "Field Group Options",
+        "dependsOn": { "setting": "mode", "value": "fieldgroup" },
+        "settings": [
           {
-            "type" : "select",
-            "key" : "labelPos",
-            "label" : "Label Position",
-            "options" : [
-              { "label" : "Left", "value" : "left" },
-              { "label" : "Above", "value" : "above" }
+            "type": "select",
+            "key": "labelPos",
+            "label": "Label Position",
+            "options": [
+              { "label": "Left", "value": "left" },
+              { "label": "Above", "value": "above" }
             ],
-            "defaultValue" : "above"
+            "defaultValue": "above"
           },
           {
-            "type" : "text",
-            "key" : "labelWidth",
-            "label" : "Label Width",
-            "placeholder" : "6rem",
-            "dependsOn" : { "setting" : "labelPos" , "value" : "left" }
+            "type": "text",
+            "key": "labelWidth",
+            "label": "Label Width",
+            "placeholder": "6rem",
+            "dependsOn": { "setting": "labelPos", "value": "left" }
           },
           {
             "type": "number",
@@ -403,9 +444,9 @@
             "defaultValue": 3
           },
           {
-            "type" : "boolean",
-            "key" : "disabled",
-            "label" : "Disabled"
+            "type": "boolean",
+            "key": "disabled",
+            "label": "Disabled"
           }
         ]
       },
@@ -476,32 +517,32 @@
       },
       {
         "section": true,
-        "tag" : "style",
-        "name" : "Borders",
-        "settings" : [
+        "tag": "style",
+        "name": "Borders",
+        "settings": [
           {
-            "type" : "boolean",
-            "key"  : "borderTop",
-            "label" : "Top",
-            "defaultValue" : true
+            "type": "boolean",
+            "key": "borderTop",
+            "label": "Top",
+            "defaultValue": true
           },
           {
-            "type" : "boolean",
-            "key"  : "borderRight",
-            "label" : "Right",
-            "defaultValue" : true
+            "type": "boolean",
+            "key": "borderRight",
+            "label": "Right",
+            "defaultValue": true
           },
           {
-            "type" : "boolean",
-            "key"  : "borderBottom",
-            "label" : "Bottom",
-            "defaultValue" : true
+            "type": "boolean",
+            "key": "borderBottom",
+            "label": "Bottom",
+            "defaultValue": true
           },
           {
-            "type" : "boolean",
-            "key"  : "borderLeft",
-            "label" : "Left",
-            "defaultValue" : true
+            "type": "boolean",
+            "key": "borderLeft",
+            "label": "Left",
+            "defaultValue": true
           }
         ]
       }
