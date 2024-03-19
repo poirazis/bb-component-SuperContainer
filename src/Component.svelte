@@ -6,6 +6,7 @@
   import Grabber from "./Grabber.svelte";
   import fsm from "svelte-fsm";
   import { writable } from "svelte/store";
+  import CellSkeleton from "./CellSkeleton.svelte";
 
   const { styleable, builderStore, Provider, ContextScopes, componentStore } =
     getContext("sdk");
@@ -54,6 +55,8 @@
   // Grid Child Item Options
   export let colSpan = 1;
   export let rowSpan = 1;
+
+  export let skeleton = false;
 
   let containers = [];
   let container;
@@ -585,69 +588,75 @@
           mode != "grid"}
         use:styleable={$component.styles}
       >
-        {#if mode == "grid" && $builderStore.inBuilder}
-          <div class="underlay">
-            {#each coords as _, idx}
-              <div class="placeholder spectrum-OpacityCheckerboard">{idx}</div>
+        {#if skeleton}
+          <CellSkeleton>Loading ...</CellSkeleton>
+        {:else}
+          {#if mode == "grid" && $builderStore.inBuilder}
+            <div class="underlay">
+              {#each coords as _, idx}
+                <div class="placeholder spectrum-OpacityCheckerboard">
+                  {idx}
+                </div>
+              {/each}
+            </div>
+          {/if}
+
+          {#if mode == "tabs" && containers?.length > 0}
+            <TabControl
+              {containers}
+              {hAlign}
+              {vAlign}
+              {direction}
+              {selectedTab}
+              {state}
+              {theme}
+              {tabsQuiet}
+              {tabsAlignment}
+              {tabsSize}
+              {tabsIconsOnly}
+              {tabsEmphasized}
+            />
+          {/if}
+
+          <!-- In Repeater Mode with Data Provider -->
+          {#if bound == "dataprovider" && dataprovider}
+            <RepeaterPreview inBuilder={$builderStore.inBuilder} {mode} />
+            {#each dataprovider.rows as row}
+              <Provider data={row} {scope}>
+                <slot />
+              </Provider>
             {/each}
-          </div>
-        {/if}
-
-        {#if mode == "tabs" && containers?.length > 0}
-          <TabControl
-            {containers}
-            {hAlign}
-            {vAlign}
-            {direction}
-            {selectedTab}
-            {state}
-            {theme}
-            {tabsQuiet}
-            {tabsAlignment}
-            {tabsSize}
-            {tabsIconsOnly}
-            {tabsEmphasized}
-          />
-        {/if}
-
-        <!-- In Repeater Mode with Data Provider -->
-        {#if bound == "dataprovider" && dataprovider}
-          <RepeaterPreview inBuilder={$builderStore.inBuilder} {mode} />
-          {#each dataprovider.rows as row}
-            <Provider data={row} {scope}>
-              <slot />
-            </Provider>
-          {/each}
-          <!-- In Repeater Mode with Array -->
-        {:else if bound == "array"}
-          {#if slots?.length}
-            {#each slots as row, idx}
+            <!-- In Repeater Mode with Array -->
+          {:else if bound == "array"}
+            {#if slots?.length}
+              {#each slots as row, idx}
+                <Provider
+                  data={{ index: idx, value: row }}
+                  scope={ContextScopes.Local}
+                >
+                  <slot />
+                </Provider>
+              {/each}
+            {:else}
               <Provider
-                data={{ index: idx, value: row }}
+                data={{ index: -1, value: {} }}
                 scope={ContextScopes.Local}
               >
                 <slot />
               </Provider>
-            {/each}
-          {:else}
-            <Provider
-              data={{ index: -1, value: {} }}
-              scope={ContextScopes.Local}
-            >
-              <slot />
-            </Provider>
-          {/if}
-          <!-- In unbound mode -->
-        {:else if mode == "grid"}
-          <slot />
-        {:else}
-          {#key labelPos + labelWidth}
+            {/if}
+            <!-- In unbound mode -->
+          {:else if mode == "grid"}
             <slot />
-          {/key}
-        {/if}
+          {:else}
+            {#key labelPos + labelWidth}
+              <slot />
+            {/key}
+          {/if}
 
-        {#if grabberPosition}
-          <Grabber {grabberPosition} {resizing} {state} />
+          {#if grabberPosition}
+            <Grabber {grabberPosition} {resizing} {state} />
+          {/if}
         {/if}
       </div>
     {/if}
