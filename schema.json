@@ -12,10 +12,6 @@
     "styles": ["padding", "size", "border", "background"],
     "context": [
       {
-        "type": "schema",
-        "scope": "local"
-      },
-      {
         "type": "static",
         "scope": "local",
         "values": [
@@ -139,6 +135,13 @@
           { "label": "Array", "value": "array", "barIcon": "FlashOn" }
         ],
         "defaultValue": false
+      },
+      {
+        "type": "boolean",
+        "key": "skeleton",
+        "label": "Skeleton",
+        "dependsOn": { "setting": "mode", "value": "container" },
+        "resetOn": "mode"
       },
       {
         "section": true,
