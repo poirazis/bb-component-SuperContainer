@@ -212,7 +212,7 @@
           "justify-content": direction == "row" ? hAlign : vAlign,
           "align-items": direction == "row" ? vAlign : hAlign,
           "align-content": wrap ? (direction == "row" ? vAlign : hAlign) : null,
-          gap: gap,
+          gap: gap + "rem",
           "--container-flex-mode":
             (direction == "row" && hAlign == "stretch") ||
             (direction == "column" && vAlign == "stretch")
@@ -232,8 +232,8 @@
           "align-items": vAlign,
           "--grid-columns": gridColumns,
           "--grid-rows": gridRows,
-          "--grid-column-gap": gap,
-          "--grid-row-gap": gap,
+          "--grid-column-gap": gap + "rem",
+          "--grid-row-gap": gap + "rem",
         };
       },
     },
@@ -300,8 +300,10 @@
           "align-items": vAlign,
           "--grid-columns": gridColumns * 6,
           "--grid-rows": gridRows,
-          "--grid-column-gap": gap,
-          "--grid-row-gap": gap,
+          "--grid-column-gap":
+            labelPos == "left" ? 0.85 * gap + "rem" : 0.75 * gap + "rem",
+          "--grid-row-gap":
+            labelPos == "left" ? 0.75 * gap + "rem" : 0.5 * gap + "rem",
         };
       },
     },
@@ -489,25 +491,6 @@
   }
 
   $: state.synchProperties($$props);
-  // Catch Erroneous states last after all reactive statememtns
-  $: error =
-    mode == "tabs" && containers?.length < 1
-      ? "At least one child Super Container needed to render Tabs"
-      : mode == "splitview" && containers?.length < 2
-        ? "At least two child Super Containers needed to render a Split View"
-        : bound == "dataprovider" && !dataprovider
-          ? "Please place inside a Data Provider"
-          : bound == "array" && !slots
-            ? "Error Parsing Source Array"
-            : $parentState == "grid" && colSpan > $parentGridStore.gridColumns
-              ? "Out of Grid Bounds - Parent has only " +
-                $parentGridStore.gridColumns +
-                " Columns"
-              : $parentState == "grid" && rowSpan > $parentGridStore.gridRows
-                ? "Out of Grid Bounds - Parent has only " +
-                  $parentGridStore.gridRows +
-                  " Rows"
-                : undefined;
 
   function safeParse(str) {
     let parsed = [];
@@ -584,8 +567,7 @@
         class:super-fieldgroup-item={$childState == "fieldgroupItem"}
         class:nested={$builderStore.inBuilder && nested}
         class:spectrum-OpacityCheckerboard={$builderStore.inBuilder &&
-          $component.empty &&
-          mode != "grid"}
+          $component.empty}
         use:styleable={$component.styles}
       >
         {#if skeleton}
@@ -621,11 +603,17 @@
           <!-- In Repeater Mode with Data Provider -->
           {#if bound == "dataprovider" && dataprovider}
             <RepeaterPreview inBuilder={$builderStore.inBuilder} {mode} />
-            {#each dataprovider.rows as row}
-              <Provider data={row} {scope}>
+            {#if dataprovider?.rows?.length}
+              {#each dataprovider.rows as row}
+                <Provider data={row} {scope}>
+                  <slot />
+                </Provider>
+              {/each}
+            {:else if $builderStore.inBuilder}
+              <Provider data={{}} {scope}>
                 <slot />
               </Provider>
-            {/each}
+            {/if}
             <!-- In Repeater Mode with Array -->
           {:else if bound == "array"}
             {#if slots?.length}
@@ -637,7 +625,7 @@
                   <slot />
                 </Provider>
               {/each}
-            {:else}
+            {:else if $builderStore.inBuilder}
               <Provider
                 data={{ index: -1, value: {} }}
                 scope={ContextScopes.Local}
@@ -750,13 +738,6 @@
     --spectrum-opacity-checkerboard-square-dark: var(
       --random-color
     ) !important ;
-  }
-
-  .error {
-    padding: 0rem 1rem;
-    width: 100%;
-    border: 1px solid var(--spectrum-global-color-red-500);
-    border-radius: 2px;
   }
 
   .spectrum-OpacityCheckerboard {

@@ -12,6 +12,10 @@
     "styles": ["padding", "size", "border", "background"],
     "context": [
       {
+        "type": "schema",
+        "scope": "local"
+      },
+      {
         "type": "static",
         "scope": "local",
         "values": [
@@ -303,26 +307,26 @@
             "options": [
               {
                 "label": "None",
-                "value": "0rem"
+                "value": "0"
               },
               {
                 "label": "Tiny",
-                "value": "0.25rem"
+                "value": "0.25"
               },
               {
                 "label": "Small",
-                "value": "0.5rem"
+                "value": "0.5"
               },
               {
                 "label": "Medium",
-                "value": "1rem"
+                "value": "1"
               },
               {
                 "label": "Large",
-                "value": "2rem"
+                "value": "1.5"
               }
             ],
-            "defaultValue": "1rem"
+            "defaultValue": "1"
           },
           {
             "type": "boolean",
