@@ -176,6 +176,7 @@
     gap: 0.5rem;
     justify-content: var(--tab-alignment);
     color: var(--spectrum-global-color-gray-600);
+    font-weight: 600;
     height: var(--tab-height);
     width: var(--tab-width);
   }
@@ -231,9 +232,5 @@
   }
   .selected:hover {
     color: var(--tab-selected-color);
-  }
-
-  .tab.vertical.selected {
-    padding-left: 1rem;
   }
 </style>
