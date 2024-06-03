@@ -182,7 +182,7 @@
 
   .tab.button {
     padding: var(--tab-padding);
-    height: 2.25rem;
+    height: 2rem;
     width: var(--tab-width);
     align-items: center;
     justify-content: var(--tab-alignment);
