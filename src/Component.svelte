@@ -1,5 +1,11 @@
 <script>
-  import { getContext, onDestroy, onMount, setContext } from "svelte";
+  import {
+    afterUpdate,
+    getContext,
+    onDestroy,
+    onMount,
+    setContext,
+  } from "svelte";
   import "@spectrum-css/opacitycheckerboard/dist/index-vars.css";
   import RepeaterPreview from "./RepeaterPreview.svelte";
   import TabControl from "./TabControl.svelte";
@@ -8,10 +14,18 @@
   import { writable } from "svelte/store";
   import CellSkeleton from "./CellSkeleton.svelte";
 
-  const { styleable, builderStore, Provider, ContextScopes, componentStore } =
-    getContext("sdk");
+  const {
+    styleable,
+    builderStore,
+    Provider,
+    ContextScopes,
+    componentStore,
+    memo,
+  } = getContext("sdk");
+
   const component = getContext("component");
 
+  // Get Wrapper Super Container Stores
   const parentState = getContext("superContainer");
   const parentGridStore = getContext("superContainerParams");
 
@@ -58,6 +72,9 @@
 
   export let skeleton = false;
 
+  // Events
+  export let onTabChange;
+
   let containers = [];
   let container;
 
@@ -76,9 +93,12 @@
   let cssVariables = {};
   let scope = ContextScopes.Local;
 
+  const props = memo($$props);
+
+  $: props.set($$props);
+
   // The array of slots to be rendered in array repeater mode
   let slots;
-  let refresh;
 
   // The State machine that handles the parent role of the super container
   const state = fsm(mode, {
@@ -279,9 +299,12 @@
         };
       },
       selectTab(tabId) {
-        containers.forEach(({ id, state }) => {
+        if (tabId == selectedTab) return;
+
+        containers.forEach(({ id, state, title }) => {
           if (tabId == id) {
             state.show();
+            onTabChange?.({ tabTitle: title });
             selectedTab = id;
           } else {
             state.hide();
@@ -460,6 +483,8 @@
       "plugin/bb-component-SuperContainer"
     : false;
 
+  $: state.synchProperties($$props);
+
   $: if (bound == "array") slots = safeParse(sourceArray);
   $: childState.synch($parentState);
   $: parentState?.updateContainer(
@@ -490,7 +515,13 @@
     }
   }
 
-  $: state.synchProperties($$props);
+  $: if (mode == "grid") setContext("superContainerParams", gridStore);
+
+  $: if (mode == "fieldgroup") {
+    setContext("field-group", labelPos);
+    setContext("field-group-label-width", labelWidth);
+    setContext("field-group-disabled", disabled);
+  }
 
   function safeParse(str) {
     let parsed = [];
@@ -507,7 +538,6 @@
     if (mode == "tabs" && containers.length > 0) {
       if (Number(activeTab) >= 0 && Number(activeTab) < containers.length)
         state.selectTab(containers[Number(activeTab)].id);
-      else state.selectTab(containers[0].id);
     }
     if (parentState && nested) {
       parentState.registerContainer(
@@ -529,19 +559,9 @@
     }
   });
 
+  $: state.synchProperties($props);
+
   setContext("superContainer", state);
-
-  $: if (mode == "grid") setContext("superContainerParams", gridStore);
-
-  $: if (labelPos && mode == "fieldgroup") {
-    setContext("field-group", labelPos);
-    setContext("field-group-label-width", labelWidth);
-    setContext("field-group-disabled", disabled);
-  } else {
-    setContext("field-group", undefined);
-    setContext("field-group-label-width", undefined);
-    setContext("field-group-disabled", undefined);
-  }
 </script>
 
 <svelte:window

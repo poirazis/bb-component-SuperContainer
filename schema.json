@@ -418,6 +418,17 @@
             "key": "tabsIconsOnly",
             "label": "Icons Only",
             "defaultValue": false
+          },
+          {
+            "type": "event",
+            "key": "onTabChange",
+            "label": "On Tab Change",
+            "context": [
+              {
+                "key": "tabTitle",
+                "label": "Title"
+              }
+            ]
           }
         ]
       },
