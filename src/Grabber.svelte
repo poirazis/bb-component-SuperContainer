@@ -1,18 +1,21 @@
 <script>
-  export let grabberPosition
-  export let state
-  export let resizing
+  export let grabberPosition;
+  export let state;
+  export let resizing;
 </script>
 
-<div 
-  class="grabber" 
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<div
+  class="grabber"
   class:resizing
   class:top={grabberPosition == "top"}
   class:right={grabberPosition == "right"}
   class:bottom={grabberPosition == "bottom"}
   class:left={grabberPosition == "left"}
-  style:--pointer={ grabberPosition == "left" || grabberPosition == "right" ? "col-resize" : "row-resize" }
-  on:mousedown={ state.startResizing }
+  style:--pointer={grabberPosition == "left" || grabberPosition == "right"
+    ? "col-resize"
+    : "row-resize"}
+  on:mousedown={state.startResizing}
 />
 
 <style>

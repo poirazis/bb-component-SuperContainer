@@ -1,11 +1,5 @@
 <script>
-  import {
-    afterUpdate,
-    getContext,
-    onDestroy,
-    onMount,
-    setContext,
-  } from "svelte";
+  import { getContext, onDestroy, onMount, setContext } from "svelte";
   import "@spectrum-css/opacitycheckerboard/dist/index-vars.css";
   import RepeaterPreview from "./RepeaterPreview.svelte";
   import TabControl from "./TabControl.svelte";
