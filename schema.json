@@ -164,6 +164,20 @@
             "label": "Source Array",
             "resetOn": "bound",
             "dependsOn": { "setting": "bound", "value": "array" }
+          },
+          {
+            "type": "boolean",
+            "key": "autorefresh",
+            "label": "Auto Refresh",
+            "resetOn": "bound",
+            "dependsOn": { "setting": "bound", "value": "dataprovider" }
+          },
+          {
+            "type": "number",
+            "key": "autorefreshRate",
+            "label": "Refresh Every",
+            "resetOn": "bound",
+            "dependsOn": "autorefresh"
           }
         ]
       },
@@ -403,12 +417,6 @@
           },
           {
             "type": "boolean",
-            "key": "tabsQuiet",
-            "label": "Quiet",
-            "defaultValue": false
-          },
-          {
-            "type": "boolean",
             "key": "tabsEmphasized",
             "label": "Emphasized",
             "defaultValue": false
@@ -530,6 +538,11 @@
             "type": "color",
             "key": "color",
             "label": "Color"
+          },
+          {
+            "type": "event",
+            "key": "onShow",
+            "label": "On Show"
           }
         ]
       },

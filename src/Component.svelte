@@ -14,6 +14,7 @@
     Provider,
     ContextScopes,
     componentStore,
+    screenStore,
     memo,
   } = getContext("sdk");
 
@@ -66,8 +67,11 @@
 
   export let skeleton = false;
 
-  // Events
+  // Events as Parent
   export let onTabChange;
+
+  // Events as Child
+  export let onShow;
 
   let containers = [];
   let container;
@@ -85,11 +89,9 @@
   let id = Math.random() * 10;
   let childCssVariables = {};
   let cssVariables = {};
+  let builderCssVariables = {};
+
   let scope = ContextScopes.Local;
-
-  const props = memo($$props);
-
-  $: props.set($$props);
 
   // The array of slots to be rendered in array repeater mode
   let slots;
@@ -177,6 +179,7 @@
         childState.deactivate();
       },
       show() {
+        onShow?.();
         childState.activate();
       },
       synchProperties() {
@@ -186,8 +189,6 @@
           ...$component.styles,
           normal: {
             ...$component.styles.normal,
-            ...cssVariables,
-            ...childCssVariables,
             "border-top-width": borderTop
               ? $component.styles.normal["border-width"] ?? 0
               : 0,
@@ -390,7 +391,7 @@
       },
       refresh() {
         childCssVariables = {
-          flex: flex == "grow" ? flexFactor + " 1 auto" : "0 1 auto",
+          flex: flex == "grow" ? flexFactor + " 1 auto" : "0 0 auto",
         };
       },
     },
@@ -477,9 +478,9 @@
       "plugin/bb-component-SuperContainer"
     : false;
 
-  $: state.synchProperties($$props);
-
   $: if (bound == "array") slots = safeParse(sourceArray);
+
+  // If a Child , keep in sync with parent
   $: childState.synch($parentState);
   $: parentState?.updateContainer(
     id,
@@ -490,6 +491,7 @@
     Math.min(rowSpan, $parentGridStore?.gridRows)
   );
 
+  // Inside Builder specigic code
   $: {
     if (
       $builderStore.inBuilder &&
@@ -509,13 +511,32 @@
     }
   }
 
-  $: if (mode == "grid") setContext("superContainerParams", gridStore);
+  // Update on property changes
+  $: state.synchProperties(
+    mode,
+    childMode,
+    hAlign,
+    vAlign,
+    flex,
+    flexFactor,
+    bound,
+    direction,
+    gap,
+    activeTab,
+    gridColumns,
+    gridRows
+  );
 
-  $: if (mode == "fieldgroup") {
-    setContext("field-group", labelPos);
-    setContext("field-group-label-width", labelWidth);
-    setContext("field-group-disabled", disabled);
-  }
+  // Append Compnent Styles
+  $: $component.styles = {
+    ...$component.styles,
+    normal: {
+      ...$component.styles.normal,
+      ...cssVariables,
+      ...childCssVariables,
+      ...builderCssVariables,
+    },
+  };
 
   function safeParse(str) {
     let parsed = [];
@@ -553,9 +574,15 @@
     }
   });
 
-  $: state.synchProperties($props);
-
+  // Expose State to Children
   setContext("superContainer", state);
+  $: if (mode == "grid") setContext("superContainerParams", gridStore);
+
+  $: if (mode == "fieldgroup") {
+    setContext("field-group", labelPos);
+    setContext("field-group-label-width", labelWidth);
+    setContext("field-group-disabled", disabled);
+  }
 </script>
 
 <svelte:window
@@ -563,107 +590,100 @@
   on:mousemove={(e) => (resizing ? state.resize(e) : null)}
 />
 
-{#key disabled}
-  {#key mode}
-    {#if $childState != "hidden" && $childState != "tabItem"}
-      <div
-        bind:this={container}
-        class:super-container={$state == "container"}
-        class:accordion={$state == "accordion"}
-        class:super-grid={$state == "grid"}
-        class:tabs={$state == "tabs"}
-        class:splitview={$state == "splitview"}
-        class:super-fieldgroup={$state == "fieldgroup"}
-        class:super-container-item={$childState == "containerItem"}
-        class:accordion-item={$childState == "accordionItem"}
-        class:tab-item={$childState == "tabItem" || $childState == "hidden"}
-        class:splitview-item={$childState == "splitviewItem"}
-        class:super-fieldgroup-item={$childState == "fieldgroupItem"}
-        class:nested={$builderStore.inBuilder && nested}
-        class:spectrum-OpacityCheckerboard={$builderStore.inBuilder &&
-          $component.empty}
-        use:styleable={$component.styles}
-      >
-        {#if skeleton}
-          <CellSkeleton>Loading ...</CellSkeleton>
-        {:else}
-          {#if mode == "grid" && $builderStore.inBuilder}
-            <div class="underlay">
-              {#each coords as _, idx}
-                <div class="placeholder spectrum-OpacityCheckerboard">
-                  {idx}
-                </div>
-              {/each}
+{#if $childState != "hidden" && $childState != "tabItem"}
+  <div
+    bind:this={container}
+    class:super-container={$state == "container"}
+    class:accordion={$state == "accordion"}
+    class:super-grid={$state == "grid"}
+    class:tabs={$state == "tabs"}
+    class:splitview={$state == "splitview"}
+    class:super-fieldgroup={$state == "fieldgroup"}
+    class:super-container-item={$childState == "containerItem"}
+    class:accordion-item={$childState == "accordionItem"}
+    class:tab-item={$childState == "tabItem" || $childState == "hidden"}
+    class:splitview-item={$childState == "splitviewItem"}
+    class:super-fieldgroup-item={$childState == "fieldgroupItem"}
+    class:nested={$builderStore.inBuilder && nested}
+    class:spectrum-OpacityCheckerboard={$builderStore.inBuilder &&
+      $component.empty}
+    use:styleable={$component.styles}
+  >
+    {#if skeleton}
+      <CellSkeleton>Loading ...</CellSkeleton>
+    {:else}
+      {#if mode == "grid" && $builderStore.inBuilder}
+        <div class="underlay">
+          {#each coords as _, idx}
+            <div class="placeholder spectrum-OpacityCheckerboard">
+              {idx}
             </div>
-          {/if}
+          {/each}
+        </div>
+      {/if}
 
-          {#if mode == "tabs" && containers?.length > 0}
-            <TabControl
-              {containers}
-              {hAlign}
-              {vAlign}
-              {direction}
-              {selectedTab}
-              {state}
-              {theme}
-              {tabsQuiet}
-              {tabsAlignment}
-              {tabsSize}
-              {tabsIconsOnly}
-              {tabsEmphasized}
-            />
-          {/if}
+      {#if mode == "tabs" && containers?.length > 0}
+        <TabControl
+          {containers}
+          {hAlign}
+          {vAlign}
+          {direction}
+          {selectedTab}
+          {state}
+          {theme}
+          {tabsQuiet}
+          {tabsAlignment}
+          {tabsSize}
+          {tabsIconsOnly}
+          {tabsEmphasized}
+        />
+      {/if}
 
-          <!-- In Repeater Mode with Data Provider -->
-          {#if bound == "dataprovider" && dataprovider}
-            <RepeaterPreview inBuilder={$builderStore.inBuilder} {mode} />
-            {#if dataprovider?.rows?.length}
-              {#each dataprovider.rows as row}
-                <Provider data={row} {scope}>
-                  <slot />
-                </Provider>
-              {/each}
-            {:else if $builderStore.inBuilder}
-              <Provider data={{}} {scope}>
-                <slot />
-              </Provider>
-            {/if}
-            <!-- In Repeater Mode with Array -->
-          {:else if bound == "array"}
-            {#if slots?.length}
-              {#each slots as row, idx}
-                <Provider
-                  data={{ index: idx, value: row }}
-                  scope={ContextScopes.Local}
-                >
-                  <slot />
-                </Provider>
-              {/each}
-            {:else if $builderStore.inBuilder}
-              <Provider
-                data={{ index: -1, value: {} }}
-                scope={ContextScopes.Local}
-              >
-                <slot />
-              </Provider>
-            {/if}
-            <!-- In unbound mode -->
-          {:else if mode == "grid"}
-            <slot />
-          {:else}
-            {#key labelPos + labelWidth}
+      <!-- In Repeater Mode with Data Provider -->
+      {#if bound == "dataprovider" && dataprovider}
+        <RepeaterPreview inBuilder={$builderStore.inBuilder} {mode} />
+        {#if dataprovider?.rows?.length}
+          {#each dataprovider.rows as row}
+            <Provider data={row} {scope}>
               <slot />
-            {/key}
-          {/if}
-
-          {#if grabberPosition}
-            <Grabber {grabberPosition} {resizing} {state} />
-          {/if}
+            </Provider>
+          {/each}
+        {:else if $builderStore.inBuilder}
+          <Provider data={{}} {scope}>
+            <slot />
+          </Provider>
         {/if}
-      </div>
+        <!-- In Repeater Mode with Array -->
+      {:else if bound == "array"}
+        {#if slots?.length}
+          {#each slots as row, idx}
+            <Provider
+              data={{ index: idx, value: row }}
+              scope={ContextScopes.Local}
+            >
+              <slot />
+            </Provider>
+          {/each}
+        {:else if $builderStore.inBuilder}
+          <Provider data={{ index: -1, value: {} }} scope={ContextScopes.Local}>
+            <slot />
+          </Provider>
+        {/if}
+        <!-- In unbound mode -->
+      {:else if mode == "grid"}
+        <slot />
+      {:else}
+        {#key labelPos + labelWidth}
+          <slot />
+        {/key}
+      {/if}
+
+      {#if grabberPosition}
+        <Grabber {grabberPosition} {resizing} {state} />
+      {/if}
     {/if}
-  {/key}
-{/key}
+  </div>
+{/if}
 
 <style>
   :global(.super-fieldgroup > .component > *) {

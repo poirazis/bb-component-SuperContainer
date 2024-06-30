@@ -29,8 +29,8 @@
     position: absolute;
     top: 12px;
     right: 12px;
-    width: 24px;
-    height: 24px;
+    width: 16px;
+    height: 16px;
     background-color: lime;
     border-radius: 50%;
     display: grid;
@@ -39,7 +39,7 @@
     z-index: 100;
   }
   .repeater > svg {
-    width: 16px;
-    height: 16px;
+    width: 10px;
+    height: 10px;
   }
 </style>
