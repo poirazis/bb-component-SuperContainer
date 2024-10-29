@@ -1,22 +1,13 @@
 <script>
   import { getContext, onDestroy, onMount, setContext } from "svelte";
   import "@spectrum-css/opacitycheckerboard/dist/index-vars.css";
-  import RepeaterPreview from "./RepeaterPreview.svelte";
   import TabControl from "./TabControl.svelte";
   import Grabber from "./Grabber.svelte";
   import fsm from "svelte-fsm";
-  import { writable } from "svelte/store";
   import CellSkeleton from "./CellSkeleton.svelte";
 
-  const {
-    styleable,
-    builderStore,
-    Provider,
-    ContextScopes,
-    componentStore,
-    screenStore,
-    memo,
-  } = getContext("sdk");
+  const { styleable, builderStore, Provider, memo, ContextScopes } =
+    getContext("sdk");
 
   const component = getContext("component");
 
@@ -27,15 +18,13 @@
   export let dataprovider;
   export let sourceArray;
   export let bound = false;
-  export let hideIfEmpty = false;
-  export let emptyMessage = "No Records Found";
 
   export let flex;
   export let flexFactor = 1;
   export let mode = "container";
   export let childMode = "containerItem";
   export let direction;
-  export let hAlign;
+  export let hAlign = "stretch";
   export let vAlign;
   export let gap;
   export let wrap;
@@ -55,11 +44,6 @@
   export let labelPos;
   export let labelWidth = "6rem";
   export let disabled;
-
-  export let borderTop;
-  export let borderRight;
-  export let borderBottom;
-  export let borderLeft;
 
   // Grid Child Item Options
   export let colSpan = 1;
@@ -91,10 +75,8 @@
   let cssVariables = {};
   let builderCssVariables = {};
 
-  let scope = ContextScopes.Local;
-
   // The array of slots to be rendered in array repeater mode
-  let slots;
+  let slots = [];
 
   // The State machine that handles the parent role of the super container
   const state = fsm(mode, {
@@ -183,34 +165,8 @@
         childState.activate();
       },
       synchProperties() {
-        this.refresh($builderStore.inBuilder);
+        this.refresh();
         childState.refresh();
-        $component.styles = {
-          ...$component.styles,
-          normal: {
-            ...$component.styles.normal,
-            "border-top-width": borderTop
-              ? $component.styles.normal["border-width"] ?? 0
-              : 0,
-            "border-right-width": borderRight
-              ? $component.styles.normal["border-width"] ?? 0
-              : 0,
-            "border-bottom-width": borderBottom
-              ? $component.styles.normal["border-width"] ?? 0
-              : 0,
-            "border-left-width": borderLeft
-              ? $component.styles.normal["border-width"] ?? 0
-              : 0,
-            "--random-color": "#" + randomColor,
-            "--spectrum-opacity-checkerboard-square-dark":
-              "var(--spectrum-global-color-gray-200)",
-            "--spectrum-opacity-checkerboard-square-light": bound
-              ? "var(--random-color)"
-              : "var(--spectrum-global-color-gray-75)",
-            "--spectrum-opacity-checkerboard-square-size": "8px",
-            "--spectrum-opacity-checkerboard-position": "left top",
-          },
-        };
         return mode;
       },
     },
@@ -234,6 +190,16 @@
               ? "1"
               : null,
         };
+        builderCssVariables = {
+          "--random-color": "#" + randomColor,
+          "--spectrum-opacity-checkerboard-square-dark":
+            "var(--spectrum-global-color-gray-200)",
+          "--spectrum-opacity-checkerboard-square-light": bound
+            ? "var(--random-color)"
+            : "var(--spectrum-global-color-gray-75)",
+          "--spectrum-opacity-checkerboard-square-size": "8px",
+          "--spectrum-opacity-checkerboard-position": "left top",
+        };
       },
     },
     grid: {
@@ -250,6 +216,8 @@
           "--grid-column-gap": gap + "rem",
           "--grid-row-gap": gap + "rem",
         };
+
+        builderCssVariables = {};
       },
     },
     splitview: {
@@ -295,16 +263,10 @@
       },
       selectTab(tabId) {
         if (tabId == selectedTab) return;
-
-        containers.forEach(({ id, state, title }) => {
-          if (tabId == id) {
-            state.show();
-            onTabChange?.({ tabTitle: title });
-            selectedTab = id;
-          } else {
-            state.hide();
-          }
-        });
+        else {
+          selectedTab = tabId;
+          onTabChange?.({ tabTitle: title });
+        }
       },
     },
     fieldgroup: {
@@ -331,57 +293,9 @@
   const childState = fsm(childMode ?? "containerItem", {
     "*": {
       synch(parentState) {
-        if (parentState == "grid") {
-          return "gridItem";
-        }
-        if (parentState == "tabs") {
-          return "tabItem";
-        }
-        if (parentState == "accordion") return "accordionItem";
-        if (parentState == "splitview") return "splitviewItem";
-        if (parentState == "fieldgroup") return "fieldgroupItem";
         if (!parentState || parentState == "container") {
           return "containerItem";
-        }
-        $component.styles = {
-          ...$component.styles,
-          normal: {
-            ...$component.styles.normal,
-            ...cssVariables,
-            ...childCssVariables,
-            "border-top-width": borderTop
-              ? $component.styles.normal["border-width"] ?? 0
-              : 0,
-            "border-right-width": borderRight
-              ? $component.styles.normal["border-width"] ?? 0
-              : 0,
-            "border-bottom-width": borderBottom
-              ? $component.styles.normal["border-width"] ?? 0
-              : 0,
-            "border-left-width": borderLeft
-              ? $component.styles.normal["border-width"] ?? 0
-              : 0,
-            "--random-color": "#" + randomColor,
-            "--spectrum-opacity-checkerboard-square-dark":
-              "var(--spectrum-global-color-gray-200)",
-            "--spectrum-opacity-checkerboard-square-light": bound
-              ? "var(--random-color)"
-              : "var(--spectrum-global-color-gray-75)",
-            "--spectrum-opacity-checkerboard-square-size": "8px",
-            "--spectrum-opacity-checkerboard-position": "left top",
-          },
-        };
-      },
-      activate() {
-        return "activeTabItem";
-      },
-      deactivate() {
-        return "hidden";
-      },
-    },
-    hidden: {
-      activate() {
-        return "activeTabItem";
+        } else return parentState + "Item";
       },
     },
     disabled: {},
@@ -422,6 +336,12 @@
             "grid-row": "span " + Math.min(rowSpan, $parentGridStore?.gridRows),
             override: "hidden",
           };
+
+          builderCssVariables = inBuilder
+            ? {
+                "background-color": "rgba(10,10,10, 0.15)",
+              }
+            : {};
         } else {
           childCssVariables = {
             "grid-column": "span " + colSpan * 6,
@@ -430,24 +350,20 @@
         }
       },
     },
-    tabItem: {
+    tabsItem: {
       _enter() {
         this.refresh();
       },
+      activate() {
+        return "activeTabsItem";
+      },
     },
-    refresh() {
-      childCssVariables = {
-        flex: "1 0 auto",
-      };
-    },
-    activeTabItem: {
+    activeTabsItem: {
       _enter() {
         this.refresh();
       },
-      refresh() {
-        childCssVariables = {
-          flex: "1 0 auto",
-        };
+      deactivate() {
+        return "tabsItem";
       },
     },
     fieldgroupItem: {
@@ -464,9 +380,15 @@
     },
   });
 
-  let gridStore = new writable({});
-  $: $gridStore = { gridColumns, gridRows };
   $: coords = new Array(gridColumns * gridRows);
+  $: childState.synch($parentState);
+  $: if ($childState == "tabsItem" && $parentGridStore?.selectedTab == id)
+    childState.activate();
+  else if (
+    $childState == "activeTabsItem" &&
+    $parentGridStore?.selectedTab != id
+  )
+    childState.deactivate();
 
   $: randomColor =
     $builderStore.inBuilder && bound
@@ -478,10 +400,11 @@
       "plugin/bb-component-SuperContainer"
     : false;
 
-  $: if (bound == "array") slots = safeParse(sourceArray);
+  $: slots =
+    bound == "array" ? safeParse(sourceArray) : dataprovider?.rows || [0];
 
   // If a Child , keep in sync with parent
-  $: childState.synch($parentState);
+
   $: parentState?.updateContainer(
     id,
     title,
@@ -492,20 +415,18 @@
   );
 
   // Inside Builder specigic code
+  $: inBuilder = $builderStore.inBuilder;
+  $: selected = $component.selected;
   $: {
-    if (
-      $builderStore.inBuilder &&
-      parentState &&
-      $componentStore.selectedComponentPath?.includes($component.id)
-    ) {
+    if (inBuilder && selected && parentState) {
       parentState.selectChild($component.id);
       if (childMode != $parentState + "Item")
         builderStore.actions.updateProp("childMode", $parentState + "Item");
     } else if (
-      $builderStore.inBuilder &&
+      inBuilder &&
+      selected &&
       !parentState &&
-      childMode != "containerItem" &&
-      $componentStore.selectedComponentPath?.includes($component.id)
+      childMode != "containerItem"
     ) {
       builderStore.actions.updateProp("childMode", "containerItem");
     }
@@ -513,18 +434,21 @@
 
   // Update on property changes
   $: state.synchProperties(
+    bound,
     mode,
     childMode,
     hAlign,
     vAlign,
     flex,
     flexFactor,
-    bound,
     direction,
     gap,
     activeTab,
     gridColumns,
-    gridRows
+    gridRows,
+    rowSpan,
+    colSpan,
+    wrap
   );
 
   // Append Compnent Styles
@@ -538,14 +462,30 @@
     },
   };
 
+  $: if (mode == "fieldgroup") {
+    setContext("field-group", labelPos);
+    setContext("field-group-columns", gridColumns);
+    setContext("field-group-label-width", labelWidth);
+    setContext("field-group-disabled", disabled);
+  }
+
   function safeParse(str) {
-    let parsed = [];
+    let parsed;
+
+    if (!str) return [0];
+    if (bound != "array" || !str) return [];
+    if (Array.isArray(str)) return str;
 
     try {
       parsed = JSON.parse(str);
+      if (typeof parsed === "object") {
+        const arrayOfObjects = Object.keys(parsed).map((key) => parsed[key]);
+        return arrayOfObjects;
+      }
     } catch (error) {
-      console.debug(error);
+      parsed = [];
     }
+
     return parsed;
   }
 
@@ -574,23 +514,23 @@
     }
   });
 
+  const params = memo({});
+  $: params.set({
+    gridColumns,
+    gridRows,
+    selectedTab,
+  });
+
   // Expose State to Children
   setContext("superContainer", state);
-  $: if (mode == "grid") setContext("superContainerParams", gridStore);
-
-  $: if (mode == "fieldgroup") {
-    setContext("field-group", labelPos);
-    setContext("field-group-label-width", labelWidth);
-    setContext("field-group-disabled", disabled);
-  }
+  setContext("superContainerParams", params);
 </script>
 
 <svelte:window
   on:mouseup={state.stopResizing}
   on:mousemove={(e) => (resizing ? state.resize(e) : null)}
 />
-
-{#if $childState != "hidden" && $childState != "tabItem"}
+{#if $childState != "tabsItem"}
   <div
     bind:this={container}
     class:super-container={$state == "container"}
@@ -601,7 +541,7 @@
     class:super-fieldgroup={$state == "fieldgroup"}
     class:super-container-item={$childState == "containerItem"}
     class:accordion-item={$childState == "accordionItem"}
-    class:tab-item={$childState == "tabItem" || $childState == "hidden"}
+    class:tab-item={$childState == "activeTabsItem"}
     class:splitview-item={$childState == "splitviewItem"}
     class:super-fieldgroup-item={$childState == "fieldgroupItem"}
     class:nested={$builderStore.inBuilder && nested}
@@ -612,12 +552,10 @@
     {#if skeleton}
       <CellSkeleton>Loading ...</CellSkeleton>
     {:else}
-      {#if mode == "grid" && $builderStore.inBuilder}
+      {#if mode == "grid" && inBuilder}
         <div class="underlay">
           {#each coords as _, idx}
-            <div class="placeholder spectrum-OpacityCheckerboard">
-              {idx}
-            </div>
+            <div class="placeholder" />
           {/each}
         </div>
       {/if}
@@ -639,42 +577,24 @@
         />
       {/if}
 
-      <!-- In Repeater Mode with Data Provider -->
-      {#if bound == "dataprovider" && dataprovider}
-        <RepeaterPreview inBuilder={$builderStore.inBuilder} {mode} />
-        {#if dataprovider?.rows?.length}
-          {#each dataprovider.rows as row}
-            <Provider data={row} {scope}>
-              <slot />
-            </Provider>
-          {/each}
-        {:else if $builderStore.inBuilder}
-          <Provider data={{}} {scope}>
+      {#if bound}
+        {#each slots as row, idx (idx)}
+          <Provider
+            data={bound == "array"
+              ? { value: row, index: idx }
+              : { ...row, index: idx, value: row }}
+            scope={ContextScopes.Local}
+          >
             <slot />
           </Provider>
-        {/if}
-        <!-- In Repeater Mode with Array -->
-      {:else if bound == "array"}
-        {#if slots?.length}
-          {#each slots as row, idx}
-            <Provider
-              data={{ index: idx, value: row }}
-              scope={ContextScopes.Local}
-            >
-              <slot />
-            </Provider>
-          {/each}
-        {:else if $builderStore.inBuilder}
-          <Provider data={{ index: -1, value: {} }} scope={ContextScopes.Local}>
-            <slot />
-          </Provider>
-        {/if}
-        <!-- In unbound mode -->
-      {:else if mode == "grid"}
-        <slot />
+        {/each}
       {:else}
-        {#key labelPos + labelWidth}
-          <slot />
+        {#key labelWidth}
+          {#key labelPos}
+            {#key disabled}
+              <slot />
+            {/key}
+          {/key}
         {/key}
       {/if}
 
@@ -722,7 +642,7 @@
     grid-template-rows: repeat(var(--grid-rows), 1fr);
     column-gap: var(--grid-column-gap);
     row-gap: var(--grid-row-gap);
-    background-color: var(--spectrum-global-color-gray-200);
+    background-color: var(--spectrum-global-color-gray-75);
   }
 
   .placeholder {
@@ -730,7 +650,7 @@
     align-items: center;
     justify-content: center;
     color: var(--spectrum-global-color-gray-500);
-    border: 1px solid var(--spectrum-global-color-gray-400);
+    border: 1px dotted var(--spectrum-global-color-gray-400);
   }
 
   .super-fieldgroup {

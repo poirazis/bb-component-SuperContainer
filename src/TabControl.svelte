@@ -52,10 +52,10 @@
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<svelte:window bind:innerWidth />
 {#if containers?.length}
   <div
     class="tabs"
+    bind:clientWidth={innerWidth}
     class:vertical={direction == "column"}
     class:buttons={theme == "buttons"}
     style:justify-content={direction == "row" ? hAlign : vAlign}
@@ -72,7 +72,7 @@
     style:--tabIndicatorTop={indicatorTop}
     style:--tabIndicatorHeight={indicatorHeight}
   >
-    {#each containers as container, idx}
+    {#each containers as container, idx (idx)}
       <!-- svelte-ignore a11y-click-events-have-key-events -->
       <!-- svelte-ignore a11y-no-static-element-interactions -->
       <div
@@ -106,15 +106,13 @@
     position: relative;
     display: flex;
     gap: 0.85rem;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
+    margin-bottom: 0.5rem;
+    min-height: 2.4rem;
   }
   .tabs.buttons {
     position: relative;
     display: flex;
     gap: 0rem;
-    margin-bottom: 0.5rem;
-    padding-bottom: 0.5rem;
   }
 
   .tabs::before {

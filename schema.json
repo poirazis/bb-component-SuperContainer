@@ -10,14 +10,18 @@
     "showEmptyState": true,
     "icon": "SelectIntersect",
     "styles": ["padding", "size", "border", "background"],
+    "grid": {
+      "hAlign": "stretch",
+      "vAlign": "stretch"
+    },
     "context": [
       {
         "type": "schema",
-        "scope": "local"
+        "scope": "global"
       },
       {
         "type": "static",
-        "scope": "local",
+        "scope": "global",
         "values": [
           { "key": "value", "label": "value", "type": "object" },
           { "key": "index", "label": "index", "type": "number" }
@@ -156,6 +160,7 @@
             "type": "dataProvider",
             "key": "dataprovider",
             "label": "Data Provider",
+            "resetOn": "bound",
             "dependsOn": { "setting": "bound", "value": "dataprovider" }
           },
           {
@@ -164,20 +169,6 @@
             "label": "Source Array",
             "resetOn": "bound",
             "dependsOn": { "setting": "bound", "value": "array" }
-          },
-          {
-            "type": "boolean",
-            "key": "autorefresh",
-            "label": "Auto Refresh",
-            "resetOn": "bound",
-            "dependsOn": { "setting": "bound", "value": "dataprovider" }
-          },
-          {
-            "type": "number",
-            "key": "autorefreshRate",
-            "label": "Refresh Every",
-            "resetOn": "bound",
-            "dependsOn": "autorefresh"
           }
         ]
       },
@@ -196,7 +187,7 @@
       {
         "section": true,
         "name": "Container Options",
-        "dependsOn": { "setting": "mode", "value": "container" },
+
         "settings": [
           {
             "type": "select",
@@ -264,7 +255,7 @@
                 "barTitle": "Align stretched horizontally"
               }
             ],
-            "defaultValue": "flex-start"
+            "defaultValue": "stretch"
           },
           {
             "type": "select",
@@ -543,37 +534,6 @@
             "type": "event",
             "key": "onShow",
             "label": "On Show"
-          }
-        ]
-      },
-      {
-        "section": true,
-        "tag": "style",
-        "name": "Borders",
-        "settings": [
-          {
-            "type": "boolean",
-            "key": "borderTop",
-            "label": "Top",
-            "defaultValue": true
-          },
-          {
-            "type": "boolean",
-            "key": "borderRight",
-            "label": "Right",
-            "defaultValue": true
-          },
-          {
-            "type": "boolean",
-            "key": "borderBottom",
-            "label": "Bottom",
-            "defaultValue": true
-          },
-          {
-            "type": "boolean",
-            "key": "borderLeft",
-            "label": "Left",
-            "defaultValue": true
           }
         ]
       }
