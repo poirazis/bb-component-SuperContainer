@@ -6,20 +6,20 @@
   export let vAlign;
   export let state;
   export let theme;
-  export let tabsQuiet;
   export let tabsSize;
   export let tabsAlignment;
   export let tabsIconsOnly;
   export let tabsEmphasized;
 
   let tabs = [];
+  let innerWidth;
 
   let indicatorLeft, indicatorWidth, indicatorTop, indicatorHeight;
 
   const tabHeights = {
-    S: "2.25rem",
-    M: "2.5rem",
-    L: "3rem",
+    S: "2rem",
+    M: "2.25rem",
+    L: "2.5rem",
   };
   const tabWidths = {
     S: "7.5rem",
@@ -46,6 +46,7 @@
     }
   };
 
+  $: getIndicatorPosition(innerWidth);
   $: setTimeout(() => getIndicatorPosition($$props, tabs), 10);
 </script>
 
@@ -54,6 +55,7 @@
 {#if containers?.length}
   <div
     class="tabs"
+    bind:clientWidth={innerWidth}
     class:vertical={direction == "column"}
     class:buttons={theme == "buttons"}
     style:justify-content={direction == "row" ? hAlign : vAlign}
@@ -70,7 +72,9 @@
     style:--tabIndicatorTop={indicatorTop}
     style:--tabIndicatorHeight={indicatorHeight}
   >
-    {#each containers as container, idx}
+    {#each containers as container, idx (idx)}
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <!-- svelte-ignore a11y-no-static-element-interactions -->
       <div
         bind:this={tabs[container.id]}
         class="tab"
@@ -103,14 +107,12 @@
     display: flex;
     gap: 0.85rem;
     margin-bottom: 0.5rem;
-    padding-bottom: 0.5rem;
+    min-height: 2.4rem;
   }
   .tabs.buttons {
     position: relative;
     display: flex;
     gap: 0rem;
-    margin-bottom: 0.5rem;
-    padding-bottom: 0.5ren;
   }
 
   .tabs::before {
@@ -178,12 +180,12 @@
     color: var(--spectrum-global-color-gray-600);
     font-weight: 600;
     height: var(--tab-height);
-    width: var(--tab-width);
+    min-width: var(--tab-width);
   }
 
   .tab.button {
     padding: var(--tab-padding);
-    height: 2rem;
+    height: var(--tab-height);
     width: var(--tab-width);
     align-items: center;
     justify-content: var(--tab-alignment);
@@ -219,7 +221,7 @@
   .tab.vertical {
     border: none;
     padding-left: 0.85rem;
-    height: 2.4rem;
+    height: var(--tab-height);
   }
 
   .tab-text {
