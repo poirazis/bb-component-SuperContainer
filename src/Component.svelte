@@ -7,8 +7,14 @@
   import CellSkeleton from "./CellSkeleton.svelte";
   import Expander from "./Expander.svelte";
 
-  const { styleable, builderStore, Provider, memo, ContextScopes } =
-    getContext("sdk");
+  const {
+    styleable,
+    builderStore,
+    Provider,
+    memo,
+    ContextScopes,
+    screenStore,
+  } = getContext("sdk");
 
   const component = getContext("component");
 
@@ -86,6 +92,13 @@
 
   // The array of slots to be rendered in array repeater mode
   let slots = [];
+
+  $: parent = lookupComponent(
+    $screenStore.activeScreen.props._children,
+    $component.path.at(-2)
+  );
+
+  $: nested = parent?._component == "plugin/bb-component-SuperContainer";
 
   // The State machine that handles the parent role of the super container
   const state = fsm(mode, {
@@ -427,10 +440,6 @@
   )
     childState.deactivate();
 
-  $: nested = component
-    ? $component.path.at(-2) == "plugin/bb-component-SuperContainer"
-    : false;
-
   $: slots =
     bound == "array" ? safeParse(sourceArray) : dataprovider?.rows || [0];
 
@@ -549,6 +558,18 @@
   const handleCollapse = () => {
     collapsed = !collapsed;
     state.synchProperties();
+  };
+
+  const lookupComponent = (components, id) => {
+    let parent;
+    let pos = components?.findIndex((comp) => comp._id == id);
+    if (pos > -1) return components[pos];
+    else
+      components?.forEach((comp) => {
+        if (!parent) parent = lookupComponent(comp._children, id);
+      });
+
+    return parent;
   };
 
   // Expose State to Children
