@@ -110,13 +110,6 @@
       },
       {
         "type": "boolean",
-        "key": "skeleton",
-        "label": "Skeleton",
-        "dependsOn": { "setting": "mode", "value": "container" },
-        "resetOn": "mode"
-      },
-      {
-        "type": "boolean",
         "key": "collapsible",
         "label": "Collapsible",
         "dependsOn": { "setting": "mode", "value": "container" },
@@ -370,14 +363,14 @@
             "key": "gridColumns",
             "label": "Columns",
             "min": 1,
-            "defaultValue": 3
+            "defaultValue": 6
           },
           {
             "type": "number",
             "key": "gridRows",
             "label": "Rows",
             "min": 1,
-            "defaultValue": 3
+            "defaultValue": 6
           }
         ]
       },
@@ -434,6 +427,13 @@
             "key": "tabsIconsOnly",
             "label": "Icons Only",
             "defaultValue": false
+          },
+          {
+            "type": "boolean",
+            "key": "quietTabs",
+            "label": "Quiet Tabs",
+            "defaultValue": false,
+            "dependsOn": { "setting": "theme", "value": "budibase" }
           },
           {
             "type": "event",
@@ -551,6 +551,38 @@
             "type": "event",
             "key": "onShow",
             "label": "On Show"
+          }
+        ]
+      },
+      {
+        "type": "event",
+        "key": "onClick",
+        "label": "On Click"
+      },
+      {
+        "type": "event",
+        "key": "onRightClick",
+        "label": "On Right Click"
+      },
+      {
+        "section": true,
+        "name": "Hover Options",
+        "tag": "style",
+        "settings": [
+          {
+            "type": "color",
+            "key": "hoverBackground",
+            "label": "Background"
+          },
+          {
+            "type": "color",
+            "key": "hoverBorder",
+            "label": "Border"
+          },
+          {
+            "type": "color",
+            "key": "hoverText",
+            "label": "Text"
           }
         ]
       }

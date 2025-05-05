@@ -4,27 +4,15 @@
   import TabControl from "./TabControl.svelte";
   import Grabber from "./Grabber.svelte";
   import fsm from "svelte-fsm";
-  import CellSkeleton from "./CellSkeleton.svelte";
   import Expander from "./Expander.svelte";
 
-  const {
-    styleable,
-    builderStore,
-    Provider,
-    memo,
-    ContextScopes,
-    screenStore,
-  } = getContext("sdk");
+  const { styleable, builderStore, memo } = getContext("sdk");
 
   const component = getContext("component");
 
   // Get Wrapper Super Container Stores
-  var parentState = getContext("superContainer");
+  const parentState = getContext("superContainer");
   const parentGridStore = getContext("superContainerParams");
-
-  export let dataprovider;
-  export let sourceArray;
-  export let bound = false;
 
   export let flex;
   export let flexFactor = 1;
@@ -39,14 +27,14 @@
   export let panelTitle;
   export let collapsed;
   export let collapsible;
-  export let collapseSide;
+  export let collapseSide = "left";
   export let collapseSize;
   export let collapseTitle;
   export let collapseIcon;
 
   export let tabsSize = "M";
   export let tabsAlignment;
-  export let tabsQuiet;
+  export let quietTabs;
   export let tabsEmphasized;
   export let activeTab = 0;
   export let tabsIconsOnly = false;
@@ -64,10 +52,14 @@
   export let colSpan = 1;
   export let rowSpan = 1;
 
-  export let skeleton = false;
-
   // Events as Parent
   export let onTabChange;
+  export let onClick;
+  export let onRightClick;
+
+  export let hoverBackground;
+  export let hoverBorder;
+  export let hoverText;
 
   // Events as Child
   export let onShow;
@@ -90,29 +82,10 @@
   let cssVariables = {};
   let builderCssVariables = {};
 
-  // The array of slots to be rendered in array repeater mode
-  let slots = [];
-
-  $: parent = lookupComponent(
-    $screenStore.activeScreen.props._children,
-    $component.path.at(-2)
-  );
-
-  $: nested = parent?._component == "plugin/bb-component-SuperContainer";
-
   // The State machine that handles the parent role of the super container
   const state = fsm(mode, {
     "*": {
-      registerContainer(
-        componentID,
-        id,
-        state,
-        title,
-        icon,
-        color,
-        reqcolSpan,
-        reqrowSpan
-      ) {
+      registerContainer(componentID, id, state, title, icon, color) {
         containers = [
           ...containers,
           {
@@ -122,8 +95,6 @@
             title,
             icon,
             color,
-            colSpan: reqcolSpan,
-            rowSpan: reqrowSpan,
           },
         ];
       },
@@ -133,8 +104,6 @@
           containers[index].title = title;
           containers[index].icon = icon;
           containers[index].color = color;
-          containers[index].colSpan = reqcolSpan;
-          containers[index].rowSpan = reqrowSpan;
         }
         containers = containers;
       },
@@ -174,7 +143,7 @@
           height = initialHeight + (e.clientY - startPointY);
         }
 
-        childState.refresh();
+        childState?.refresh?.();
       },
       stopResizing(e) {
         resizing = false;
@@ -188,7 +157,7 @@
       },
       synchProperties() {
         this.refresh();
-        childState.refresh();
+        childState?.refresh?.();
         return mode;
       },
     },
@@ -206,6 +175,9 @@
           "align-items": direction == "row" ? vAlign : hAlign,
           "align-content": wrap ? (direction == "row" ? vAlign : hAlign) : null,
           gap: gap + "rem",
+          "--container-hover-background": hoverBackground,
+          "--container-hover-border": hoverBorder,
+          "--container-hover-color": hoverText,
           "--container-flex-mode":
             (direction == "row" && hAlign == "stretch") ||
             (direction == "column" && vAlign == "stretch")
@@ -215,9 +187,9 @@
 
         if (collapsible) {
           cssVariables["padding-top"] =
-            collapseSide != "top" ? "2rem" : "unset";
+            collapseSide != "top" ? "2.4rem" : "unset";
           cssVariables["padding-bottom"] =
-            collapseSide == "top" ? "2rem" : "unset";
+            collapseSide == "top" ? "2.4rem" : "unset";
           if (collapsed) {
             if (collapseSide == "left" || collapseSide == "right") {
               cssVariables["min-width"] =
@@ -407,6 +379,11 @@
       activate() {
         return "activeTabsItem";
       },
+      refresh() {
+        childCssVariables = {
+          flex: "auto",
+        };
+      },
     },
     activeTabsItem: {
       _enter() {
@@ -414,6 +391,11 @@
       },
       deactivate() {
         return "tabsItem";
+      },
+      refresh() {
+        childCssVariables = {
+          flex: "auto",
+        };
       },
     },
     fieldgroupItem: {
@@ -431,7 +413,8 @@
   });
 
   $: coords = new Array(gridColumns * gridRows);
-  $: childState.synch($parentState);
+  $: childState?.synch?.($parentState);
+
   $: if ($childState == "tabsItem" && $parentGridStore?.selectedTab == id)
     childState.activate();
   else if (
@@ -440,28 +423,20 @@
   )
     childState.deactivate();
 
-  $: slots =
-    bound == "array" ? safeParse(sourceArray) : dataprovider?.rows || [0];
-
   // If a Child , keep in sync with parent
-
-  $: parentState?.updateContainer(
-    id,
-    title,
-    icon,
-    color,
-    Math.min(colSpan, $parentGridStore?.gridColumns),
-    Math.min(rowSpan, $parentGridStore?.gridRows)
-  );
+  $: parentState?.updateContainer(id, title, icon, color);
 
   // Inside Builder specigic code
   $: inBuilder = $builderStore.inBuilder;
-  $: selected = $component.selected;
+  $: selected = $component.selected || $component.inSelectedPath;
+
   $: {
     if (inBuilder && selected && parentState) {
       parentState.selectChild($component.id);
-      if (childMode != $parentState + "Item")
+      if (childMode != $parentState + "Item") {
         builderStore.actions.updateProp("childMode", $parentState + "Item");
+        childMode = $parentState + "Item";
+      }
     } else if (
       inBuilder &&
       selected &&
@@ -473,26 +448,7 @@
   }
 
   // Update on property changes
-  $: state.synchProperties(
-    bound,
-    mode,
-    childMode,
-    hAlign,
-    vAlign,
-    flex,
-    flexFactor,
-    direction,
-    gap,
-    activeTab,
-    gridColumns,
-    gridRows,
-    rowSpan,
-    colSpan,
-    wrap,
-    collapseSide,
-    collapsible,
-    collapsed
-  );
+  $: state.synchProperties($$props);
 
   $: if (mode == "fieldgroup") {
     setContext("field-group", labelPos);
@@ -501,51 +457,16 @@
     setContext("field-group-disabled", disabled);
   }
 
-  function safeParse(str) {
-    let parsed;
-
-    if (!str) return [0];
-    if (bound != "array" || !str) return [];
-    if (Array.isArray(str)) return str;
-
-    try {
-      parsed = JSON.parse(str);
-      if (typeof parsed === "object") {
-        const arrayOfObjects = Object.keys(parsed).map((key) => parsed[key]);
-        return arrayOfObjects;
-      }
-    } catch (error) {
-      parsed = [];
-    }
-
-    return parsed;
-  }
-
   onMount(() => {
     if (mode == "tabs" && containers.length > 0) {
       if (Number(activeTab) >= 0 && Number(activeTab) < containers.length)
         state.selectTab(containers[Number(activeTab)].id);
     }
-    if (parentState && nested) {
-      parentState.registerContainer(
-        componentID,
-        id,
-        state,
-        title,
-        icon,
-        color,
-        colSpan,
-        rowSpan
-      );
-    } else {
-      parentState = undefined;
-    }
+    parentState?.registerContainer(componentID, id, state, title, icon, color);
   });
 
   onDestroy(() => {
-    if (parentState && nested) {
-      parentState.unregisterContainer(id);
-    }
+    parentState?.unregisterContainer(id);
   });
 
   const params = memo({});
@@ -558,18 +479,6 @@
   const handleCollapse = () => {
     collapsed = !collapsed;
     state.synchProperties();
-  };
-
-  const lookupComponent = (components, id) => {
-    let parent;
-    let pos = components?.findIndex((comp) => comp._id == id);
-    if (pos > -1) return components[pos];
-    else
-      components?.forEach((comp) => {
-        if (!parent) parent = lookupComponent(comp._children, id);
-      });
-
-    return parent;
   };
 
   // Expose State to Children
@@ -589,13 +498,16 @@
 </script>
 
 <svelte:window
-  on:mouseup={state.stopResizing}
+  on:mouseup={resizing ? state.stopResizing : () => {}}
   on:mousemove={(e) => (resizing ? state.resize(e) : null)}
 />
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 {#if $childState != "tabsItem"}
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
   <div
     bind:this={container}
     class:collapsed
+    class:collapsible
     class:super-container={$state == "container"}
     class:accordion={$state == "accordion"}
     class:super-grid={$state == "grid"}
@@ -607,89 +519,78 @@
     class:tab-item={$childState == "activeTabsItem"}
     class:splitview-item={$childState == "splitviewItem"}
     class:super-fieldgroup-item={$childState == "fieldgroupItem"}
-    class:nested={$builderStore.inBuilder && nested}
     class:spectrum-OpacityCheckerboard={$builderStore.inBuilder &&
       $component.empty}
     use:styleable={$component.styles}
+    on:click={onClick}
+    on:contextmenu={(e) => {
+      if (onRightClick) {
+        e.preventDefault();
+        onRightClick();
+      }
+    }}
   >
-    {#if skeleton}
-      <CellSkeleton>Loading ...</CellSkeleton>
-    {:else}
-      {#if !collapsed}
-        {#if mode == "grid" && inBuilder}
-          <div class="underlay">
-            {#each coords as _, idx}
-              <div class="placeholder" />
-            {/each}
-          </div>
-        {/if}
-
-        {#if mode == "tabs" && containers?.length > 0}
-          <TabControl
-            {containers}
-            {hAlign}
-            {vAlign}
-            {direction}
-            {selectedTab}
-            {state}
-            {theme}
-            {gap}
-            {tabsQuiet}
-            {tabsAlignment}
-            {tabsSize}
-            {tabsIconsOnly}
-            {tabsEmphasized}
-          />
-        {/if}
-
-        {#if bound}
-          {#each slots as row, idx (idx)}
-            <Provider
-              data={bound == "array"
-                ? { value: row, index: idx }
-                : { ...row, index: idx, value: row }}
-              scope={ContextScopes.Local}
-            >
-              <slot />
-            </Provider>
+    {#if !collapsed}
+      {#if mode == "grid" && inBuilder}
+        <div class="underlay">
+          {#each coords as _, idx}
+            <div class="placeholder" />
           {/each}
-        {:else}
-          {#key labelWidth}
-            {#key labelPos}
-              {#key disabled}
-                <slot />
-              {/key}
-            {/key}
+        </div>
+      {/if}
+
+      {#if mode == "tabs" && containers?.length > 0}
+        <TabControl
+          {containers}
+          {hAlign}
+          {vAlign}
+          {direction}
+          {selectedTab}
+          {state}
+          {theme}
+          {gap}
+          {quietTabs}
+          {tabsAlignment}
+          {tabsSize}
+          {tabsIconsOnly}
+          {tabsEmphasized}
+        />
+      {/if}
+
+      {#key labelWidth}
+        {#key labelPos}
+          {#key disabled}
+            <slot />
           {/key}
-        {/if}
+        {/key}
+      {/key}
 
-        {#if grabberPosition}
-          <Grabber {grabberPosition} {resizing} {state} />
-        {/if}
-      {:else}
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <!-- svelte-ignore a11y-no-static-element-interactions -->
-        <div class="collapsed-title" on:click={handleCollapse}>
-          <span>{collapseTitle?.toUpperCase() || ""}</span>
-        </div>
+      {#if grabberPosition}
+        <Grabber {grabberPosition} {resizing} {state} />
       {/if}
-
+    {:else}
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
       <!-- svelte-ignore a11y-no-static-element-interactions -->
-      {#if collapsible}
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <div
-          class="collapser"
-          class:collapsed
-          class:right={collapseSide == "right"}
-          class:top={collapseSide == "top"}
-          on:click={handleCollapse}
-        >
-          {#if !collapsed}
-            <span> {panelTitle?.toUpperCase() || ""}</span>
-          {/if}
-          <Expander {collapsed} {collapseIcon} />
-        </div>
-      {/if}
+      <div class="collapsed-title" on:click={handleCollapse}>
+        <span>{collapseTitle?.toUpperCase() || ""}</span>
+      </div>
+    {/if}
+
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
+    {#if collapsible}
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <div
+        class="collapser"
+        class:collapsed
+        class:right={collapseSide == "right"}
+        class:top={collapseSide == "top"}
+        on:click={handleCollapse}
+      >
+        {#if !collapsed}
+          <span> {panelTitle?.toUpperCase() || ""}</span>
+        {/if}
+        <Expander {collapsed} {collapseIcon} />
+      </div>
     {/if}
   </div>
 {/if}
@@ -708,6 +609,10 @@
     overflow: hidden;
 
     &:hover {
+      background-color: var(--container-hover-background) !important;
+      color: var(--container-hover-color) !important;
+      border: 1px solid var(---container-hover-border) !important;
+
       & > .collapsed-title {
         color: var(--spectrum-global-color-gray-700);
       }
@@ -716,24 +621,42 @@
       }
     }
 
+    &.collapsible {
+      border: 1px solid var(--spectrum-global-color-gray-200);
+      width: 260px;
+    }
     &.collapsed {
       cursor: pointer;
+      background-color: var(--spectrum-global-color-gray-100);
+
+      &:hover {
+        background-color: var(--spectrum-global-color-gray-200);
+        & > .collapser {
+          background-color: var(--spectrum-global-color-gray-200);
+          color: var(--spectrum-global-color-gray-900);
+        }
+      }
     }
     & > .collapser {
       position: absolute;
       top: 0px;
       left: 0px;
       right: 0px;
-      height: 32px;
+      height: 2.4rem;
       cursor: pointer;
-      color: var(--spectrum-global-color-gray-700);
-      border-bottom: 1px solid var(--spectrum-global-color-gray-300);
+      color: var(--spectrum-global-color-gray-600);
+      border-bottom: 1px solid var(--spectrum-global-color-gray-200);
       display: flex;
       align-items: center;
       justify-content: space-between;
       font-size: 12px;
       font-weight: 600;
       padding: 0.5rem;
+      z-index: 1;
+
+      &:hover {
+        color: var(--spectrum-global-color-gray-900);
+      }
 
       &.collapsed {
         justify-content: center;
@@ -750,6 +673,7 @@
     }
 
     & > .collapsed-title {
+      flex: auto;
       display: flex;
       justify-content: center;
       padding: 0.75rem;
@@ -832,12 +756,6 @@
   }
   .splitview-item {
     flex: 1 1 auto;
-  }
-
-  .nested {
-    --spectrum-opacity-checkerboard-square-dark: var(
-      --random-color
-    ) !important ;
   }
 
   .spectrum-OpacityCheckerboard {
