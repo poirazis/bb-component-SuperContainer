@@ -175,9 +175,9 @@
           "align-items": direction == "row" ? vAlign : hAlign,
           "align-content": wrap ? (direction == "row" ? vAlign : hAlign) : null,
           gap: gap + "rem",
-          "--container-hover-background": hoverBackground,
-          "--container-hover-border": hoverBorder,
-          "--container-hover-color": hoverText,
+          "--container-hover-background": hoverBackground ?? "inherit",
+          "--container-hover-border": hoverBorder ?? "inherit",
+          "--container-hover-color": hoverText ?? "inherit",
           "--container-flex-mode":
             (direction == "row" && hAlign == "stretch") ||
             (direction == "column" && vAlign == "stretch")
@@ -507,6 +507,7 @@
   <div
     bind:this={container}
     class:collapsed
+    class:hoverable={hoverBackground || hoverBorder || hoverText}
     class:collapsible
     class:super-container={$state == "container"}
     class:accordion={$state == "accordion"}
@@ -607,12 +608,15 @@
     display: flex;
     position: relative;
     overflow: hidden;
+    transition: all 0.2s ease-in-out;
 
     &:hover {
-      background-color: var(--container-hover-background) !important;
-      color: var(--container-hover-color) !important;
-      border: 1px solid var(---container-hover-border) !important;
-
+      &.hoverable {
+        cursor: pointer;
+        background-color: var(--container-hover-background) !important;
+        color: var(--container-hover-color) !important;
+        border: 1px solid var(---container-hover-border) !important;
+      }
       & > .collapsed-title {
         color: var(--spectrum-global-color-gray-700);
       }
