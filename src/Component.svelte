@@ -82,6 +82,10 @@
   let cssVariables = {};
   let builderCssVariables = {};
 
+  // Memoize the props to avoid reactivity issues
+  const props = memo($$props);
+  $: props.set($$props);
+
   // The State machine that handles the parent role of the super container
   const state = fsm(mode, {
     "*": {
@@ -175,9 +179,6 @@
           "align-items": direction == "row" ? vAlign : hAlign,
           "align-content": wrap ? (direction == "row" ? vAlign : hAlign) : null,
           gap: gap + "rem",
-          "--container-hover-background": hoverBackground ?? "inherit",
-          "--container-hover-border": hoverBorder ?? "inherit",
-          "--container-hover-color": hoverText ?? "inherit",
           "--container-flex-mode":
             (direction == "row" && hAlign == "stretch") ||
             (direction == "column" && vAlign == "stretch")
@@ -359,11 +360,7 @@
             override: "hidden",
           };
 
-          builderCssVariables = inBuilder
-            ? {
-                "background-color": "rgba(10,10,10, 0.15)",
-              }
-            : {};
+          builderCssVariables = {};
         } else {
           childCssVariables = {
             "grid-column": "span " + colSpan * 6,
@@ -415,6 +412,9 @@
   $: coords = new Array(gridColumns * gridRows);
   $: childState?.synch?.($parentState);
 
+  // Update on property changes
+  $: state.synchProperties($props);
+
   $: if ($childState == "tabsItem" && $parentGridStore?.selectedTab == id)
     childState.activate();
   else if (
@@ -446,9 +446,6 @@
       builderStore.actions.updateProp("childMode", "containerItem");
     }
   }
-
-  // Update on property changes
-  $: state.synchProperties($$props);
 
   $: if (mode == "fieldgroup") {
     setContext("field-group", labelPos);
@@ -493,8 +490,13 @@
       ...cssVariables,
       ...childCssVariables,
       ...builderCssVariables,
+      "--container-hover-background": hoverBackground,
+      "--container-hover-border": hoverBorder,
+      "--container-hover-color": hoverText,
     },
   };
+
+  $: console.log($params);
 </script>
 
 <svelte:window
@@ -523,7 +525,7 @@
     class:spectrum-OpacityCheckerboard={$builderStore.inBuilder &&
       $component.empty}
     use:styleable={$component.styles}
-    on:click={onClick}
+    on:click={onClick ? onClick : () => {}}
     on:contextmenu={(e) => {
       if (onRightClick) {
         e.preventDefault();
@@ -613,9 +615,9 @@
     &:hover {
       &.hoverable {
         cursor: pointer;
-        background-color: var(--container-hover-background) !important;
-        color: var(--container-hover-color) !important;
-        border: 1px solid var(---container-hover-border) !important;
+        background-color: var(--container-hover-background);
+        color: var(--container-hover-color);
+        border: 1px solid var(--container-hover-border);
       }
       & > .collapsed-title {
         color: var(--spectrum-global-color-gray-700);
