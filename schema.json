@@ -418,12 +418,6 @@
           },
           {
             "type": "boolean",
-            "key": "tabsEmphasized",
-            "label": "Emphasized",
-            "defaultValue": false
-          },
-          {
-            "type": "boolean",
             "key": "tabsIconsOnly",
             "label": "Icons Only",
             "defaultValue": false
@@ -432,8 +426,7 @@
             "type": "boolean",
             "key": "quietTabs",
             "label": "Quiet Tabs",
-            "defaultValue": false,
-            "dependsOn": { "setting": "theme", "value": "budibase" }
+            "defaultValue": false
           },
           {
             "type": "event",

@@ -35,7 +35,6 @@
   export let tabsSize = "M";
   export let tabsAlignment;
   export let quietTabs;
-  export let tabsEmphasized;
   export let activeTab = 0;
   export let tabsIconsOnly = false;
   export let theme = "budibase";
@@ -495,8 +494,6 @@
       "--container-hover-color": hoverText,
     },
   };
-
-  $: console.log($params);
 </script>
 
 <svelte:window
@@ -511,6 +508,7 @@
     class:collapsed
     class:hoverable={hoverBackground || hoverBorder || hoverText}
     class:collapsible
+    class:clickable={onClick}
     class:super-container={$state == "container"}
     class:accordion={$state == "accordion"}
     class:super-grid={$state == "grid"}
@@ -556,7 +554,6 @@
           {tabsAlignment}
           {tabsSize}
           {tabsIconsOnly}
-          {tabsEmphasized}
         />
       {/if}
 
@@ -614,10 +611,13 @@
 
     &:hover {
       &.hoverable {
-        cursor: pointer;
         background-color: var(--container-hover-background);
         color: var(--container-hover-color);
         border: 1px solid var(--container-hover-border);
+      }
+
+      &.clickable {
+        cursor: pointer;
       }
       & > .collapsed-title {
         color: var(--spectrum-global-color-gray-700);

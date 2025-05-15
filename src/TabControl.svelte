@@ -10,7 +10,7 @@
   export let tabsSize;
   export let tabsAlignment;
   export let tabsIconsOnly;
-  export let tabsEmphasized;
+
   export let quietTabs;
 
   let tabs = [];
@@ -19,9 +19,9 @@
   let indicatorLeft, indicatorWidth, indicatorTop, indicatorHeight;
 
   const tabHeights = {
-    S: "2rem",
-    M: "2.25rem",
-    L: "2.5rem",
+    S: "1.75rem",
+    M: "2rem",
+    L: "2.25rem",
   };
   const tabWidths = {
     S: "7.5rem",
@@ -29,9 +29,9 @@
     L: "10rem",
   };
   const tabPaddings = {
-    S: "0.85rem",
-    M: "1rem",
-    L: "1.25rem",
+    S: "0.25rem 0.5rem",
+    M: "0.5rem 0.75rem",
+    L: "0.75rem 1rem",
   };
 
   const getIndicatorPosition = () => {
@@ -49,7 +49,7 @@
   };
 
   $: getIndicatorPosition(innerWidth, innerHeight);
-  $: setTimeout(() => getIndicatorPosition($$props, tabs), 10);
+  $: setTimeout(() => getIndicatorPosition($$props, tabs), 50);
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -73,13 +73,11 @@
       style:--tab-padding={tabPaddings[tabsSize]}
       style:--tab-alignment={tabsAlignment}
       style:--tab-track-thickness={"2px"}
-      style:--tab-selected-color={tabsEmphasized
-        ? "var(--primaryColor)"
-        : "var(--spectrum-global-color-gray-700)"}
       style:--tabIndicatorLeft={indicatorLeft}
       style:--tabIndicatorWidth={indicatorWidth}
       style:--tabIndicatorTop={indicatorTop}
       style:--tabIndicatorHeight={indicatorHeight}
+      style:--tab-selected-color="var(--spectrum-global-color-gray-800)"
       style:--gap={gap + "rem"}
     >
       {#each containers as container, idx (idx)}
@@ -148,18 +146,14 @@
     flex: 1 0 auto;
     position: relative;
     display: flex;
-    gap: 0.85rem;
+    gap: 0.5rem;
     min-height: 2.25rem;
     margin-bottom: var(--gap);
     padding-bottom: 0.5rem;
 
     &.buttons {
-      gap: 0;
-      padding-bottom: 0rem;
-
-      &::after {
-        border-bottom: unset;
-      }
+      gap: 0.25rem;
+      padding-bottom: 0.75rem;
     }
 
     &::before {
@@ -176,7 +170,7 @@
     &::after {
       position: absolute;
       border-bottom: var(--tab-track-thickness) solid
-        var(--spectrum-global-color-gray-300);
+        var(--spectrum-global-color-gray-200);
       width: 100%;
       bottom: 0;
       content: "";
@@ -187,7 +181,6 @@
       height: 100%;
       width: var(--tab-width);
       flex-direction: column;
-      gap: 0 !important;
       margin-bottom: unset;
       margin-right: var(--gap);
 
@@ -210,9 +203,9 @@
       }
 
       &.buttons {
-        gap: unset;
+        gap: 0.25rem;
+        padding-right: 0.5rem;
         &::after {
-          border-right: unset;
         }
       }
     }
@@ -245,7 +238,7 @@
         bottom: 0;
         right: 0;
         z-index: -1;
-        border-radius: 5px;
+        border-radius: 4px;
         background-color: var(--spectrum-global-color-gray-300);
       }
     }
@@ -260,8 +253,8 @@
       color: var(--spectrum-global-color-gray-800);
 
       &.button:not(.selected) {
-        background-color: var(--spectrum-global-color-gray-200);
-        border-radius: 5px;
+        background-color: var(--spectrum-global-color-gray-100);
+        border-radius: 4px;
       }
     }
 
