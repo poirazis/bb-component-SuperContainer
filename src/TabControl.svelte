@@ -18,11 +18,6 @@
 
   let indicatorLeft, indicatorWidth, indicatorTop, indicatorHeight;
 
-  const tabHeights = {
-    S: "1.75rem",
-    M: "2rem",
-    L: "2.25rem",
-  };
   const tabWidths = {
     S: "7.5rem",
     M: "8rem",
@@ -30,7 +25,7 @@
   };
   const tabPaddings = {
     S: "0.25rem 0.5rem",
-    M: "0.5rem 0.75rem",
+    M: "0.35rem 0.75rem",
     L: "0.75rem 1rem",
   };
 
@@ -69,7 +64,6 @@
       class:buttons={theme == "buttons"}
       style:justify-content={direction == "row" ? hAlign : vAlign}
       style:--tab-width={tabWidths[tabsSize]}
-      style:--tab-height={tabHeights[tabsSize]}
       style:--tab-padding={tabPaddings[tabsSize]}
       style:--tab-alignment={tabsAlignment}
       style:--tab-track-thickness={"2px"}
@@ -124,8 +118,6 @@
     &.vertical {
       flex-direction: column;
       width: var(--tab-width);
-      height: 100%;
-      justify-content: stretch;
       align-items: stretch;
     }
 
@@ -222,13 +214,14 @@
     color: var(--spectrum-global-color-gray-600);
     height: var(--tab-height);
     max-width: var(--tab-width);
+    min-height: 2rem;
 
     &.button {
       padding: var(--tab-padding);
-      height: var(--tab-height);
       max-width: var(--tab-width);
       align-items: center;
       justify-content: var(--tab-alignment);
+      min-height: unset;
 
       &.selected::before {
         content: "";
@@ -245,7 +238,6 @@
 
     &.vertical {
       border: none;
-      height: var(--tab-height);
     }
 
     &:hover {

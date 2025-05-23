@@ -607,11 +607,11 @@
     display: flex;
     position: relative;
     overflow: hidden;
-    transition: all 0.2s ease-in-out;
+    transition: background-color 0.2s ease-in-out;
 
     &:hover {
       &.hoverable {
-        background-color: var(--container-hover-background);
+        background: var(--container-hover-background) !important;
         color: var(--container-hover-color);
         border: 1px solid var(--container-hover-border);
       }

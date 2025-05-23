@@ -14,7 +14,7 @@
     "@crownframework/svelte-error-boundary": "^1.0.3",
     "@spectrum-css/opacitycheckerboard": "^1.1.5",
     "@spectrum-css/splitview": "4.0.3",
-    "svelte": "^4.2.19",
+    "svelte": "^4.2.20",
     "svelte-fsm": "^1.2.0"
   },
   "devDependencies": {
