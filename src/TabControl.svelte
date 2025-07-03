@@ -222,17 +222,10 @@
       align-items: center;
       justify-content: var(--tab-alignment);
       min-height: unset;
+      border-radius: 4px;
 
-      &.selected::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        right: 0;
-        z-index: -1;
-        border-radius: 4px;
-        background-color: var(--spectrum-global-color-gray-300);
+      &.selected {
+        background-color: var(--spectrum-global-color-gray-200);
       }
     }
 
@@ -246,7 +239,6 @@
 
       &.button:not(.selected) {
         background-color: var(--spectrum-global-color-gray-100);
-        border-radius: 4px;
       }
     }
 
