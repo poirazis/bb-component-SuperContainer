@@ -38,6 +38,9 @@
   export let activeTab = 0;
   export let tabsIconsOnly = false;
   export let theme = "budibase";
+  export let list_title = "Settings";
+  export let list_icon = "ri-settings-line";
+  export let tabDisabled;
 
   export let gridColumns = 3;
   export let gridRows = 3;
@@ -88,7 +91,7 @@
   // The State machine that handles the parent role of the super container
   const state = fsm(mode, {
     "*": {
-      registerContainer(componentID, id, state, title, icon, color) {
+      registerContainer(componentID, id, state, title, icon, color, disabled) {
         containers = [
           ...containers,
           {
@@ -98,15 +101,25 @@
             title,
             icon,
             color,
+            disabled,
           },
         ];
       },
-      updateContainer(id, title, icon, color, reqcolSpan = 1, reqrowSpan = 1) {
+      updateContainer(
+        id,
+        title,
+        icon,
+        color,
+        tabDisabled,
+        reqcolSpan = 1,
+        reqrowSpan = 1
+      ) {
         let index = containers.findIndex((e) => e.id == id);
         if (index > -1) {
           containers[index].title = title;
           containers[index].icon = icon;
           containers[index].color = color;
+          containers[index].disabled = tabDisabled;
         }
         containers = containers;
       },
@@ -271,7 +284,11 @@
           if (containers.length > 0) this.selectTab(containers[0].id);
         }
         cssVariables = {
-          "flex-direction": direction == "row" ? "column" : "row",
+          "flex-direction":
+            direction == "column" || theme == "list" ? "row" : "column",
+          ...(theme == "list" && {
+            border: "1px solid var(--spectrum-global-color-gray-300)",
+          }),
         };
       },
       selectTab(tabId) {
@@ -423,7 +440,7 @@
     childState.deactivate();
 
   // If a Child , keep in sync with parent
-  $: parentState?.updateContainer(id, title, icon, color);
+  $: parentState?.updateContainer(id, title, icon, color, tabDisabled);
 
   // Inside Builder specigic code
   $: inBuilder = $builderStore.inBuilder;
@@ -463,7 +480,15 @@
       if (Number(activeTab) >= 0 && Number(activeTab) < containers.length)
         state.selectTab(containers[Number(activeTab)].id);
     }
-    parentState?.registerContainer(componentID, id, state, title, icon, color);
+    parentState?.registerContainer(
+      componentID,
+      id,
+      state,
+      title,
+      icon,
+      color,
+      tabDisabled
+    );
   });
 
   onDestroy(() => {
@@ -475,6 +500,7 @@
     gridColumns,
     gridRows,
     selectedTab,
+    theme,
   });
 
   const handleCollapse = () => {
@@ -516,7 +542,6 @@
       class:collapsible
       class:clickable={onClick}
       class:super-container={$state == "container"}
-      class:accordion={$state == "accordion"}
       class:super-grid={$state == "grid"}
       class:tabs={$state == "tabs"}
       class:splitview={$state == "splitview"}
@@ -560,7 +585,13 @@
             {tabsAlignment}
             {tabsSize}
             {tabsIconsOnly}
+            {list_icon}
+            {list_title}
           />
+        {/if}
+
+        {#if childMode == "tabsItem" && $parentGridStore?.theme == "list"}
+          <div class="tab-title">{title}</div>
         {/if}
 
         {#key labelWidth}
@@ -774,5 +805,19 @@
   .spectrum-OpacityCheckerboard {
     block-size: unset;
     inline-size: unset;
+  }
+
+  .tab-title {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1rem;
+    max-width: 100%;
+    font-size: 12px;
+    color: var(--spectrum-global-color-gray-800);
+    border-bottom: 2px solid var(--spectrum-global-color-gray-200);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    font-weight: 500;
+    padding-left: 1.5rem;
   }
 </style>

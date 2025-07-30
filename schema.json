@@ -385,9 +385,24 @@
             "label": "Theme",
             "options": [
               { "label": "Budibase", "value": "budibase" },
-              { "label": "Buttons", "value": "buttons" }
+              { "label": "Buttons", "value": "buttons" },
+              { "label": "List", "value": "list" }
             ],
             "defaultValue": "budibase"
+          },
+          {
+            "type": "text",
+            "key": "list_title",
+            "label": "List Title",
+            "defaultValue": "Settings",
+            "dependsOn": { "setting": "theme", "value": "list" }
+          },
+          {
+            "type": "icon",
+            "key": "list_icon",
+            "label": "List Icon",
+            "defaultValue": "ri-settings-line",
+            "dependsOn": { "setting": "theme", "value": "list" }
           },
           {
             "type": "select",
@@ -531,6 +546,11 @@
             "defaultValue": "New Tab"
           },
           {
+            "type": "boolean",
+            "key": "tabDisabled",
+            "label": "Disabled"
+          },
+          {
             "type": "icon",
             "key": "icon",
             "label": "Icon"
@@ -538,7 +558,7 @@
           {
             "type": "color",
             "key": "color",
-            "label": "Color"
+            "label": "Icon Color"
           },
           {
             "type": "event",

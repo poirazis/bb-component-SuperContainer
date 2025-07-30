@@ -1,6 +1,6 @@
 {
   "name": "bb-component-SuperContainer",
-  "version": "1.11.0",
+  "version": "1.12.0",
   "description": "A Multi Layout Data Aware Container Component for Budibase",
   "author": "Michael Poirazi",
   "license": "MIT",
@@ -14,7 +14,6 @@
     "@crownframework/svelte-error-boundary": "^1.0.3",
     "@spectrum-css/opacitycheckerboard": "^1.1.5",
     "@spectrum-css/splitview": "4.0.3",
-    "svelte": "^4.2.20",
     "svelte-fsm": "^1.2.0"
   },
   "devDependencies": {
@@ -32,6 +31,7 @@
     "rollup-plugin-postcss": "^4.0.2",
     "rollup-plugin-svelte": "^7.2.2",
     "rollup-plugin-svg": "^2.0.0",
-    "tar": "^6.2.1"
+    "tar": "^6.2.1",
+    "svelte": "^4.2.20"
   }
 }

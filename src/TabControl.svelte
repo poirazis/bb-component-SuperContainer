@@ -10,6 +10,8 @@
   export let tabsSize;
   export let tabsAlignment;
   export let tabsIconsOnly;
+  export let list_icon;
+  export let list_title;
 
   export let quietTabs;
 
@@ -23,6 +25,7 @@
     M: "8rem",
     L: "10rem",
   };
+
   const tabPaddings = {
     S: "0.25rem 0.5rem",
     M: "0.35rem 0.75rem",
@@ -53,6 +56,7 @@
   <div
     class="outer-tabs"
     class:quietTabs
+    class:list={theme == "list"}
     class:vertical={direction == "column"}
     style:justify-content={direction == "row" ? hAlign : vAlign}
   >
@@ -60,8 +64,9 @@
       class="tabs"
       bind:clientWidth={innerWidth}
       bind:clientHeight={innerHeight}
-      class:vertical={direction == "column"}
+      class:vertical={direction == "column" || theme == "list"}
       class:buttons={theme == "buttons"}
+      class:list={theme == "list"}
       style:justify-content={direction == "row" ? hAlign : vAlign}
       style:--tab-width={tabWidths[tabsSize]}
       style:--tab-padding={tabPaddings[tabsSize]}
@@ -74,6 +79,14 @@
       style:--tab-selected-color="var(--spectrum-global-color-gray-800)"
       style:--gap={gap + "rem"}
     >
+      {#if theme == "list" && list_title}
+        <div class="tab list-title">
+          {#if list_icon}
+            <i class={list_icon} />
+          {/if}
+          {list_title}
+        </div>
+      {/if}
       {#each containers as container, idx (idx)}
         <!-- svelte-ignore a11y-click-events-have-key-events -->
         <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -82,16 +95,18 @@
           class="tab"
           class:vertical={direction == "column"}
           class:button={theme == "buttons"}
+          class:list={theme == "list"}
           class:selected={container.id == selectedTab}
-          on:click={() => state.selectTab(container.id)}
+          class:disabled={container.disabled}
+          on:click={() => {
+            if (!container.disabled) state.selectTab(container.id);
+          }}
         >
           {#if container.icon}
             <i
               class={container.icon}
               style:font-size={tabsIconsOnly ? "20px" : null}
-              style:color={container.id == selectedTab
-                ? container?.color
-                : null}
+              style:color={container.color}
             />
           {/if}
 
@@ -121,6 +136,10 @@
       align-items: stretch;
     }
 
+    &.list {
+      width: 15rem;
+    }
+
     &.quietTabs {
       justify-content: center;
 
@@ -146,6 +165,13 @@
     &.buttons {
       gap: 0.25rem;
       padding-bottom: 0.75rem;
+    }
+
+    &.list {
+      min-width: 15rem !important;
+      gap: 0rem;
+      background-color: var(--spectrum-global-color-gray-50);
+      border-right: unset;
     }
 
     &::before {
@@ -214,7 +240,6 @@
     color: var(--spectrum-global-color-gray-600);
     height: var(--tab-height);
     max-width: var(--tab-width);
-    min-height: 2rem;
 
     &.button {
       padding: var(--tab-padding);
@@ -229,11 +254,48 @@
       }
     }
 
+    &.list {
+      display: flex;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      max-width: 100%;
+      font-size: 13px;
+      color: var(--spectrum-global-color-gray-700);
+      font-weight: 400;
+
+      &.selected {
+        color: var(--tab-selected-color);
+        background-color: var(--spectrum-global-color-gray-200) !important;
+        font-weight: 500;
+      }
+
+      &:hover:not(.disabled) {
+        background-color: var(--spectrum-global-color-gray-75);
+      }
+
+      &.disabled {
+        color: var(--spectrum-global-color-gray-500);
+      }
+    }
+
+    &.list-title {
+      display: flex;
+      align-items: center;
+      padding: 1rem 1rem;
+      max-width: 100%;
+      font-size: 12px;
+      color: var(--spectrum-global-color-gray-800);
+      border-bottom: 2px solid var(--spectrum-global-color-gray-200);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      font-weight: 500;
+    }
+
     &.vertical {
       border: none;
     }
 
-    &:hover {
+    &:hover:not(.disabled):not(.list-title) {
       cursor: pointer;
       color: var(--spectrum-global-color-gray-800);
 
@@ -244,7 +306,6 @@
 
     &.selected {
       color: var(--tab-selected-color);
-      font-weight: 600;
 
       &:hover {
         color: var(--tab-selected-color);
