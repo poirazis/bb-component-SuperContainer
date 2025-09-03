@@ -41,10 +41,13 @@
   export let list_title = "Settings";
   export let list_icon = "ri-settings-line";
   export let tabDisabled;
+  export let isTabSection = false;
 
   export let gridColumns = 3;
   export let gridRows = 3;
   export let title, icon, color;
+  export let showTabHeading;
+  export let tabHeading = "New Tab Heading";
 
   export let labelPos;
   export let labelWidth = "6rem";
@@ -62,6 +65,7 @@
   export let hoverBackground;
   export let hoverBorder;
   export let hoverText;
+  export let cssClass;
 
   // Events as Child
   export let onShow;
@@ -91,7 +95,16 @@
   // The State machine that handles the parent role of the super container
   const state = fsm(mode, {
     "*": {
-      registerContainer(componentID, id, state, title, icon, color, disabled) {
+      registerContainer(
+        componentID,
+        id,
+        state,
+        title,
+        icon,
+        color,
+        disabled,
+        isTabSection
+      ) {
         containers = [
           ...containers,
           {
@@ -102,6 +115,7 @@
             icon,
             color,
             disabled,
+            isTabSection,
           },
         ];
       },
@@ -111,6 +125,7 @@
         icon,
         color,
         tabDisabled,
+        isTabSection,
         reqcolSpan = 1,
         reqrowSpan = 1
       ) {
@@ -120,6 +135,7 @@
           containers[index].icon = icon;
           containers[index].color = color;
           containers[index].disabled = tabDisabled;
+          containers[index].isTabSection = isTabSection;
         }
         containers = containers;
       },
@@ -284,11 +300,9 @@
           if (containers.length > 0) this.selectTab(containers[0].id);
         }
         cssVariables = {
+          gap: theme == "list" ? "0rem" : gap,
           "flex-direction":
             direction == "column" || theme == "list" ? "row" : "column",
-          ...(theme == "list" && {
-            border: "1px solid var(--spectrum-global-color-gray-300)",
-          }),
         };
       },
       selectTab(tabId) {
@@ -440,7 +454,14 @@
     childState.deactivate();
 
   // If a Child , keep in sync with parent
-  $: parentState?.updateContainer(id, title, icon, color, tabDisabled);
+  $: parentState?.updateContainer(
+    id,
+    title,
+    icon,
+    color,
+    tabDisabled,
+    isTabSection
+  );
 
   // Inside Builder specigic code
   $: inBuilder = $builderStore.inBuilder;
@@ -487,7 +508,8 @@
       title,
       icon,
       color,
-      tabDisabled
+      tabDisabled,
+      isTabSection
     );
   });
 
@@ -529,7 +551,9 @@
 
 <svelte:window
   on:mouseup={resizing ? state.stopResizing : () => {}}
-  on:mousemove={(e) => (resizing ? state.resize(e) : null)}
+  on:mousemove={grabberPosition
+    ? (e) => (resizing ? state.resize(e) : null)
+    : null}
 />
 {#key mode}
   <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -590,8 +614,8 @@
           />
         {/if}
 
-        {#if childMode == "tabsItem" && $parentGridStore?.theme == "list"}
-          <div class="tab-title">{title}</div>
+        {#if mode == "container" && childMode == "tabsItem" && $parentGridStore?.theme == "list" && showTabHeading && direction == "column"}
+          <div class="tab-title"><span>{tabHeading}</span></div>
         {/if}
 
         {#key labelWidth}
@@ -634,10 +658,6 @@
 {/key}
 
 <style>
-  :global(.super-fieldgroup > .component > *) {
-    grid-column: span 6;
-  }
-
   :global(.super-grid > .component > *) {
     overflow: hidden;
   }
@@ -689,7 +709,6 @@
       height: 2.4rem;
       cursor: pointer;
       color: var(--spectrum-global-color-gray-600);
-      border-bottom: 1px solid var(--spectrum-global-color-gray-200);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -810,14 +829,17 @@
   .tab-title {
     display: flex;
     align-items: center;
-    padding: 1rem 1rem;
-    max-width: 100%;
+    padding: 0.75rem 1rem;
+    width: 100%;
     font-size: 12px;
     color: var(--spectrum-global-color-gray-800);
-    border-bottom: 2px solid var(--spectrum-global-color-gray-200);
     text-transform: uppercase;
     letter-spacing: 1.2px;
     font-weight: 500;
-    padding-left: 1.5rem;
+    border-bottom: 1px solid var(--spectrum-global-color-gray-300);
+    height: 3rem;
+    & > span {
+      opacity: 0.9;
+    }
   }
 </style>

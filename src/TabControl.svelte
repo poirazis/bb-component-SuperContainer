@@ -66,18 +66,18 @@
       bind:clientHeight={innerHeight}
       class:vertical={direction == "column" || theme == "list"}
       class:buttons={theme == "buttons"}
+      class:negButtons={theme == "negButtons"}
       class:list={theme == "list"}
       style:justify-content={direction == "row" ? hAlign : vAlign}
       style:--tab-width={tabWidths[tabsSize]}
       style:--tab-padding={tabPaddings[tabsSize]}
       style:--tab-alignment={tabsAlignment}
-      style:--tab-track-thickness={"2px"}
+      style:--tab-track-thickness={theme == "budibase" ? "2px" : "1px"}
       style:--tabIndicatorLeft={indicatorLeft}
       style:--tabIndicatorWidth={indicatorWidth}
       style:--tabIndicatorTop={indicatorTop}
       style:--tabIndicatorHeight={indicatorHeight}
       style:--tab-selected-color="var(--spectrum-global-color-gray-800)"
-      style:--gap={gap + "rem"}
     >
       {#if theme == "list" && list_title}
         <div class="tab list-title">
@@ -95,14 +95,17 @@
           class="tab"
           class:vertical={direction == "column"}
           class:button={theme == "buttons"}
+          class:negButtons={theme == "negButtons"}
           class:list={theme == "list"}
           class:selected={container.id == selectedTab}
           class:disabled={container.disabled}
+          class:list-section={container.isTabSection}
           on:click={() => {
-            if (!container.disabled) state.selectTab(container.id);
+            if (!container.disabled && !container.isTabSection)
+              state.selectTab(container.id);
           }}
         >
-          {#if container.icon}
+          {#if container.icon && !container.isTabSection}
             <i
               class={container.icon}
               style:font-size={tabsIconsOnly ? "20px" : null}
@@ -123,16 +126,18 @@
 
 <style>
   .outer-tabs {
+    flex: none;
     display: flex;
     flex-direction: row;
     width: 100%;
     overflow: hidden;
     position: relative;
     justify-content: stretch;
+    --selected-tab: rgba(75, 117, 255, 0.2);
 
     &.vertical {
       flex-direction: column;
-      width: var(--tab-width);
+      width: 14rem;
       align-items: stretch;
     }
 
@@ -142,36 +147,32 @@
 
     &.quietTabs {
       justify-content: center;
-
-      & > .tabs {
-        flex: none !important;
-
-        &.vertical {
-          height: unset !important;
-          justify-content: center;
-        }
-      }
+      --selected-tab: var(--spectrum-global-color-gray-200) !important;
     }
   }
   .tabs {
     flex: 1 0 auto;
     position: relative;
     display: flex;
-    gap: 0.5rem;
-    min-height: 2.25rem;
-    margin-bottom: var(--gap);
+    gap: 1rem;
+    height: 2.4rem;
     padding-bottom: 0.5rem;
 
     &.buttons {
       gap: 0.25rem;
-      padding-bottom: 0.75rem;
+      padding: 0.25rem;
+      height: 2.4rem;
+    }
+    &.negButtons {
+      gap: 0.25rem;
+      padding: 0.25rem;
+      height: 2.4rem;
+      background-color: var(--spectrum-global-color-gray-100);
     }
 
     &.list {
-      min-width: 15rem !important;
       gap: 0rem;
       background-color: var(--spectrum-global-color-gray-50);
-      border-right: unset;
     }
 
     &::before {
@@ -197,10 +198,8 @@
 
     &.vertical {
       height: 100%;
-      width: var(--tab-width);
       flex-direction: column;
       margin-bottom: unset;
-      margin-right: var(--gap);
 
       &::before {
         top: var(--tabIndicatorTop);
@@ -223,8 +222,10 @@
       &.buttons {
         gap: 0.25rem;
         padding-right: 0.5rem;
-        &::after {
-        }
+      }
+      &.negButtons {
+        gap: 0.25rem;
+        padding-right: 0.5rem;
       }
     }
   }
@@ -232,25 +233,38 @@
   .tab {
     position: relative;
     box-sizing: border-box;
-    padding: var(--tab-padding);
     display: flex;
     align-items: center;
     gap: 0.5rem;
     justify-content: var(--tab-alignment);
     color: var(--spectrum-global-color-gray-600);
-    height: var(--tab-height);
-    max-width: var(--tab-width);
+    min-width: 6rem;
+
+    &.disabled {
+      color: var(--spectrum-global-color-gray-400) !important;
+      &:hover {
+        cursor: not-allowed;
+      }
+    }
 
     &.button {
-      padding: var(--tab-padding);
-      max-width: var(--tab-width);
       align-items: center;
       justify-content: var(--tab-alignment);
-      min-height: unset;
       border-radius: 4px;
-
+      padding: 0.25rem 0.75rem;
+      font-size: 13px;
       &.selected {
-        background-color: var(--spectrum-global-color-gray-200);
+        background-color: var(--selected-tab);
+      }
+    }
+    &.negButtons {
+      align-items: center;
+      justify-content: var(--tab-alignment);
+      border-radius: 4px;
+      padding: 0.25rem 0.75rem;
+      font-size: 13px;
+      &.selected {
+        background-color: var(--spectrum-global-color-gray-50);
       }
     }
 
@@ -265,37 +279,47 @@
 
       &.selected {
         color: var(--tab-selected-color);
-        background-color: var(--spectrum-global-color-gray-200) !important;
+        background-color: var(--selected-tab) !important;
         font-weight: 500;
       }
 
-      &:hover:not(.disabled) {
+      &:hover:not(.disabled):not(.list-section) {
         background-color: var(--spectrum-global-color-gray-75);
-      }
-
-      &.disabled {
-        color: var(--spectrum-global-color-gray-500);
       }
     }
 
     &.list-title {
       display: flex;
       align-items: center;
-      padding: 1rem 1rem;
+      padding: 0.75rem 1rem;
       max-width: 100%;
       font-size: 12px;
       color: var(--spectrum-global-color-gray-800);
-      border-bottom: 2px solid var(--spectrum-global-color-gray-200);
       text-transform: uppercase;
       letter-spacing: 1.2px;
       font-weight: 500;
+      border-bottom: 1px solid var(--spectrum-global-color-gray-300);
+      height: 3rem;
+    }
+
+    &.list-section {
+      text-transform: uppercase;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      margin-top: 8px;
+
+      &:hover {
+        cursor: default;
+      }
     }
 
     &.vertical {
       border: none;
+      min-height: 2rem;
     }
 
-    &:hover:not(.disabled):not(.list-title) {
+    &:hover:not(.disabled):not(.list-title):not(.list-section) {
       cursor: pointer;
       color: var(--spectrum-global-color-gray-800);
 
@@ -306,6 +330,7 @@
 
     &.selected {
       color: var(--tab-selected-color);
+      font-weight: 600;
 
       &:hover {
         color: var(--tab-selected-color);

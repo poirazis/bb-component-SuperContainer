@@ -112,7 +112,7 @@
         "type": "boolean",
         "key": "collapsible",
         "label": "Collapsible",
-        "dependsOn": { "setting": "mode", "value": "container" },
+        "dependsOn": { "setting": "childMode", "value": "containerItem" },
         "resetOn": "mode"
       },
       {
@@ -386,6 +386,7 @@
             "options": [
               { "label": "Budibase", "value": "budibase" },
               { "label": "Buttons", "value": "buttons" },
+              { "label": "Negative Buttons", "value": "negButtons" },
               { "label": "List", "value": "list" }
             ],
             "defaultValue": "budibase"
@@ -547,8 +548,26 @@
           },
           {
             "type": "boolean",
+            "key": "showTabHeading",
+            "label": "Show Heading"
+          },
+          {
+            "type": "text",
+            "key": "tabHeading",
+            "label": "Heading",
+            "defaultValue": "New Tab Heading",
+            "dependsOn": "showTabHeading"
+          },
+          {
+            "type": "boolean",
             "key": "tabDisabled",
             "label": "Disabled"
+          },
+          {
+            "type": "boolean",
+            "key": "isTabSection",
+            "label": "Section",
+            "defaultValue": false
           },
           {
             "type": "icon",
