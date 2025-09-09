@@ -359,18 +359,22 @@
         "dependsOn": { "setting": "mode", "value": "grid" },
         "settings": [
           {
-            "type": "number",
-            "key": "gridColumns",
-            "label": "Columns",
-            "min": 1,
-            "defaultValue": 6
+            "type": "select",
+            "label": "Content Align",
+            "key": "gridContentAlign",
+            "options": [
+              { "label": "Start", "value": "start" },
+              { "label": "Center", "value": "center" },
+              { "label": "End", "value": "end" },
+              { "label": "Stretch", "value": "stretch" }
+            ],
+            "defaultValue": "start"
           },
           {
             "type": "number",
-            "key": "gridRows",
-            "label": "Rows",
-            "min": 1,
-            "defaultValue": 6
+            "key": "gridColumns",
+            "label": "Columns",
+            "min": 1
           }
         ]
       },
@@ -384,12 +388,11 @@
             "key": "theme",
             "label": "Theme",
             "options": [
-              { "label": "Budibase", "value": "budibase" },
               { "label": "Buttons", "value": "buttons" },
               { "label": "Negative Buttons", "value": "negButtons" },
               { "label": "List", "value": "list" }
             ],
-            "defaultValue": "budibase"
+            "defaultValue": "buttons"
           },
           {
             "type": "text",
@@ -407,17 +410,6 @@
           },
           {
             "type": "select",
-            "key": "tabsSize",
-            "label": "Size",
-            "options": [
-              { "label": "Small", "value": "S" },
-              { "label": "Medium", "value": "M" },
-              { "label": "Large", "value": "L" }
-            ],
-            "defaultValue": "M"
-          },
-          {
-            "type": "select",
             "key": "tabsAlignment",
             "label": "Text Align",
             "options": [
@@ -425,12 +417,7 @@
               { "label": "Center", "value": "center" },
               { "label": "Right", "value": "flex-end" }
             ],
-            "defaultValue": "flex-start"
-          },
-          {
-            "type": "text",
-            "key": "activeTab",
-            "label": "Active Tab"
+            "defaultValue": "center"
           },
           {
             "type": "boolean",
@@ -439,10 +426,10 @@
             "defaultValue": false
           },
           {
-            "type": "boolean",
-            "key": "quietTabs",
-            "label": "Quiet Tabs",
-            "defaultValue": false
+            "type": "text",
+            "key": "activeTab",
+            "label": "Default Tab",
+            "defaultValue": "0"
           },
           {
             "type": "event",

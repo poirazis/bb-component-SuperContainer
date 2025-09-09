@@ -7,7 +7,6 @@
   export let state;
   export let theme;
   export let gap;
-  export let tabsSize;
   export let tabsAlignment;
   export let tabsIconsOnly;
   export let list_icon;
@@ -17,37 +16,6 @@
 
   let tabs = [];
   let innerWidth, innerHeight;
-
-  let indicatorLeft, indicatorWidth, indicatorTop, indicatorHeight;
-
-  const tabWidths = {
-    S: "7.5rem",
-    M: "8rem",
-    L: "10rem",
-  };
-
-  const tabPaddings = {
-    S: "0.25rem 0.5rem",
-    M: "0.35rem 0.75rem",
-    L: "0.75rem 1rem",
-  };
-
-  const getIndicatorPosition = () => {
-    if (tabs[selectedTab] && theme == "budibase") {
-      indicatorLeft = tabs[selectedTab].offsetLeft;
-      indicatorWidth = tabs[selectedTab].clientWidth;
-      indicatorTop = tabs[selectedTab].offsetTop;
-      indicatorHeight = tabs[selectedTab].clientHeight;
-    } else {
-      indicatorLeft = null;
-      indicatorWidth = null;
-      indicatorTop = null;
-      indicatorHeight = null;
-    }
-  };
-
-  $: getIndicatorPosition(innerWidth, innerHeight);
-  $: setTimeout(() => getIndicatorPosition($$props, tabs), 50);
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -69,15 +37,8 @@
       class:negButtons={theme == "negButtons"}
       class:list={theme == "list"}
       style:justify-content={direction == "row" ? hAlign : vAlign}
-      style:--tab-width={tabWidths[tabsSize]}
-      style:--tab-padding={tabPaddings[tabsSize]}
       style:--tab-alignment={tabsAlignment}
-      style:--tab-track-thickness={theme == "budibase" ? "2px" : "1px"}
-      style:--tabIndicatorLeft={indicatorLeft}
-      style:--tabIndicatorWidth={indicatorWidth}
-      style:--tabIndicatorTop={indicatorTop}
-      style:--tabIndicatorHeight={indicatorHeight}
-      style:--tab-selected-color="var(--spectrum-global-color-gray-800)"
+      style:--tab-track-thickness="1px"
     >
       {#if theme == "list" && list_title}
         <div class="tab list-title">
@@ -105,7 +66,7 @@
               state.selectTab(container.id);
           }}
         >
-          {#if container.icon && !container.isTabSection}
+          {#if container.icon}
             <i
               class={container.icon}
               style:font-size={tabsIconsOnly ? "20px" : null}
@@ -133,21 +94,18 @@
     overflow: hidden;
     position: relative;
     justify-content: stretch;
-    --selected-tab: rgba(75, 117, 255, 0.2);
+    --selected-tab: var(--spectrum-global-color-gray-200);
+    margin-bottom: 0.5rem;
 
     &.vertical {
       flex-direction: column;
-      width: 14rem;
+      width: 10rem;
       align-items: stretch;
+      margin-right: 0.5rem;
     }
 
     &.list {
       width: 15rem;
-    }
-
-    &.quietTabs {
-      justify-content: center;
-      --selected-tab: var(--spectrum-global-color-gray-200) !important;
     }
   }
   .tabs {
@@ -157,71 +115,41 @@
     gap: 1rem;
     height: 2.4rem;
     padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--spectrum-global-color-gray-200);
 
     &.buttons {
       gap: 0.25rem;
-      padding: 0.25rem;
-      height: 2.4rem;
+      padding: 0.35rem 0.25rem;
+      font-size: 12px;
     }
     &.negButtons {
       gap: 0.25rem;
-      padding: 0.25rem;
-      height: 2.4rem;
+      padding: 0.35rem 0.25rem;
+      font-size: 12px;
       background-color: var(--spectrum-global-color-gray-100);
+      border-bottom: unset;
     }
 
     &.list {
       gap: 0rem;
       background-color: var(--spectrum-global-color-gray-50);
-    }
-
-    &::before {
-      position: absolute;
-      left: var(--tabIndicatorLeft);
-      height: 100%;
-      bottom: 0;
-      width: var(--tabIndicatorWidth);
-      content: "";
-      transition: all 130ms ease-out;
-      border-bottom: var(--tab-track-thickness) solid var(--tab-selected-color);
-    }
-
-    &::after {
-      position: absolute;
-      border-bottom: var(--tab-track-thickness) solid
-        var(--spectrum-global-color-gray-200);
-      width: 100%;
-      bottom: 0;
-      content: "";
-      z-index: -2;
+      border: unset;
     }
 
     &.vertical {
       height: 100%;
       flex-direction: column;
-      margin-bottom: unset;
 
-      &::before {
-        top: var(--tabIndicatorTop);
-        right: 0;
-        height: var(--tabIndicatorHeight);
-        transition: all 230ms;
-        border: none;
-        border-right: var(--tab-track-thickness) solid var(--tab-selected-color);
-      }
+      border-bottom: unset;
 
-      &::after {
-        height: 100%;
-        width: 100%;
-        border: none;
-        border-right: var(--tab-track-thickness) solid
-          var(--spectrum-global-color-gray-300);
-        z-index: -2;
+      &.list {
+        border-right: unset;
       }
 
       &.buttons {
         gap: 0.25rem;
         padding-right: 0.5rem;
+        border-right: 1px solid var(--spectrum-global-color-gray-300);
       }
       &.negButtons {
         gap: 0.25rem;
@@ -239,6 +167,7 @@
     justify-content: var(--tab-alignment);
     color: var(--spectrum-global-color-gray-600);
     min-width: 6rem;
+    font-weight: 500;
 
     &.disabled {
       color: var(--spectrum-global-color-gray-400) !important;
@@ -252,9 +181,14 @@
       justify-content: var(--tab-alignment);
       border-radius: 4px;
       padding: 0.25rem 0.75rem;
-      font-size: 13px;
+      border: 1px solid transparent;
+
+      &:active:not(.list-section):not(.disabled) {
+        border: 1px solid var(--spectrum-global-color-gray-300);
+      }
       &.selected {
         background-color: var(--selected-tab);
+        border: 1px solid var(--spectrum-global-color-gray-300);
       }
     }
     &.negButtons {
@@ -262,9 +196,13 @@
       justify-content: var(--tab-alignment);
       border-radius: 4px;
       padding: 0.25rem 0.75rem;
-      font-size: 13px;
+
+      &:hover {
+        background-color: var(--spectrum-global-color-gray-75);
+      }
       &.selected {
         background-color: var(--spectrum-global-color-gray-50);
+        border: 1px solid var(--spectrum-global-color-gray-300);
       }
     }
 
@@ -305,9 +243,13 @@
     &.list-section {
       text-transform: uppercase;
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 400;
       letter-spacing: 1.2px;
-      margin-top: 8px;
+      background-color: transparent;
+
+      &.vertical {
+        margin-top: 12px;
+      }
 
       &:hover {
         cursor: default;

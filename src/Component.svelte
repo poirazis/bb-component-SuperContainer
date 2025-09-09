@@ -12,7 +12,7 @@
 
   // Get Wrapper Super Container Stores
   const parentState = getContext("superContainer");
-  const parentGridStore = getContext("superContainerParams");
+  const parentParams = getContext("superContainerParams");
 
   export let flex;
   export let flexFactor = 1;
@@ -32,7 +32,6 @@
   export let collapseTitle;
   export let collapseIcon;
 
-  export let tabsSize = "M";
   export let tabsAlignment;
   export let quietTabs;
   export let activeTab = 0;
@@ -56,6 +55,7 @@
   // Grid Child Item Options
   export let colSpan = 1;
   export let rowSpan = 1;
+  export let gridContentAlign = "start";
 
   // Events as Parent
   export let onTabChange;
@@ -65,7 +65,6 @@
   export let hoverBackground;
   export let hoverBorder;
   export let hoverText;
-  export let cssClass;
 
   // Events as Child
   export let onShow;
@@ -194,7 +193,6 @@
       },
     },
     disabled: {},
-    accordion: {},
     container: {
       _enter() {
         this.refresh();
@@ -251,12 +249,13 @@
       refresh() {
         cssVariables = {
           display: "grid",
+          "align-content": gridContentAlign,
           "justify-items": hAlign,
           "align-items": vAlign,
           "--grid-columns": gridColumns,
-          "--grid-rows": gridRows,
           "--grid-column-gap": gap + "rem",
           "--grid-row-gap": gap + "rem",
+          "--grid-content-align": gridContentAlign,
         };
 
         builderCssVariables = {};
@@ -322,8 +321,8 @@
           display: "grid",
           "justify-items": "stretch",
           "align-items": vAlign,
+          "align-content": "start",
           "--grid-columns": gridColumns * 6,
-          "--grid-rows": gridRows,
           "--grid-column-gap":
             labelPos == "left" ? 0.85 * gap + "rem" : 0.75 * gap + "rem",
           "--grid-row-gap": "0.25rem",
@@ -362,7 +361,6 @@
         };
       },
     },
-    accordionItem: {},
     splitviewItem: {
       _enter() {
         this.refresh();
@@ -382,11 +380,11 @@
         this.refresh();
       },
       refresh() {
-        if (parentGridStore) {
+        if (parentParams) {
           childCssVariables = {
             "grid-column":
-              "span " + Math.min(colSpan, $parentGridStore?.gridColumns),
-            "grid-row": "span " + Math.min(rowSpan, $parentGridStore?.gridRows),
+              "span " + Math.min(colSpan, $parentParams?.gridColumns),
+            "grid-row": "span " + Math.min(rowSpan, $parentParams?.gridRows),
             override: "hidden",
           };
 
@@ -439,18 +437,15 @@
     },
   });
 
-  $: coords = new Array(gridColumns * gridRows);
   $: childState?.synch?.($parentState);
+  $: state.selectTab(containers[activeTab]?.id);
 
   // Update on property changes
   $: state.synchProperties($props);
 
-  $: if ($childState == "tabsItem" && $parentGridStore?.selectedTab == id)
+  $: if ($childState == "tabsItem" && $parentParams?.selectedTab == id)
     childState.activate();
-  else if (
-    $childState == "activeTabsItem" &&
-    $parentGridStore?.selectedTab != id
-  )
+  else if ($childState == "activeTabsItem" && $parentParams?.selectedTab != id)
     childState.deactivate();
 
   // If a Child , keep in sync with parent
@@ -571,10 +566,10 @@
       class:splitview={$state == "splitview"}
       class:super-fieldgroup={$state == "fieldgroup"}
       class:super-container-item={$childState == "containerItem"}
-      class:accordion-item={$childState == "accordionItem"}
       class:tab-item={$childState == "activeTabsItem"}
       class:splitview-item={$childState == "splitviewItem"}
       class:super-fieldgroup-item={$childState == "fieldgroupItem"}
+      class:in-builder={inBuilder}
       class:spectrum-OpacityCheckerboard={$builderStore.inBuilder &&
         $component.empty}
       use:styleable={$component.styles}
@@ -587,14 +582,6 @@
       }}
     >
       {#if !collapsed}
-        {#if mode == "grid" && inBuilder}
-          <div class="underlay">
-            {#each coords as _, idx}
-              <div class="placeholder" />
-            {/each}
-          </div>
-        {/if}
-
         {#if mode == "tabs" && containers?.length > 0}
           <TabControl
             {containers}
@@ -607,14 +594,13 @@
             {gap}
             {quietTabs}
             {tabsAlignment}
-            {tabsSize}
             {tabsIconsOnly}
             {list_icon}
             {list_title}
           />
         {/if}
 
-        {#if mode == "container" && childMode == "tabsItem" && $parentGridStore?.theme == "list" && showTabHeading && direction == "column"}
+        {#if mode == "container" && childMode == "tabsItem" && $parentParams?.theme == "list" && showTabHeading && direction == "column"}
           <div class="tab-title"><span>{tabHeading}</span></div>
         {/if}
 
@@ -757,33 +743,15 @@
     display: grid;
     position: relative;
     grid-template-columns: repeat(var(--grid-columns), 1fr);
-    grid-template-rows: repeat(var(--grid-rows), 1fr);
+    grid-template-rows: var(--grid-rows);
     column-gap: var(--grid-column-gap);
     row-gap: var(--grid-row-gap);
+    align-content: var(--grid-content-align);
   }
 
-  .underlay {
-    position: absolute;
-    z-index: -1;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: grid;
-    grid-template-columns: repeat(var(--grid-columns), 1fr);
-    grid-template-rows: repeat(var(--grid-rows), 1fr);
-    column-gap: var(--grid-column-gap);
-    row-gap: var(--grid-row-gap);
-    background-color: var(--spectrum-global-color-gray-75);
-  }
-
-  .placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--spectrum-global-color-gray-500);
-    border: 1px;
+  :global(.super-grid.in-builder > .component) {
     border: 1px dashed var(--spectrum-global-color-gray-400);
+    background-color: var(--spectrum-global-color-gray-75);
   }
 
   .super-fieldgroup {
@@ -794,13 +762,6 @@
     row-gap: var(--grid-row-gap);
   }
 
-  .accordion {
-    position: relative;
-  }
-
-  .accordion-item {
-    border: 4px solid lime;
-  }
   .tabs {
     display: flex;
     flex-direction: column;
