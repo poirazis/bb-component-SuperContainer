@@ -1,7 +1,7 @@
 <script>
   import { getContext, onDestroy, onMount, setContext } from "svelte";
   import "@spectrum-css/opacitycheckerboard/dist/index-vars.css";
-  import TabControl from "./TabControl.svelte";
+  import { SuperTabs } from "@poirazis/supercomponents-shared";
   import Grabber from "./Grabber.svelte";
   import fsm from "svelte-fsm";
   import Expander from "./Expander.svelte";
@@ -583,20 +583,20 @@
     >
       {#if !collapsed}
         {#if mode == "tabs" && containers?.length > 0}
-          <TabControl
+          <SuperTabs
             {containers}
+            {selectedTab}
+            {direction}
+            {theme}
             {hAlign}
             {vAlign}
-            {direction}
-            {selectedTab}
-            {state}
-            {theme}
-            {gap}
-            {quietTabs}
             {tabsAlignment}
             {tabsIconsOnly}
             {list_icon}
             {list_title}
+            on:change={(e) => {
+              state.selectTab(e.detail.id);
+            }}
           />
         {/if}
 
