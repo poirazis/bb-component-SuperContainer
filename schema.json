@@ -389,7 +389,6 @@
             "label": "Theme",
             "options": [
               { "label": "Buttons", "value": "buttons" },
-              { "label": "Negative Buttons", "value": "negButtons" },
               { "label": "List", "value": "list" }
             ],
             "defaultValue": "buttons"
