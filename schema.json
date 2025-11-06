@@ -389,6 +389,7 @@
             "label": "Theme",
             "options": [
               { "label": "Buttons", "value": "buttons" },
+              { "label": "Wdie Buttons", "value": "wideButtons" },
               { "label": "List", "value": "list" }
             ],
             "defaultValue": "buttons"
