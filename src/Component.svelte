@@ -32,8 +32,9 @@
   export let collapseTitle;
   export let collapseIcon;
 
+  export let tabsPosition = "top";
   export let tabsAlignment;
-  export let quietTabs;
+  export let buttonsAlignment = "flex-start";
   export let activeTab = 0;
   export let tabsIconsOnly = false;
   export let theme = "budibase";
@@ -80,6 +81,7 @@
   let initialHeight;
   let grabberPosition;
   let selectedTab = undefined;
+  let tabChangeInitialized = false;
 
   let componentID = $component.id;
   let id = Math.random() * 10;
@@ -301,14 +303,17 @@
         cssVariables = {
           gap: theme == "list" ? "0rem" : gap,
           "flex-direction":
-            direction == "column" || theme == "list" ? "row" : "column",
+            tabsPosition == "left" || theme == "list" ? "row" : "column",
         };
       },
       selectTab(tabId) {
         if (tabId == selectedTab) return;
         else {
           selectedTab = tabId;
-          onTabChange?.({ tabTitle: title });
+          if (tabChangeInitialized) {
+            onTabChange?.({ tabTitle: title });
+          }
+          tabChangeInitialized = true;
         }
       },
     },
@@ -552,95 +557,94 @@
 />
 {#key mode}
   <!-- svelte-ignore a11y-no-static-element-interactions -->
-  {#if $childState != "tabsItem"}
-    <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <div
-      bind:this={container}
-      class:collapsed
-      class:hoverable={hoverBackground || hoverBorder || hoverText}
-      class:collapsible
-      class:clickable={onClick}
-      class:super-container={$state == "container"}
-      class:super-grid={$state == "grid"}
-      class:tabs={$state == "tabs"}
-      class:splitview={$state == "splitview"}
-      class:super-fieldgroup={$state == "fieldgroup"}
-      class:super-container-item={$childState == "containerItem"}
-      class:tab-item={$childState == "activeTabsItem"}
-      class:splitview-item={$childState == "splitviewItem"}
-      class:super-fieldgroup-item={$childState == "fieldgroupItem"}
-      class:in-builder={inBuilder}
-      class:spectrum-OpacityCheckerboard={$builderStore.inBuilder &&
-        $component.empty}
-      use:styleable={$component.styles}
-      on:click={onClick ? onClick : () => {}}
-      on:contextmenu={(e) => {
-        if (onRightClick) {
-          e.preventDefault();
-          onRightClick();
-        }
-      }}
-    >
-      {#if !collapsed}
-        {#if mode == "tabs" && containers?.length > 0}
-          <SuperTabs
-            {containers}
-            {selectedTab}
-            {direction}
-            {theme}
-            {hAlign}
-            {vAlign}
-            {tabsAlignment}
-            {tabsIconsOnly}
-            {list_icon}
-            {list_title}
-            on:change={(e) => {
-              state.selectTab(e.detail.id);
-            }}
-          />
-        {/if}
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <div
+    bind:this={container}
+    class:collapsed
+    class:hoverable={hoverBackground || hoverBorder || hoverText}
+    class:collapsible
+    class:clickable={onClick}
+    class:super-container={$state == "container"}
+    class:super-grid={$state == "grid"}
+    class:tabs={$state == "tabs"}
+    class:splitview={$state == "splitview"}
+    class:super-fieldgroup={$state == "fieldgroup"}
+    class:super-container-item={$childState == "containerItem"}
+    class:tab-item={$childState == "activeTabsItem"}
+    class:tab-item-hidden={$childState == "tabsItem"}
+    class:splitview-item={$childState == "splitviewItem"}
+    class:super-fieldgroup-item={$childState == "fieldgroupItem"}
+    class:in-builder={inBuilder}
+    class:spectrum-OpacityCheckerboard={$builderStore.inBuilder &&
+      $component.empty}
+    use:styleable={$component.styles}
+    on:click={onClick ? onClick : () => {}}
+    on:contextmenu={(e) => {
+      if (onRightClick) {
+        e.preventDefault();
+        onRightClick();
+      }
+    }}
+  >
+    {#if !collapsed}
+      {#if mode == "tabs" && containers?.length > 0}
+        <SuperTabs
+          {containers}
+          {selectedTab}
+          {direction}
+          {theme}
+          {tabsPosition}
+          {tabsAlignment}
+          {buttonsAlignment}
+          {tabsIconsOnly}
+          {list_icon}
+          {list_title}
+          on:change={(e) => {
+            state.selectTab(e.detail.id);
+          }}
+        />
+      {/if}
 
-        {#if mode == "container" && childMode == "tabsItem" && $parentParams?.theme == "list" && showTabHeading && direction == "column"}
-          <div class="tab-title"><span>{tabHeading}</span></div>
-        {/if}
+      {#if mode == "container" && childMode == "tabsItem" && $parentParams?.theme == "list" && showTabHeading && direction == "column"}
+        <div class="tab-title"><span>{tabHeading}</span></div>
+      {/if}
 
-        {#key labelWidth}
-          {#key labelPos}
-            {#key disabled}
-              <slot />
-            {/key}
+      {#key labelWidth}
+        {#key labelPos}
+          {#key disabled}
+            <slot />
           {/key}
         {/key}
+      {/key}
 
-        {#if grabberPosition}
-          <Grabber {grabberPosition} {resizing} {state} />
-        {/if}
-      {:else}
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <!-- svelte-ignore a11y-no-static-element-interactions -->
-        <div class="collapsed-title" on:click={handleCollapse}>
-          <span>{collapseTitle?.toUpperCase() || ""}</span>
-        </div>
+      {#if grabberPosition}
+        <Grabber {grabberPosition} {resizing} {state} />
       {/if}
-
+    {:else}
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
       <!-- svelte-ignore a11y-no-static-element-interactions -->
-      {#if collapsible}
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <div
-          class="collapser"
-          class:collapsed
-          class:right={collapseSide == "right"}
-          class:top={collapseSide == "top"}
-          on:click={handleCollapse}
-        >
-          {#if !collapsed}
-            <span> {panelTitle?.toUpperCase() || ""}</span>
-          {/if}
-          <Expander {collapsed} {collapseIcon} />
-        </div>
-      {/if}
-    </div>
-  {/if}
+      <div class="collapsed-title" on:click={handleCollapse}>
+        <span>{collapseTitle?.toUpperCase() || ""}</span>
+      </div>
+    {/if}
+
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
+    {#if collapsible}
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <div
+        class="collapser"
+        class:collapsed
+        class:right={collapseSide == "right"}
+        class:top={collapseSide == "top"}
+        on:click={handleCollapse}
+      >
+        {#if !collapsed}
+          <span> {panelTitle?.toUpperCase() || ""}</span>
+        {/if}
+        <Expander {collapsed} {collapseIcon} />
+      </div>
+    {/if}
+  </div>
 {/key}
 
 <style>
@@ -771,6 +775,10 @@
 
   .tab-item {
     flex: 1 1 auto;
+  }
+
+  .tab-item-hidden {
+    display: none;
   }
 
   .splitview {

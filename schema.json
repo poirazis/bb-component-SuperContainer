@@ -130,7 +130,7 @@
       {
         "section": true,
         "name": "Container Options",
-
+        "dependsOn": { "setting": "mode", "value": "container" },
         "settings": [
           {
             "type": "select",
@@ -159,42 +159,42 @@
             "label": "Align Items",
             "key": "hAlign",
             "showInBar": true,
-            "barStyle": "buttons",
+            "barStyle": "select",
             "options": [
               {
                 "label": "Left",
                 "value": "flex-start",
-                "barIcon": "AlignLeft",
+                "barIcon": "align-left",
                 "barTitle": "Align left"
               },
               {
                 "label": "Center",
                 "value": "center",
-                "barIcon": "AlignCenter",
+                "barIcon": "align-center-horizontal",
                 "barTitle": "Align center"
               },
               {
                 "label": "Right",
                 "value": "flex-end",
-                "barIcon": "AlignRight",
+                "barIcon": "align-right",
                 "barTitle": "Align right"
               },
               {
                 "label": "Space Between",
                 "value": "space-between",
-                "barIcon": "DistributeSpaceHoriz",
+                "barIcon": "distribute-spacing-horizontal",
                 "barTitle": "Space Evenly"
               },
               {
                 "label": "Space Around",
                 "value": "space-around",
-                "barIcon": "DistributeHorizontally",
+                "barIcon": "arrows-in-line-horizontal",
                 "barTitle": "Space Around"
               },
               {
                 "label": "Stretch",
                 "value": "stretch",
-                "barIcon": "MoveLeftRight",
+                "barIcon": "arrows-left-right",
                 "barTitle": "Align stretched horizontally"
               }
             ],
@@ -205,42 +205,42 @@
             "label": "Vert. align",
             "key": "vAlign",
             "showInBar": true,
-            "barStyle": "buttons",
+            "barStyle": "select",
             "options": [
               {
                 "label": "Top",
                 "value": "flex-start",
-                "barIcon": "AlignTop",
+                "barIcon": "align-top",
                 "barTitle": "Align top"
               },
               {
                 "label": "Middle",
                 "value": "center",
-                "barIcon": "AlignMiddle",
+                "barIcon": "align-center-vertical",
                 "barTitle": "Align middle"
               },
               {
                 "label": "Bottom",
                 "value": "flex-end",
-                "barIcon": "AlignBottom",
+                "barIcon": "align-bottom",
                 "barTitle": "Align bottom"
               },
               {
                 "label": "Space Between",
                 "value": "space-between",
-                "barIcon": "DistributeSpaceVert",
+                "barIcon": "distribute-spacing-vertical",
                 "barTitle": "Space Evenly"
               },
               {
                 "label": "Space Around",
                 "value": "space-around",
-                "barIcon": "DistributeVertically",
+                "barIcon": "distribute-spacing-vertical",
                 "barTitle": "Space Around"
               },
               {
                 "label": "Stretch",
                 "value": "stretch",
-                "barIcon": "MoveUpDown",
+                "barIcon": "arrows-vertical",
                 "barTitle": "Align stretched vertically"
               }
             ],
@@ -385,6 +385,16 @@
         "settings": [
           {
             "type": "select",
+            "key": "tabsPosition",
+            "label": "Position",
+            "options": [
+              { "label": "Top", "value": "top" },
+              { "label": "Left", "value": "left" }
+            ],
+            "defaultValue": "top"
+          },
+          {
+            "type": "select",
             "key": "theme",
             "label": "Theme",
             "options": [
@@ -410,20 +420,65 @@
           },
           {
             "type": "select",
-            "key": "tabsAlignment",
-            "label": "Text Align",
+            "key": "buttonsAlignment",
+            "label": "Alignment",
+            "showInBar": true,
+            "barStyle": "select",
             "options": [
-              { "label": "Left", "value": "flex-start" },
-              { "label": "Center", "value": "center" },
-              { "label": "Right", "value": "flex-end" }
+              {
+                "label": "Start",
+                "value": "flex-start",
+                "barIcon": "align-left",
+                "barTitle": "Align left"
+              },
+              {
+                "label": "Center",
+                "value": "center",
+                "barIcon": "align-center-horizontal",
+                "barTitle": "Align center"
+              },
+              {
+                "label": "End",
+                "value": "flex-end",
+                "barIcon": "align-right",
+                "barTitle": "Align right"
+              },
+              {
+                "label": "Stretch",
+                "value": "stretch",
+                "barIcon": "arrows-left-right",
+                "barTitle": "Stretch"
+              }
             ],
-            "defaultValue": "center"
+            "defaultValue": "flex-start"
           },
           {
-            "type": "boolean",
-            "key": "tabsIconsOnly",
-            "label": "Icons Only",
-            "defaultValue": false
+            "type": "select",
+            "key": "tabsAlignment",
+            "label": "Text Align",
+            "showInBar": true,
+            "barStyle": "select",
+            "options": [
+              {
+                "label": "Left",
+                "value": "flex-start",
+                "barIcon": "align-left",
+                "barTitle": "Align left"
+              },
+              {
+                "label": "Center",
+                "value": "center",
+                "barIcon": "align-center-horizontal",
+                "barTitle": "Align center"
+              },
+              {
+                "label": "Right",
+                "value": "flex-end",
+                "barIcon": "align-right",
+                "barTitle": "Align right"
+              }
+            ],
+            "defaultValue": "center"
           },
           {
             "type": "text",
