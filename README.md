@@ -22,11 +22,19 @@ An advanced multi-layout container component for Budibase applications that prov
 
 ### Advanced Functionality
 
-- **Collapsible Panels**: Expandable/collapsible containers with custom titles
-- **Hover Effects**: Interactive styling on mouse over
+- **Collapsible Panels**: Expandable/collapsible containers with custom titles and icons
+- **Hover Effects**: Interactive styling on mouse over (background, border, text)
 - **Event Integration**: Click and right-click event handling
 - **Nested Support**: Hierarchical container structures
 - **Responsive Design**: Adaptive layouts for different screen sizes
+- **Child Component Context**: Provides data context to child components for shared state
+
+### Styling & Theming
+
+- **Custom Styling**: Padding, background, border, and shadow controls
+- **Hover States**: Configurable hover effects for interactive feedback
+- **Theme Consistency**: Matches Budibase design system
+- **CSS Variables**: Dynamic styling via CSS custom properties
 
 ## 🎯 Usage Instructions
 
@@ -34,7 +42,7 @@ An advanced multi-layout container component for Budibase applications that prov
 
 1. Add the SuperContainer component to your screen
 2. Select your layout mode (Container, Grid, Tabs, SplitView, or Field Group)
-3. Configure layout-specific settings
+3. Configure layout-specific settings (e.g., direction, columns, tabs)
 4. Add child components and configure their properties
 5. Customize styling and interaction options
 
@@ -47,6 +55,7 @@ An advanced multi-layout container component for Budibase applications that prov
 - **Gap**: Control spacing between child items
 - **Wrapping**: Enable/disable flex-wrap for multi-line layouts
 - **Flexible Sizing**: Grow/shrink child items based on content and space
+- **Collapsible**: Enable/disable with custom title, icon, and collapse side
 
 #### Grid Mode
 
@@ -54,6 +63,7 @@ An advanced multi-layout container component for Budibase applications that prov
 - **Row Count**: Configurable grid rows
 - **Item Positioning**: Column and row spans for individual components
 - **Responsive Grids**: Adaptive column/row adjustments
+- **Gap**: Spacing between grid items
 
 #### Tabs Mode
 
@@ -62,6 +72,7 @@ An advanced multi-layout container component for Budibase applications that prov
 - **Icon Support**: Icons for each tab
 - **Navigation**: Active tab control and change events
 - **Quiet Mode**: Subtle tab styling option
+- **Alignment**: Control tab alignment (horizontal/vertical)
 
 #### SplitView Mode
 
@@ -69,94 +80,97 @@ An advanced multi-layout container component for Budibase applications that prov
 - **Ratio Control**: Define initial split ratios
 - **Multiple Panels**: Support for complex panel arrangements
 - **Smooth Interactions**: Fluid resizing animations
+- **Direction**: Row or column-based splits
+
+#### Field Group Mode
+
+- **Label Position**: Left, top, or other positions
+- **Label Width**: Configurable width for labels
+- **Grid Columns**: Number of columns for form fields
+- **Disabled State**: Enable/disable the entire group
 
 ### Collapsible Features
 
-#### Collapsible Panels
-
-- **Collapse Direction**: Left, Top, Right, Bottom positioning
-- **Custom Titles**: Expanded and collapsed state titles
-- **Icon Display**: Custom icons for collapsed state
-- **Size Control**: Adjustable collapsed dimensions
-- **Smooth Transitions**: Animated expand/collapse
-
-#### Configuration Options
-
-- **Initial State**: Start expanded or collapsed
-- **Panel Content**: Full content in expanded view
-- **Minimal Display**: Icon and title in collapsed view
-- **Interactive Controls**: Expand/collapse by clicking
-
-### Field Group Mode
-
-#### Form Layout
-
-- **Label Positioning**: Left-aligned or above field labels
-- **Grid Columns**: Multi-column form layouts
-- **Label Width**: Consistent label width for left-aligned layouts
-- **Disabled State**: Enable/disable entire field groups
-
-#### Field Management
-
-- **Column Spanning**: Allow fields to span multiple columns
-- **Row Management**: Control field positioning
-- **Visual Grouping**: Logical field organization
+- **Collapse Side**: Left, right, top, or bottom
+- **Collapse Size**: Minimum size when collapsed
+- **Panel Title**: Title for the expanded state
+- **Collapse Title**: Title for the collapsed state
+- **Collapse Icon**: Custom icon for the expander
 
 ## 🔧 Configuration Properties
 
 ### Layout Mode Selection
 
-- **Mode**: Container, Grid, Tabs, SplitView, or Field Group
-- **Child Mode**: Container Item, SplitView Item, Tabs Item, Grid Item, or Field Group Item
-- **Flex Mode**: Shrink or grow container sizing
-- **Collapsible**: Enable/disable collapsible behavior
+- `mode`: Layout mode ('container', 'grid', 'tabs', 'splitview', 'fieldgroup')
 
 ### Container Layout Settings
 
-- **Direction**: Row or column layout flow
-- **Horizontal Align**: Flex-start, center, flex-end, space-between, space-around, stretch
-- **Vertical Align**: Top, middle, bottom, space-between, space-around, stretch
-- **Gap**: None, Tiny (0.25), Small (0.5), Medium (1), Large (1.5)
-- **Wrap**: Enable/disable item wrapping
-- **Flex Factor**: Configuration factor for flexible sizing
+- `direction`: Flex direction ('row', 'column')
+- `hAlign`: Horizontal alignment ('stretch', 'center', 'flex-start', 'flex-end', 'space-between', 'space-around')
+- `vAlign`: Vertical alignment ('stretch', 'center', 'flex-start', 'flex-end', 'space-between', 'space-around')
+- `gap`: Spacing between items (rem)
+- `wrap`: Enable flex wrapping (boolean)
 
 ### Grid Settings
 
-- **Columns**: Number of grid columns (default: 6)
-- **Rows**: Number of grid rows (default: 6)
-- **Column Span**: Individual component column spans (default: 1)
-- **Row Span**: Individual component row spans (default: 1)
+- `gridColumns`: Number of grid columns
+- `gridRows`: Number of grid rows
+- `gap`: Grid gap (rem)
 
 ### Tabs Configuration
 
-- **Theme**: Budibase, Buttons, Negative Buttons, or List styles
-- **Size**: Small, Medium, Large tab sizes
-- **Text Align**: Left, Center, Right alignment
-- **Active Tab**: Control which tab is initially active
-- **Icons Only**: Display tab icons only
-- **Quiet Tabs**: Enable subtle tab styling
+- `theme`: Tab theme ('budibase', 'buttons', 'negative-buttons', 'list')
+- `tabsAlignment`: Tab alignment
+- `quietTabs`: Enable quiet tab styling (boolean)
+- `activeTab`: Index of the initially active tab
+- `tabsIconsOnly`: Show only icons in tabs (boolean)
+- `list_title`: Title for list theme
+- `list_icon`: Icon for list theme
 
 ### SplitView Configuration
 
-- **Split Ratio**: Define panel size ratios
-- **Resizable**: Enable/disable resize handles
-- **Min Sizes**: Set minimum panel dimensions
+- `direction`: Split direction ('row', 'column')
 
 ### Collapsible Panel Settings
 
-- **Collapsed**: Start in collapsed state
-- **Panel Title**: Title when expanded
-- **Collapse Title**: Title when collapsed
-- **Collapse Icon**: Icon for collapsed state
-- **Collapse Size**: Dimensions of collapsed panel (default: 3rem)
-- **Collapse Side**: Left, Top, Right, or Bottom collapse direction
+- `collapsible`: Enable collapsible functionality (boolean)
+- `collapsed`: Initial collapsed state (boolean)
+- `collapseSide`: Side for collapse ('left', 'right', 'top', 'bottom')
+- `collapseSize`: Size when collapsed (rem)
+- `panelTitle`: Title for expanded panel
+- `collapseTitle`: Title for collapsed panel
+- `collapseIcon`: Icon for collapse toggle
 
 ### Field Group Configuration
 
-- **Label Position**: Left or Above positioning
-- **Label Width**: Width for left-aligned labels
-- **Grid Columns**: Number of form columns (default: 3)
-- **Disabled**: Enable/disable entire group
+- `labelPos`: Label position ('left', 'top')
+- `labelWidth`: Width of labels (rem)
+- `disabled`: Disable the field group (boolean)
+
+### Child Item Options
+
+- `flex`: Flex behavior ('grow', 'shrink')
+- `flexFactor`: Flex factor for sizing
+- `colSpan`: Column span for grid items
+- `rowSpan`: Row span for grid items
+- `title`: Title for tab items
+- `icon`: Icon for tab items
+- `color`: Color for tab items
+- `tabDisabled`: Disable specific tab (boolean)
+- `isTabSection`: Mark as tab section (boolean)
+
+### Styling Options
+
+- `hoverBackground`: Background color on hover
+- `hoverBorder`: Border color on hover
+- `hoverText`: Text color on hover
+
+### Events
+
+- `onTabChange`: Triggered on tab change
+- `onClick`: Triggered on container click
+- `onRightClick`: Triggered on right-click
+- `onShow`: Triggered when child is shown
 
 ## 📋 Usage Examples
 
@@ -212,7 +226,7 @@ Build a layout with sidebar:
 
 ## 🎨 Styling & Theming
 
-### Layout Styling
+### Layout Customization
 
 - **Padding Control**: Adjust container padding
 - **Border Options**: Customize border styles
@@ -230,7 +244,7 @@ Build a layout with sidebar:
 
 - **Breakpoint Adjustments**: Layout changes at different screen sizes
 - **Flexible Components**: Child components that adapt to available space
-- **Content Flow**: Automatic layout adjustments for content fitting
+- **Content Reflow**: Automatic layout adjustments for content fitting
 
 ## 🔗 Integration
 
@@ -265,7 +279,7 @@ Build a layout with sidebar:
 ### Accessibility Features
 
 - **Keyboard Navigation**: Comprehensive keyboard traversal
-- **Screen Reader Integration**: Inclusive label provision
+- **Screen Reader Integration**: Proper label provision
 - **Focus Management**: Logical interaction sequence
 - **Semantic Structure**: Properly structured component hierarchy
 
@@ -283,6 +297,6 @@ Build a layout with sidebar:
 - **Click Events**: Validate event configuration settings
 - **Tab Navigation**: Review tab configuration and theme settings
 - **Hover Effects**: Check hover configuration and styling
-- **Collision Detection**: Assess component overlapping and interaction
+- **Collapse Detection**: Assess component overlapping and interaction
 
 Find out more about developing [Custom Plugins](https://docs.budibase.com/docs/custom-plugin) and [Budibase](https://github.com/Budibase/budibase).

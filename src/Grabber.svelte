@@ -16,7 +16,7 @@
     ? "col-resize"
     : "row-resize"}
   on:mousedown={state.startResizing}
-/>
+></div>
 
 <style>
   .grabber {

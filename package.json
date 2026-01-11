@@ -1,37 +1,40 @@
 {
   "name": "bb-component-SuperContainer",
-  "version": "1.12.0",
+  "version": "1.13.0",
   "description": "A Multi Layout Data Aware Container Component for Budibase",
   "author": "Michael Poirazi",
   "license": "MIT",
   "svelte": "index.js",
   "module": "dist/plugin.min.js",
   "scripts": {
-    "build": "rollup -c",
-    "watch": "rollup -cw"
+    "build": "rollup -c rollup.config.mjs",
+    "watch": "rollup -cw rollup.config.mjs"
   },
   "dependencies": {
-    "@crownframework/svelte-error-boundary": "^1.0.3",
     "@spectrum-css/opacitycheckerboard": "^1.1.5",
     "@spectrum-css/splitview": "4.0.3",
+    "@poirazis/supercomponents-shared": "file:../../shared",
     "svelte-fsm": "^1.2.0"
   },
   "devDependencies": {
-    "@budibase/backend-core": "^2.33.14",
-    "@budibase/shared-core": "^2.33.14",
-    "@rollup/plugin-commonjs": "^25.0.8",
-    "@rollup/plugin-json": "^6.1.0",
-    "@rollup/plugin-node-resolve": "^15.3.1",
-    "@rollup/plugin-terser": "^0.4.4",
-    "npm-run-all": "^4.1.5",
+    "@budibase/backend-core": "^2.8.0",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
     "postcss": "^8.5.3",
-    "rollup": "^2.79.2",
+    "rollup": "^4.21.0",
     "rollup-plugin-copy2": "^0.3.1",
-    "rollup-plugin-polyfill-node": "^0.8.0",
+    "rollup-plugin-json": "^4.0.0",
+    "rollup-plugin-polyfill-node": "^0.13.0",
     "rollup-plugin-postcss": "^4.0.2",
-    "rollup-plugin-svelte": "^7.2.2",
+    "rollup-plugin-svelte": "^7.2.3",
     "rollup-plugin-svg": "^2.0.0",
+    "@rollup/plugin-terser": "^0.4.4",
     "tar": "^6.2.1",
-    "svelte": "^4.2.20"
+    "svelte-preprocess": "^5.1.4",
+    "typescript": "^5.8.3",
+    "sass": "^1.89.0"
+  },
+  "peerDependencies": {
+    "svelte": "^5.0.0"
   }
 }

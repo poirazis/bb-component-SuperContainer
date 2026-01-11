@@ -15,7 +15,7 @@
     ></path></svg
   >
 {:else if collapseIcon}
-  <i class={collapseIcon} />
+  <i class={collapseIcon}></i>
 {:else}
   <svg
     xmlns="http://www.w3.org/2000/svg"

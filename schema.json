@@ -1,6 +1,8 @@
 {
   "type": "component",
-  "metadata": {},
+  "metadata": {
+    "svelteMajor": 5
+  },
   "schema": {
     "name": "bb-component-SuperContainer",
     "friendlyName": "Super Container",
@@ -9,7 +11,12 @@
     "hasChildren": true,
     "showEmptyState": true,
     "icon": "SelectIntersect",
-    "styles": ["padding", "size", "border", "background"],
+    "styles": [
+      "padding",
+      "size",
+      "border",
+      "background"
+    ],
     "grid": {
       "hAlign": "stretch",
       "vAlign": "stretch"
@@ -18,7 +25,10 @@
       {
         "section": true,
         "name": "Sizing",
-        "dependsOn": { "setting": "childMode", "value": "containerItem" },
+        "dependsOn": {
+          "setting": "childMode",
+          "value": "containerItem"
+        },
         "settings": [
           {
             "type": "select",
@@ -42,7 +52,10 @@
               }
             ],
             "defaultValue": "shrink",
-            "dependsOn": { "setting": "childMode", "value": "containerItem" }
+            "dependsOn": {
+              "setting": "childMode",
+              "value": "containerItem"
+            }
           },
           {
             "type": "number",
@@ -50,7 +63,10 @@
             "label": "Flex Factor",
             "min": 1,
             "defaultValue": 1,
-            "dependsOn": { "setting": "flex", "value": "grow" }
+            "dependsOn": {
+              "setting": "flex",
+              "value": "grow"
+            }
           }
         ]
       },
@@ -99,11 +115,26 @@
         "key": "childMode",
         "label": "Child Mode",
         "options": [
-          { "label": "Container Item", "value": "containerItem" },
-          { "label": "SplitView Item", "value": "splitviewItem" },
-          { "label": "Tabs Item", "value": "tabsItem" },
-          { "label": "Grid Item", "value": "gridItem" },
-          { "label": "Grid Item", "value": "fieldgroupItem" }
+          {
+            "label": "Container Item",
+            "value": "containerItem"
+          },
+          {
+            "label": "SplitView Item",
+            "value": "splitviewItem"
+          },
+          {
+            "label": "Tabs Item",
+            "value": "tabsItem"
+          },
+          {
+            "label": "Grid Item",
+            "value": "gridItem"
+          },
+          {
+            "label": "Grid Item",
+            "value": "fieldgroupItem"
+          }
         ],
         "defaultValue": "containerItem",
         "hidden": true
@@ -112,13 +143,19 @@
         "type": "boolean",
         "key": "collapsible",
         "label": "Collapsible",
-        "dependsOn": { "setting": "childMode", "value": "containerItem" },
+        "dependsOn": {
+          "setting": "childMode",
+          "value": "containerItem"
+        },
         "resetOn": "mode"
       },
       {
         "section": true,
         "name": "SplitView Options",
-        "dependsOn": { "setting": "mode", "value": "splitview" },
+        "dependsOn": {
+          "setting": "mode",
+          "value": "splitview"
+        },
         "settings": [
           {
             "type": "select",
@@ -130,7 +167,10 @@
       {
         "section": true,
         "name": "Container Options",
-
+        "dependsOn": {
+          "setting": "mode",
+          "value": "container"
+        },
         "settings": [
           {
             "type": "select",
@@ -159,42 +199,42 @@
             "label": "Align Items",
             "key": "hAlign",
             "showInBar": true,
-            "barStyle": "buttons",
+            "barStyle": "select",
             "options": [
               {
                 "label": "Left",
                 "value": "flex-start",
-                "barIcon": "AlignLeft",
+                "barIcon": "align-left",
                 "barTitle": "Align left"
               },
               {
                 "label": "Center",
                 "value": "center",
-                "barIcon": "AlignCenter",
+                "barIcon": "align-center-horizontal",
                 "barTitle": "Align center"
               },
               {
                 "label": "Right",
                 "value": "flex-end",
-                "barIcon": "AlignRight",
+                "barIcon": "align-right",
                 "barTitle": "Align right"
               },
               {
                 "label": "Space Between",
                 "value": "space-between",
-                "barIcon": "DistributeSpaceHoriz",
+                "barIcon": "distribute-spacing-horizontal",
                 "barTitle": "Space Evenly"
               },
               {
                 "label": "Space Around",
                 "value": "space-around",
-                "barIcon": "DistributeHorizontally",
+                "barIcon": "arrows-in-line-horizontal",
                 "barTitle": "Space Around"
               },
               {
                 "label": "Stretch",
                 "value": "stretch",
-                "barIcon": "MoveLeftRight",
+                "barIcon": "arrows-left-right",
                 "barTitle": "Align stretched horizontally"
               }
             ],
@@ -205,42 +245,42 @@
             "label": "Vert. align",
             "key": "vAlign",
             "showInBar": true,
-            "barStyle": "buttons",
+            "barStyle": "select",
             "options": [
               {
                 "label": "Top",
                 "value": "flex-start",
-                "barIcon": "AlignTop",
+                "barIcon": "align-top",
                 "barTitle": "Align top"
               },
               {
                 "label": "Middle",
                 "value": "center",
-                "barIcon": "AlignMiddle",
+                "barIcon": "align-center-vertical",
                 "barTitle": "Align middle"
               },
               {
                 "label": "Bottom",
                 "value": "flex-end",
-                "barIcon": "AlignBottom",
+                "barIcon": "align-bottom",
                 "barTitle": "Align bottom"
               },
               {
                 "label": "Space Between",
                 "value": "space-between",
-                "barIcon": "DistributeSpaceVert",
+                "barIcon": "distribute-spacing-vertical",
                 "barTitle": "Space Evenly"
               },
               {
                 "label": "Space Around",
                 "value": "space-around",
-                "barIcon": "DistributeVertically",
+                "barIcon": "distribute-spacing-vertical",
                 "barTitle": "Space Around"
               },
               {
                 "label": "Stretch",
                 "value": "stretch",
-                "barIcon": "MoveUpDown",
+                "barIcon": "arrows-vertical",
                 "barTitle": "Align stretched vertically"
               }
             ],
@@ -289,7 +329,9 @@
       {
         "section": true,
         "name": "Collapsible Options",
-        "dependsOn": ["collapsible"],
+        "dependsOn": [
+          "collapsible"
+        ],
         "settings": [
           {
             "type": "boolean",
@@ -356,93 +398,174 @@
       {
         "section": true,
         "name": "Grid Options",
-        "dependsOn": { "setting": "mode", "value": "grid" },
+        "dependsOn": {
+          "setting": "mode",
+          "value": "grid"
+        },
         "settings": [
+          {
+            "type": "select",
+            "label": "Content Align",
+            "key": "gridContentAlign",
+            "options": [
+              {
+                "label": "Start",
+                "value": "start"
+              },
+              {
+                "label": "Center",
+                "value": "center"
+              },
+              {
+                "label": "End",
+                "value": "end"
+              },
+              {
+                "label": "Stretch",
+                "value": "stretch"
+              }
+            ],
+            "defaultValue": "start"
+          },
           {
             "type": "number",
             "key": "gridColumns",
             "label": "Columns",
-            "min": 1,
-            "defaultValue": 6
-          },
-          {
-            "type": "number",
-            "key": "gridRows",
-            "label": "Rows",
-            "min": 1,
-            "defaultValue": 6
+            "min": 1
           }
         ]
       },
       {
         "section": true,
         "name": "Tab Options",
-        "dependsOn": { "setting": "mode", "value": "tabs" },
+        "dependsOn": {
+          "setting": "mode",
+          "value": "tabs"
+        },
         "settings": [
+          {
+            "type": "select",
+            "key": "tabsPosition",
+            "label": "Position",
+            "options": [
+              {
+                "label": "Top",
+                "value": "top"
+              },
+              {
+                "label": "Left",
+                "value": "left"
+              }
+            ],
+            "defaultValue": "top"
+          },
           {
             "type": "select",
             "key": "theme",
             "label": "Theme",
             "options": [
-              { "label": "Budibase", "value": "budibase" },
-              { "label": "Buttons", "value": "buttons" },
-              { "label": "Negative Buttons", "value": "negButtons" },
-              { "label": "List", "value": "list" }
+              {
+                "label": "Buttons",
+                "value": "buttons"
+              },
+              {
+                "label": "Wdie Buttons",
+                "value": "wideButtons"
+              },
+              {
+                "label": "List",
+                "value": "list"
+              }
             ],
-            "defaultValue": "budibase"
+            "defaultValue": "buttons"
           },
           {
             "type": "text",
             "key": "list_title",
             "label": "List Title",
             "defaultValue": "Settings",
-            "dependsOn": { "setting": "theme", "value": "list" }
+            "dependsOn": {
+              "setting": "theme",
+              "value": "list"
+            }
           },
           {
             "type": "icon",
             "key": "list_icon",
             "label": "List Icon",
             "defaultValue": "ri-settings-line",
-            "dependsOn": { "setting": "theme", "value": "list" }
+            "dependsOn": {
+              "setting": "theme",
+              "value": "list"
+            }
           },
           {
             "type": "select",
-            "key": "tabsSize",
-            "label": "Size",
+            "key": "buttonsAlignment",
+            "label": "Alignment",
+            "showInBar": true,
+            "barStyle": "select",
             "options": [
-              { "label": "Small", "value": "S" },
-              { "label": "Medium", "value": "M" },
-              { "label": "Large", "value": "L" }
+              {
+                "label": "Start",
+                "value": "flex-start",
+                "barIcon": "align-left",
+                "barTitle": "Align left"
+              },
+              {
+                "label": "Center",
+                "value": "center",
+                "barIcon": "align-center-horizontal",
+                "barTitle": "Align center"
+              },
+              {
+                "label": "End",
+                "value": "flex-end",
+                "barIcon": "align-right",
+                "barTitle": "Align right"
+              },
+              {
+                "label": "Stretch",
+                "value": "stretch",
+                "barIcon": "arrows-left-right",
+                "barTitle": "Stretch"
+              }
             ],
-            "defaultValue": "M"
+            "defaultValue": "flex-start"
           },
           {
             "type": "select",
             "key": "tabsAlignment",
             "label": "Text Align",
+            "showInBar": true,
+            "barStyle": "select",
             "options": [
-              { "label": "Left", "value": "flex-start" },
-              { "label": "Center", "value": "center" },
-              { "label": "Right", "value": "flex-end" }
+              {
+                "label": "Left",
+                "value": "flex-start",
+                "barIcon": "align-left",
+                "barTitle": "Align left"
+              },
+              {
+                "label": "Center",
+                "value": "center",
+                "barIcon": "align-center-horizontal",
+                "barTitle": "Align center"
+              },
+              {
+                "label": "Right",
+                "value": "flex-end",
+                "barIcon": "align-right",
+                "barTitle": "Align right"
+              }
             ],
-            "defaultValue": "flex-start"
+            "defaultValue": "center"
           },
           {
             "type": "text",
             "key": "activeTab",
-            "label": "Active Tab"
-          },
-          {
-            "type": "boolean",
-            "key": "tabsIconsOnly",
-            "label": "Icons Only",
-            "defaultValue": false
-          },
-          {
-            "type": "boolean",
-            "key": "quietTabs",
-            "label": "Quiet Tabs",
-            "defaultValue": false
+            "label": "Default Tab",
+            "defaultValue": "0"
           },
           {
             "type": "event",
@@ -460,15 +583,24 @@
       {
         "section": true,
         "name": "Field Group Options",
-        "dependsOn": { "setting": "mode", "value": "fieldgroup" },
+        "dependsOn": {
+          "setting": "mode",
+          "value": "fieldgroup"
+        },
         "settings": [
           {
             "type": "select",
             "key": "labelPos",
             "label": "Label Position",
             "options": [
-              { "label": "Left", "value": "left" },
-              { "label": "Above", "value": "above" }
+              {
+                "label": "Left",
+                "value": "left"
+              },
+              {
+                "label": "Above",
+                "value": "above"
+              }
             ],
             "defaultValue": "above"
           },
@@ -477,7 +609,10 @@
             "key": "labelWidth",
             "label": "Label Width",
             "placeholder": "6rem",
-            "dependsOn": { "setting": "labelPos", "value": "left" }
+            "dependsOn": {
+              "setting": "labelPos",
+              "value": "left"
+            }
           },
           {
             "type": "number",
@@ -496,7 +631,10 @@
       {
         "section": true,
         "name": "Grid Item Options",
-        "dependsOn": { "setting": "childMode", "value": "gridItem" },
+        "dependsOn": {
+          "setting": "childMode",
+          "value": "gridItem"
+        },
         "settings": [
           {
             "type": "number",
@@ -517,7 +655,10 @@
       {
         "section": true,
         "name": "Field Group Item Options",
-        "dependsOn": { "setting": "childMode", "value": "fieldgroupItem" },
+        "dependsOn": {
+          "setting": "childMode",
+          "value": "fieldgroupItem"
+        },
         "settings": [
           {
             "type": "number",
@@ -538,7 +679,10 @@
       {
         "section": true,
         "name": "Tab Item Options",
-        "dependsOn": { "setting": "childMode", "value": "tabsItem" },
+        "dependsOn": {
+          "setting": "childMode",
+          "value": "tabsItem"
+        },
         "settings": [
           {
             "type": "text",

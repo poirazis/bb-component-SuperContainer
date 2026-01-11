@@ -1,7 +1,7 @@
 <script>
   import { getContext, onDestroy, onMount, setContext } from "svelte";
   import "@spectrum-css/opacitycheckerboard/dist/index-vars.css";
-  import TabControl from "./TabControl.svelte";
+  import { SuperTabs } from "@poirazis/supercomponents-shared";
   import Grabber from "./Grabber.svelte";
   import fsm from "svelte-fsm";
   import Expander from "./Expander.svelte";
@@ -12,7 +12,7 @@
 
   // Get Wrapper Super Container Stores
   const parentState = getContext("superContainer");
-  const parentGridStore = getContext("superContainerParams");
+  const parentParams = getContext("superContainerParams");
 
   export let flex;
   export let flexFactor = 1;
@@ -32,9 +32,9 @@
   export let collapseTitle;
   export let collapseIcon;
 
-  export let tabsSize = "M";
+  export let tabsPosition = "top";
   export let tabsAlignment;
-  export let quietTabs;
+  export let buttonsAlignment = "flex-start";
   export let activeTab = 0;
   export let tabsIconsOnly = false;
   export let theme = "budibase";
@@ -56,6 +56,7 @@
   // Grid Child Item Options
   export let colSpan = 1;
   export let rowSpan = 1;
+  export let gridContentAlign = "start";
 
   // Events as Parent
   export let onTabChange;
@@ -65,7 +66,6 @@
   export let hoverBackground;
   export let hoverBorder;
   export let hoverText;
-  export let cssClass;
 
   // Events as Child
   export let onShow;
@@ -81,6 +81,7 @@
   let initialHeight;
   let grabberPosition;
   let selectedTab = undefined;
+  let tabChangeInitialized = false;
 
   let componentID = $component.id;
   let id = Math.random() * 10;
@@ -89,8 +90,8 @@
   let builderCssVariables = {};
 
   // Memoize the props to avoid reactivity issues
-  const props = memo($$props);
-  $: props.set($$props);
+  const allprops = memo($$props);
+  $: allprops.set($$props);
 
   // The State machine that handles the parent role of the super container
   const state = fsm(mode, {
@@ -194,7 +195,6 @@
       },
     },
     disabled: {},
-    accordion: {},
     container: {
       _enter() {
         this.refresh();
@@ -251,12 +251,13 @@
       refresh() {
         cssVariables = {
           display: "grid",
+          "align-content": gridContentAlign,
           "justify-items": hAlign,
           "align-items": vAlign,
           "--grid-columns": gridColumns,
-          "--grid-rows": gridRows,
           "--grid-column-gap": gap + "rem",
           "--grid-row-gap": gap + "rem",
+          "--grid-content-align": gridContentAlign,
         };
 
         builderCssVariables = {};
@@ -302,14 +303,17 @@
         cssVariables = {
           gap: theme == "list" ? "0rem" : gap,
           "flex-direction":
-            direction == "column" || theme == "list" ? "row" : "column",
+            tabsPosition == "left" || theme == "list" ? "row" : "column",
         };
       },
       selectTab(tabId) {
         if (tabId == selectedTab) return;
         else {
           selectedTab = tabId;
-          onTabChange?.({ tabTitle: title });
+          if (tabChangeInitialized) {
+            onTabChange?.({ tabTitle: title });
+          }
+          tabChangeInitialized = true;
         }
       },
     },
@@ -322,8 +326,8 @@
           display: "grid",
           "justify-items": "stretch",
           "align-items": vAlign,
+          "align-content": "start",
           "--grid-columns": gridColumns * 6,
-          "--grid-rows": gridRows,
           "--grid-column-gap":
             labelPos == "left" ? 0.85 * gap + "rem" : 0.75 * gap + "rem",
           "--grid-row-gap": "0.25rem",
@@ -362,7 +366,6 @@
         };
       },
     },
-    accordionItem: {},
     splitviewItem: {
       _enter() {
         this.refresh();
@@ -382,11 +385,11 @@
         this.refresh();
       },
       refresh() {
-        if (parentGridStore) {
+        if (parentParams) {
           childCssVariables = {
             "grid-column":
-              "span " + Math.min(colSpan, $parentGridStore?.gridColumns),
-            "grid-row": "span " + Math.min(rowSpan, $parentGridStore?.gridRows),
+              "span " + Math.min(colSpan, $parentParams?.gridColumns),
+            "grid-row": "span " + Math.min(rowSpan, $parentParams?.gridRows),
             override: "hidden",
           };
 
@@ -439,18 +442,15 @@
     },
   });
 
-  $: coords = new Array(gridColumns * gridRows);
   $: childState?.synch?.($parentState);
+  $: state.selectTab(containers[activeTab]?.id);
 
   // Update on property changes
-  $: state.synchProperties($props);
+  $: state.synchProperties($allprops);
 
-  $: if ($childState == "tabsItem" && $parentGridStore?.selectedTab == id)
+  $: if ($childState == "tabsItem" && $parentParams?.selectedTab == id)
     childState.activate();
-  else if (
-    $childState == "activeTabsItem" &&
-    $parentGridStore?.selectedTab != id
-  )
+  else if ($childState == "activeTabsItem" && $parentParams?.selectedTab != id)
     childState.deactivate();
 
   // If a Child , keep in sync with parent
@@ -557,104 +557,94 @@
 />
 {#key mode}
   <!-- svelte-ignore a11y-no-static-element-interactions -->
-  {#if $childState != "tabsItem"}
-    <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <div
-      bind:this={container}
-      class:collapsed
-      class:hoverable={hoverBackground || hoverBorder || hoverText}
-      class:collapsible
-      class:clickable={onClick}
-      class:super-container={$state == "container"}
-      class:super-grid={$state == "grid"}
-      class:tabs={$state == "tabs"}
-      class:splitview={$state == "splitview"}
-      class:super-fieldgroup={$state == "fieldgroup"}
-      class:super-container-item={$childState == "containerItem"}
-      class:accordion-item={$childState == "accordionItem"}
-      class:tab-item={$childState == "activeTabsItem"}
-      class:splitview-item={$childState == "splitviewItem"}
-      class:super-fieldgroup-item={$childState == "fieldgroupItem"}
-      class:spectrum-OpacityCheckerboard={$builderStore.inBuilder &&
-        $component.empty}
-      use:styleable={$component.styles}
-      on:click={onClick ? onClick : () => {}}
-      on:contextmenu={(e) => {
-        if (onRightClick) {
-          e.preventDefault();
-          onRightClick();
-        }
-      }}
-    >
-      {#if !collapsed}
-        {#if mode == "grid" && inBuilder}
-          <div class="underlay">
-            {#each coords as _, idx}
-              <div class="placeholder" />
-            {/each}
-          </div>
-        {/if}
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <div
+    bind:this={container}
+    class:collapsed
+    class:hoverable={hoverBackground || hoverBorder || hoverText}
+    class:collapsible
+    class:clickable={onClick}
+    class:super-container={$state == "container"}
+    class:super-grid={$state == "grid"}
+    class:tabs={$state == "tabs"}
+    class:splitview={$state == "splitview"}
+    class:super-fieldgroup={$state == "fieldgroup"}
+    class:super-container-item={$childState == "containerItem"}
+    class:tab-item={$childState == "activeTabsItem"}
+    class:tab-item-hidden={$childState == "tabsItem"}
+    class:splitview-item={$childState == "splitviewItem"}
+    class:super-fieldgroup-item={$childState == "fieldgroupItem"}
+    class:in-builder={inBuilder}
+    class:spectrum-OpacityCheckerboard={$builderStore.inBuilder &&
+      $component.empty}
+    use:styleable={$component.styles}
+    on:click={onClick ? onClick : () => {}}
+    on:contextmenu={(e) => {
+      if (onRightClick) {
+        e.preventDefault();
+        onRightClick();
+      }
+    }}
+  >
+    {#if !collapsed}
+      {#if mode == "tabs" && containers?.length > 0}
+        <SuperTabs
+          {containers}
+          {selectedTab}
+          {direction}
+          {theme}
+          {tabsPosition}
+          {tabsAlignment}
+          {buttonsAlignment}
+          {tabsIconsOnly}
+          {list_icon}
+          {list_title}
+          on:change={(e) => {
+            state.selectTab(e.detail.id);
+          }}
+        />
+      {/if}
 
-        {#if mode == "tabs" && containers?.length > 0}
-          <TabControl
-            {containers}
-            {hAlign}
-            {vAlign}
-            {direction}
-            {selectedTab}
-            {state}
-            {theme}
-            {gap}
-            {quietTabs}
-            {tabsAlignment}
-            {tabsSize}
-            {tabsIconsOnly}
-            {list_icon}
-            {list_title}
-          />
-        {/if}
+      {#if mode == "container" && childMode == "tabsItem" && $parentParams?.theme == "list" && showTabHeading && direction == "column"}
+        <div class="tab-title"><span>{tabHeading}</span></div>
+      {/if}
 
-        {#if mode == "container" && childMode == "tabsItem" && $parentGridStore?.theme == "list" && showTabHeading && direction == "column"}
-          <div class="tab-title"><span>{tabHeading}</span></div>
-        {/if}
-
-        {#key labelWidth}
-          {#key labelPos}
-            {#key disabled}
-              <slot />
-            {/key}
+      {#key labelWidth}
+        {#key labelPos}
+          {#key disabled}
+            <slot />
           {/key}
         {/key}
+      {/key}
 
-        {#if grabberPosition}
-          <Grabber {grabberPosition} {resizing} {state} />
-        {/if}
-      {:else}
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <!-- svelte-ignore a11y-no-static-element-interactions -->
-        <div class="collapsed-title" on:click={handleCollapse}>
-          <span>{collapseTitle?.toUpperCase() || ""}</span>
-        </div>
+      {#if grabberPosition}
+        <Grabber {grabberPosition} {resizing} {state} />
       {/if}
-
+    {:else}
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
       <!-- svelte-ignore a11y-no-static-element-interactions -->
-      {#if collapsible}
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <div
-          class="collapser"
-          class:collapsed
-          class:right={collapseSide == "right"}
-          class:top={collapseSide == "top"}
-          on:click={handleCollapse}
-        >
-          {#if !collapsed}
-            <span> {panelTitle?.toUpperCase() || ""}</span>
-          {/if}
-          <Expander {collapsed} {collapseIcon} />
-        </div>
-      {/if}
-    </div>
-  {/if}
+      <div class="collapsed-title" on:click={handleCollapse}>
+        <span>{collapseTitle?.toUpperCase() || ""}</span>
+      </div>
+    {/if}
+
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
+    {#if collapsible}
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <div
+        class="collapser"
+        class:collapsed
+        class:right={collapseSide == "right"}
+        class:top={collapseSide == "top"}
+        on:click={handleCollapse}
+      >
+        {#if !collapsed}
+          <span> {panelTitle?.toUpperCase() || ""}</span>
+        {/if}
+        <Expander {collapsed} {collapseIcon} />
+      </div>
+    {/if}
+  </div>
 {/key}
 
 <style>
@@ -757,33 +747,15 @@
     display: grid;
     position: relative;
     grid-template-columns: repeat(var(--grid-columns), 1fr);
-    grid-template-rows: repeat(var(--grid-rows), 1fr);
+    grid-template-rows: var(--grid-rows);
     column-gap: var(--grid-column-gap);
     row-gap: var(--grid-row-gap);
+    align-content: var(--grid-content-align);
   }
 
-  .underlay {
-    position: absolute;
-    z-index: -1;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: grid;
-    grid-template-columns: repeat(var(--grid-columns), 1fr);
-    grid-template-rows: repeat(var(--grid-rows), 1fr);
-    column-gap: var(--grid-column-gap);
-    row-gap: var(--grid-row-gap);
-    background-color: var(--spectrum-global-color-gray-75);
-  }
-
-  .placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--spectrum-global-color-gray-500);
-    border: 1px;
+  :global(.super-grid.in-builder > .component) {
     border: 1px dashed var(--spectrum-global-color-gray-400);
+    background-color: var(--spectrum-global-color-gray-75);
   }
 
   .super-fieldgroup {
@@ -794,13 +766,6 @@
     row-gap: var(--grid-row-gap);
   }
 
-  .accordion {
-    position: relative;
-  }
-
-  .accordion-item {
-    border: 4px solid lime;
-  }
   .tabs {
     display: flex;
     flex-direction: column;
@@ -810,6 +775,10 @@
 
   .tab-item {
     flex: 1 1 auto;
+  }
+
+  .tab-item-hidden {
+    display: none;
   }
 
   .splitview {
