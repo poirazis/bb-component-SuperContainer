@@ -13,7 +13,7 @@
   "dependencies": {
     "@spectrum-css/opacitycheckerboard": "^1.1.5",
     "@spectrum-css/splitview": "4.0.3",
-    "@poirazis/supercomponents-shared": "file:../../shared",
+    "@poirazis/supercomponents-shared": "latest",
     "svelte-fsm": "^1.2.0"
   },
   "devDependencies": {
