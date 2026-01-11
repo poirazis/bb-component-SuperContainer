@@ -7,8 +7,8 @@
   "svelte": "index.js",
   "module": "dist/plugin.min.js",
   "scripts": {
-    "build": "rollup -c rollup.config.mjs",
-    "watch": "rollup -cw rollup.config.mjs"
+    "build": "rollup -c",
+    "watch": "rollup -cw"
   },
   "dependencies": {
     "@spectrum-css/opacitycheckerboard": "^1.1.5",
