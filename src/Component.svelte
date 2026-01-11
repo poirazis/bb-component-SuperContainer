@@ -90,8 +90,8 @@
   let builderCssVariables = {};
 
   // Memoize the props to avoid reactivity issues
-  const props = memo($$props);
-  $: props.set($$props);
+  const allprops = memo($$props);
+  $: allprops.set($$props);
 
   // The State machine that handles the parent role of the super container
   const state = fsm(mode, {
@@ -446,7 +446,7 @@
   $: state.selectTab(containers[activeTab]?.id);
 
   // Update on property changes
-  $: state.synchProperties($props);
+  $: state.synchProperties($allprops);
 
   $: if ($childState == "tabsItem" && $parentParams?.selectedTab == id)
     childState.activate();
