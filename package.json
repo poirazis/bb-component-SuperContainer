@@ -1,14 +1,16 @@
 {
+  "type": "module",
   "name": "bb-component-SuperContainer",
-  "version": "1.13.0",
+  "version": "1.13.1",
   "description": "A Multi Layout Data Aware Container Component for Budibase",
   "author": "Michael Poirazi",
+  "packageManager": "bun@1.0.0",
   "license": "MIT",
   "svelte": "index.js",
   "module": "dist/plugin.min.js",
   "scripts": {
-    "build": "rollup -c rollup.config.mjs",
-    "watch": "rollup -cw rollup.config.mjs"
+    "build": "vite build",
+    "watch": "vite build --watch"
   },
   "dependencies": {
     "@spectrum-css/opacitycheckerboard": "^1.1.5",
@@ -17,22 +19,14 @@
     "svelte-fsm": "^1.2.0"
   },
   "devDependencies": {
-    "@budibase/backend-core": "^2.8.0",
-    "@rollup/plugin-commonjs": "^25.0.7",
-    "@rollup/plugin-node-resolve": "^15.2.3",
-    "postcss": "^8.5.3",
-    "rollup": "^4.21.0",
-    "rollup-plugin-copy2": "^0.3.1",
-    "rollup-plugin-json": "^4.0.0",
-    "rollup-plugin-polyfill-node": "^0.13.0",
-    "rollup-plugin-postcss": "^4.0.2",
-    "rollup-plugin-svelte": "^7.2.3",
-    "rollup-plugin-svg": "^2.0.0",
-    "@rollup/plugin-terser": "^0.4.4",
-    "tar": "^6.2.1",
-    "svelte-preprocess": "^5.1.4",
-    "typescript": "^5.8.3",
-    "sass": "^1.89.0"
+    "@budibase/backend-core": "^3.24.0",
+    "@sveltejs/vite-plugin-svelte": "^6.2.4",
+    "postcss": "^8.5.6",
+    "svelte": "^5.0.0",
+    "tar": "^7.5.2",
+    "terser": "^5.44.1",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
   },
   "peerDependencies": {
     "svelte": "^5.0.0"
