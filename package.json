@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "bb-component-SuperContainer",
-  "version": "1.13.1",
+  "version": "2.0.0",
   "description": "A Multi Layout Data Aware Container Component for Budibase",
   "author": "Michael Poirazi",
   "packageManager": "bun@1.0.0",
