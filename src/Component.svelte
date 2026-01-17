@@ -774,11 +774,12 @@
   }
 
   .tab-item {
+    display: flex;
     flex: 1 1 auto;
   }
 
   .tab-item-hidden {
-    display: none;
+    display: none !important;
   }
 
   .splitview {
