@@ -1,6 +1,5 @@
 <script>
   import { getContext, onDestroy, onMount, setContext } from "svelte";
-  import "@spectrum-css/opacitycheckerboard/dist/index-vars.css";
   import { SuperTabs } from "@poirazis/supercomponents-shared";
   import Grabber from "./Grabber.svelte";
   import fsm from "svelte-fsm";
@@ -577,6 +576,7 @@
     class:in-builder={inBuilder}
     class:spectrum-OpacityCheckerboard={$builderStore.inBuilder &&
       $component.empty}
+    style:display={$childState == "tabsItem" ? "none" : "flex"}
     use:styleable={$component.styles}
     on:click={onClick ? onClick : () => {}}
     on:contextmenu={(e) => {
