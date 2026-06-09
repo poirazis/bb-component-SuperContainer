@@ -13,18 +13,21 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
         with:
-          path: ${{ github.workspace }}
-      - uses: oven-sh/setup-bun@v1
+          bun-version: 1.3.4
+
       - name: Make the production plugin bundle
         run: |
-          release_version=$(cat package.json | jq -r '.version')
-          echo "RELEASE_VERSION=$release_version" >> $GITHUB_ENV
-          bun install
+          release_version=$(jq -r '.version' package.json)
+          echo "RELEASE_VERSION=$release_version" >> "$GITHUB_ENV"
+          bun install --frozen-lockfile
           bun run build
+
       - name: Perform Github Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: v${{ env.RELEASE_VERSION }}
           tag_name: v${{ env.RELEASE_VERSION }}

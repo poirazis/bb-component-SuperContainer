@@ -11,12 +11,7 @@
     "hasChildren": true,
     "showEmptyState": true,
     "icon": "SelectIntersect",
-    "styles": [
-      "padding",
-      "size",
-      "border",
-      "background"
-    ],
+    "styles": ["padding", "size", "border", "background"],
     "grid": {
       "hAlign": "stretch",
       "vAlign": "stretch"
@@ -96,12 +91,6 @@
             "barTitle": "Tabs Control"
           },
           {
-            "label": "SplitView",
-            "value": "splitview",
-            "barIcon": "SplitView",
-            "barTitle": "Resizable Splitview"
-          },
-          {
             "label": "Field Group",
             "value": "fieldgroup",
             "barIcon": "Group",
@@ -120,10 +109,6 @@
             "value": "containerItem"
           },
           {
-            "label": "SplitView Item",
-            "value": "splitviewItem"
-          },
-          {
             "label": "Tabs Item",
             "value": "tabsItem"
           },
@@ -138,31 +123,6 @@
         ],
         "defaultValue": "containerItem",
         "hidden": true
-      },
-      {
-        "type": "boolean",
-        "key": "collapsible",
-        "label": "Collapsible",
-        "dependsOn": {
-          "setting": "childMode",
-          "value": "containerItem"
-        },
-        "resetOn": "mode"
-      },
-      {
-        "section": true,
-        "name": "SplitView Options",
-        "dependsOn": {
-          "setting": "mode",
-          "value": "splitview"
-        },
-        "settings": [
-          {
-            "type": "select",
-            "key": "splitViewRatio",
-            "label": "Ratio"
-          }
-        ]
       },
       {
         "section": true,
@@ -328,75 +288,6 @@
       },
       {
         "section": true,
-        "name": "Collapsible Options",
-        "dependsOn": [
-          "collapsible"
-        ],
-        "settings": [
-          {
-            "type": "boolean",
-            "key": "collapsed",
-            "label": "Collapsed"
-          },
-          {
-            "type": "text",
-            "key": "panelTitle",
-            "label": "Title"
-          },
-          {
-            "type": "text",
-            "key": "collapseTitle",
-            "label": "Collapsed Title"
-          },
-          {
-            "type": "icon",
-            "key": "collapseIcon",
-            "label": "Collapsed Icon"
-          },
-          {
-            "type": "text",
-            "key": "collapseSize",
-            "label": "Collapsed Size",
-            "defaultValue": "3rem"
-          },
-          {
-            "type": "select",
-            "label": "Collapse Side",
-            "key": "collapseSide",
-            "showInBar": true,
-            "barStyle": "buttons",
-            "options": [
-              {
-                "label": "Left",
-                "value": "left",
-                "barIcon": "PaddingLeft",
-                "barTitle": "Collapse Left"
-              },
-              {
-                "label": "Top",
-                "value": "top",
-                "barIcon": "PaddingTop",
-                "barTitle": "Collapse Up"
-              },
-              {
-                "label": "Right",
-                "value": "right",
-                "barIcon": "PaddingRight",
-                "barTitle": "Collapse Right"
-              },
-              {
-                "label": "Bottom",
-                "value": "bottom",
-                "barIcon": "PaddingBottom",
-                "barTitle": "Collapse Botttom"
-              }
-            ],
-            "defaultValue": "left"
-          }
-        ]
-      },
-      {
-        "section": true,
         "name": "Grid Options",
         "dependsOn": {
           "setting": "mode",
@@ -404,9 +295,35 @@
         },
         "settings": [
           {
+            "type": "number",
+            "key": "gridColumns",
+            "label": "Columns",
+            "min": 0
+          },
+          {
+            "type": "number",
+            "key": "gridRows",
+            "label": "Rows",
+            "min": 0
+          },
+          {
+            "type": "text",
+            "key": "gridAutoRows",
+            "label": "Auto Rows",
+            "placeholder": "auto, 1fr, 100px, minmax(100px, 1fr)",
+            "defaultValue": "auto"
+          },
+          {
+            "type": "text",
+            "key": "gridAutoColumns",
+            "label": "Auto Columns",
+            "placeholder": "auto, 1fr, 100px, minmax(100px, 1fr)",
+            "defaultValue": "auto"
+          },
+          {
             "type": "select",
-            "label": "Content Align",
-            "key": "gridContentAlign",
+            "label": "Justify Items (Horizontal)",
+            "key": "gridJustifyItems",
             "options": [
               {
                 "label": "Start",
@@ -425,13 +342,103 @@
                 "value": "stretch"
               }
             ],
+            "defaultValue": "stretch"
+          },
+          {
+            "type": "select",
+            "label": "Align Items (Vertical)",
+            "key": "gridAlignItems",
+            "options": [
+              {
+                "label": "Start",
+                "value": "start"
+              },
+              {
+                "label": "Center",
+                "value": "center"
+              },
+              {
+                "label": "End",
+                "value": "end"
+              },
+              {
+                "label": "Stretch",
+                "value": "stretch"
+              }
+            ],
+            "defaultValue": "stretch"
+          },
+          {
+            "type": "select",
+            "label": "Justify Content (Grid Horizontal)",
+            "key": "gridJustifyContent",
+            "options": [
+              {
+                "label": "Start",
+                "value": "start"
+              },
+              {
+                "label": "Center",
+                "value": "center"
+              },
+              {
+                "label": "End",
+                "value": "end"
+              },
+              {
+                "label": "Stretch",
+                "value": "stretch"
+              },
+              {
+                "label": "Space Between",
+                "value": "space-between"
+              },
+              {
+                "label": "Space Around",
+                "value": "space-around"
+              },
+              {
+                "label": "Space Evenly",
+                "value": "space-evenly"
+              }
+            ],
             "defaultValue": "start"
           },
           {
-            "type": "number",
-            "key": "gridColumns",
-            "label": "Columns",
-            "min": 1
+            "type": "select",
+            "label": "Align Content (Grid Vertical)",
+            "key": "gridAlignContent",
+            "options": [
+              {
+                "label": "Start",
+                "value": "start"
+              },
+              {
+                "label": "Center",
+                "value": "center"
+              },
+              {
+                "label": "End",
+                "value": "end"
+              },
+              {
+                "label": "Stretch",
+                "value": "stretch"
+              },
+              {
+                "label": "Space Between",
+                "value": "space-between"
+              },
+              {
+                "label": "Space Around",
+                "value": "space-around"
+              },
+              {
+                "label": "Space Evenly",
+                "value": "space-evenly"
+              }
+            ],
+            "defaultValue": "start"
           }
         ]
       },
@@ -460,6 +467,16 @@
             "defaultValue": "top"
           },
           {
+            "type": "text",
+            "key": "tabsWidth",
+            "label": "Tabs Width",
+            "placeholder": "200px",
+            "dependsOn": {
+              "setting": "tabsPosition",
+              "value": "left"
+            }
+          },
+          {
             "type": "select",
             "key": "theme",
             "label": "Theme",
@@ -467,10 +484,6 @@
               {
                 "label": "Buttons",
                 "value": "buttons"
-              },
-              {
-                "label": "Wdie Buttons",
-                "value": "wideButtons"
               },
               {
                 "label": "List",
@@ -490,10 +503,10 @@
             }
           },
           {
-            "type": "icon",
+            "type": "phosphorIcon",
             "key": "list_icon",
             "label": "List Icon",
-            "defaultValue": "ri-settings-line",
+            "defaultValue": "gear",
             "dependsOn": {
               "setting": "theme",
               "value": "list"
@@ -562,6 +575,22 @@
             "defaultValue": "center"
           },
           {
+            "type": "select",
+            "key": "hiddenTabs",
+            "label": "Hidden Tabs",
+            "options": [
+              {
+                "label": "Dont Render",
+                "value": false
+              },
+              {
+                "label": "Render Hidden",
+                "value": "hidden"
+              }
+            ],
+            "defaultValue": "hidden"
+          },
+          {
             "type": "text",
             "key": "activeTab",
             "label": "Default Tab",
@@ -622,9 +651,31 @@
             "defaultValue": 3
           },
           {
+            "type": "text",
+            "key": "fgcolumnGap",
+            "label": "Column Gap",
+            "placeholder": "0.5rem"
+          },
+          {
+            "type": "text",
+            "key": "fgrowGap",
+            "label": "Row Gap",
+            "placeholder": "0.25rem"
+          },
+          {
             "type": "boolean",
             "key": "disabled",
             "label": "Disabled"
+          },
+          {
+            "type": "boolean",
+            "key": "readonly",
+            "label": "Read only",
+            "dependsOn": {
+              "setting": "disabled",
+              "value": true,
+              "invert": true
+            }
           }
         ]
       },
@@ -649,6 +700,91 @@
             "label": "Row Span",
             "min": 1,
             "defaultValue": 1
+          },
+          {
+            "type": "number",
+            "key": "gridColumnStart",
+            "label": "Column Start",
+            "min": 1
+          },
+          {
+            "type": "number",
+            "key": "gridColumnEnd",
+            "label": "Column End",
+            "min": 1
+          },
+          {
+            "type": "number",
+            "key": "gridRowStart",
+            "label": "Row Start",
+            "min": 1
+          },
+          {
+            "type": "number",
+            "key": "gridRowEnd",
+            "label": "Row End",
+            "min": 1
+          },
+          {
+            "type": "select",
+            "key": "alignSelf",
+            "label": "Align Self (Vertical)",
+            "options": [
+              {
+                "label": "Auto",
+                "value": "auto"
+              },
+              {
+                "label": "Start",
+                "value": "start"
+              },
+              {
+                "label": "Center",
+                "value": "center"
+              },
+              {
+                "label": "End",
+                "value": "end"
+              },
+              {
+                "label": "Stretch",
+                "value": "stretch"
+              }
+            ],
+            "defaultValue": "auto"
+          },
+          {
+            "type": "select",
+            "key": "justifySelf",
+            "label": "Justify Self (Horizontal)",
+            "options": [
+              {
+                "label": "Auto",
+                "value": "auto"
+              },
+              {
+                "label": "Start",
+                "value": "start"
+              },
+              {
+                "label": "Center",
+                "value": "center"
+              },
+              {
+                "label": "End",
+                "value": "end"
+              },
+              {
+                "label": "Stretch",
+                "value": "stretch"
+              }
+            ],
+            "defaultValue": "auto"
+          },
+          {
+            "type": "number",
+            "key": "gridZIndex",
+            "label": "Z-Index"
           }
         ]
       },
@@ -673,6 +809,91 @@
             "label": "Row Span",
             "min": 1,
             "defaultValue": 1
+          },
+          {
+            "type": "number",
+            "key": "gridColumnStart",
+            "label": "Column Start",
+            "min": 1
+          },
+          {
+            "type": "number",
+            "key": "gridColumnEnd",
+            "label": "Column End",
+            "min": 1
+          },
+          {
+            "type": "number",
+            "key": "gridRowStart",
+            "label": "Row Start",
+            "min": 1
+          },
+          {
+            "type": "number",
+            "key": "gridRowEnd",
+            "label": "Row End",
+            "min": 1
+          },
+          {
+            "type": "select",
+            "key": "alignSelf",
+            "label": "Align Self (Vertical)",
+            "options": [
+              {
+                "label": "Auto",
+                "value": "auto"
+              },
+              {
+                "label": "Start",
+                "value": "start"
+              },
+              {
+                "label": "Center",
+                "value": "center"
+              },
+              {
+                "label": "End",
+                "value": "end"
+              },
+              {
+                "label": "Stretch",
+                "value": "stretch"
+              }
+            ],
+            "defaultValue": "auto"
+          },
+          {
+            "type": "select",
+            "key": "justifySelf",
+            "label": "Justify Self (Horizontal)",
+            "options": [
+              {
+                "label": "Auto",
+                "value": "auto"
+              },
+              {
+                "label": "Start",
+                "value": "start"
+              },
+              {
+                "label": "Center",
+                "value": "center"
+              },
+              {
+                "label": "End",
+                "value": "end"
+              },
+              {
+                "label": "Stretch",
+                "value": "stretch"
+              }
+            ],
+            "defaultValue": "auto"
+          },
+          {
+            "type": "number",
+            "key": "gridZIndex",
+            "label": "Z-Index"
           }
         ]
       },
@@ -692,18 +913,6 @@
           },
           {
             "type": "boolean",
-            "key": "showTabHeading",
-            "label": "Show Heading"
-          },
-          {
-            "type": "text",
-            "key": "tabHeading",
-            "label": "Heading",
-            "defaultValue": "New Tab Heading",
-            "dependsOn": "showTabHeading"
-          },
-          {
-            "type": "boolean",
             "key": "tabDisabled",
             "label": "Disabled"
           },
@@ -714,7 +923,7 @@
             "defaultValue": false
           },
           {
-            "type": "icon",
+            "type": "phosphorIcon",
             "key": "icon",
             "label": "Icon"
           },
@@ -731,19 +940,13 @@
         ]
       },
       {
-        "type": "event",
-        "key": "onClick",
-        "label": "On Click"
-      },
-      {
-        "type": "event",
-        "key": "onRightClick",
-        "label": "On Right Click"
-      },
-      {
         "section": true,
         "name": "Hover Options",
         "tag": "style",
+        "dependsOn": {
+          "setting": "mode",
+          "value": "container"
+        },
         "settings": [
           {
             "type": "color",
@@ -759,6 +962,48 @@
             "type": "color",
             "key": "hoverText",
             "label": "Text"
+          }
+        ]
+      },
+      {
+        "section": true,
+        "name": "List Options",
+        "tag": "style",
+        "dependsOn": {
+          "setting": "theme",
+          "value": "list"
+        },
+        "settings": [
+          { "type": "color", "key": "listBackground", "label": "Background" },
+          {
+            "type": "color",
+            "key": "listBorder",
+            "label": "Border"
+          },
+          {
+            "type": "color",
+            "key": "listText",
+            "label": "Text"
+          }
+        ]
+      },
+      {
+        "section": true,
+        "name": "Events",
+        "dependsOn": {
+          "setting": "mode",
+          "value": "container"
+        },
+        "settings": [
+          {
+            "type": "event",
+            "key": "onClick",
+            "label": "On Click"
+          },
+          {
+            "type": "event",
+            "key": "onRightClick",
+            "label": "On Right Click"
           }
         ]
       }

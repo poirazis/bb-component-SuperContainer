@@ -17,7 +17,7 @@ import { validate } from "@budibase/backend-core/plugins";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const pkg = JSON.parse(
-  readFileSync(new URL("./package.json", import.meta.url), "utf8")
+  readFileSync(new URL("./package.json", import.meta.url), "utf8"),
 );
 
 const clean = () => ({
@@ -66,23 +66,36 @@ const copyAndHash = () => ({
   apply: "build",
   async writeBundle() {
     writeFileSync("dist/schema.json", readFileSync("schema.json", "utf8"));
-    writeFileSync("dist/package.json", readFileSync("package.json", "utf8"));
 
     const jsBuffer = readFileSync("dist/plugin.min.js");
     const hash = createHash("sha1").update(jsBuffer).digest("hex");
 
     const schema = JSON.parse(readFileSync("dist/schema.json", "utf8"));
+    const version = pkg.version;
     writeFileSync(
       "dist/schema.json",
       JSON.stringify(
         {
           ...schema,
           hash,
-          version: pkg.version,
+          version,
         },
         null,
-        2
-      )
+        2,
+      ),
+    );
+    writeFileSync(
+      "dist/package.json",
+      JSON.stringify(
+        {
+          name: pkg.name,
+          version,
+          description: pkg.description,
+          license: pkg.license,
+        },
+        null,
+        2,
+      ),
     );
   },
 });
@@ -92,7 +105,6 @@ export default defineConfig({
     clean(),
     validateSchema(),
     svelte({
-      compilerOptions: { compatibility: { componentApi: 4 } },
       emitCss: true,
       preprocess: [],
     }),
@@ -104,7 +116,7 @@ export default defineConfig({
   build: {
     target: "esnext",
     lib: {
-      entry: "index.ts",
+      entry: "index.js",
       formats: ["iife"],
       fileName: () => "plugin.min.js",
       name: "plugin",
@@ -117,7 +129,6 @@ export default defineConfig({
       external: (id) => id === "svelte" || id.startsWith("svelte/"),
       treeshake: {
         moduleSideEffects: false,
-        preset: "recommended",
       },
       output: {
         globals: (id) => {

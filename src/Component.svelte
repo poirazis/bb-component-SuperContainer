@@ -1,477 +1,381 @@
 <script>
-  import { getContext, onDestroy, onMount, setContext } from "svelte";
-  import { SuperTabs } from "@poirazis/supercomponents-shared";
-  import Grabber from "./Grabber.svelte";
-  import fsm from "svelte-fsm";
-  import Expander from "./Expander.svelte";
+  import { getContext, onDestroy, onMount, setContext, untrack } from "svelte";
+  import { SuperTabs } from "@poirazis/superlib";
+  import FieldGroupProvider from "../lib/FieldGroupProvider.svelte";
 
-  const { styleable, builderStore, memo } = getContext("sdk");
-
+  const { styleable, builderStore } = getContext("sdk");
   const component = getContext("component");
 
-  // Get Wrapper Super Container Stores
   const parentState = getContext("superContainer");
-  const parentParams = getContext("superContainerParams");
+  const getParentParams = getContext("superContainerParams");
+  let parentParams = $derived(getParentParams?.() ?? null);
 
-  export let flex;
-  export let flexFactor = 1;
-  export let mode = "container";
-  export let childMode = "containerItem";
-  export let direction;
-  export let hAlign = "stretch";
-  export let vAlign;
-  export let gap;
-  export let wrap;
+  let {
+    children,
+    flex,
+    flexFactor = 1,
+    mode = "container",
+    childMode = "containerItem",
+    direction,
+    hAlign = "stretch",
+    vAlign,
+    gap,
+    wrap,
+    tabsPosition = "top",
+    tabsWidth = "200px",
+    tabsAlignment,
+    buttonsAlignment = "flex-start",
+    activeTab = 0,
+    tabsIconsOnly = false,
+    theme = "budibase",
+    list_title = "Settings",
+    list_icon = "gear",
+    tabDisabled,
+    isTabSection = false,
+    listBackground,
+    hiddenTabs = "hidden",
+    gridColumns = 3,
+    gridRows = 3,
+    gridAutoRows = "auto",
+    gridAutoColumns = "auto",
+    gridJustifyItems = "stretch",
+    gridAlignItems = "stretch",
+    gridJustifyContent = "start",
+    gridAlignContent = "start",
+    title,
+    icon,
+    color,
+    labelPos,
+    labelWidth = "6rem",
+    fgcolumnGap,
+    fgrowGap,
+    disabled = false,
+    readonly = false,
+    colSpan = 1,
+    rowSpan = 1,
+    gridColumnStart,
+    gridColumnEnd,
+    gridRowStart,
+    gridRowEnd,
+    alignSelf = "auto",
+    justifySelf = "auto",
+    gridZIndex,
+    onTabChange,
+    onClick,
+    onRightClick,
+    hoverBackground,
+    hoverBorder,
+    hoverText,
+    onShow,
+  } = $props();
 
-  export let panelTitle;
-  export let collapsed;
-  export let collapsible;
-  export let collapseSide = "left";
-  export let collapseSize;
-  export let collapseTitle;
-  export let collapseIcon;
+  let containers = $state([]);
+  let selectedTab = $state(undefined);
+  let tabChangeInitialized = $state(false);
+  let forceHidden = $state(false);
 
-  export let tabsPosition = "top";
-  export let tabsAlignment;
-  export let buttonsAlignment = "flex-start";
-  export let activeTab = 0;
-  export let tabsIconsOnly = false;
-  export let theme = "budibase";
-  export let list_title = "Settings";
-  export let list_icon = "ri-settings-line";
-  export let tabDisabled;
-  export let isTabSection = false;
+  let componentID = $derived($component.id);
+  let effectiveIcon = $derived(icon ? "ph ph-" + icon : null);
+  let inBuilder = $derived($builderStore.inBuilder);
+  let selected = $derived($component.selected || $component.inSelectedPath);
+  let refreshKey = $derived(mode + labelPos + labelWidth + hiddenTabs);
 
-  export let gridColumns = 3;
-  export let gridRows = 3;
-  export let title, icon, color;
-  export let showTabHeading;
-  export let tabHeading = "New Tab Heading";
+  function resolveChildMode(parentLayout) {
+    if (!parentLayout || parentLayout == "container") {
+      return "containerItem";
+    }
+    return parentLayout + "Item";
+  }
 
-  export let labelPos;
-  export let labelWidth = "6rem";
-  export let disabled;
+  let effectiveChildMode = $derived(
+    parentParams ? resolveChildMode(parentParams.layout) : childMode,
+  );
 
-  // Grid Child Item Options
-  export let colSpan = 1;
-  export let rowSpan = 1;
-  export let gridContentAlign = "start";
+  let isActiveTab = $derived(
+    effectiveChildMode == "tabsItem" &&
+      parentParams?.selectedTab == componentID,
+  );
 
-  // Events as Parent
-  export let onTabChange;
-  export let onClick;
-  export let onRightClick;
+  let shouldRender = $derived.by(() => {
+    if (forceHidden) return false;
+    if (effectiveChildMode != "tabsItem") return true;
+    if (parentParams?.hiddenTabs == false) return isActiveTab;
+    return true;
+  });
 
-  export let hoverBackground;
-  export let hoverBorder;
-  export let hoverText;
+  let childCssVariables = $derived.by(() => {
+    const gridColumn = gridColumnStart
+      ? gridColumnStart + " / " + (gridColumnEnd || "span 1")
+      : null;
+    const gridRow = gridRowStart
+      ? gridRowStart + " / " + (gridRowEnd || "span 1")
+      : null;
 
-  // Events as Child
-  export let onShow;
-
-  let containers = [];
-  let container;
-
-  let resizing;
-  let startPointX;
-  let startPointY;
-  let width, height;
-  let initialWidth;
-  let initialHeight;
-  let grabberPosition;
-  let selectedTab = undefined;
-  let tabChangeInitialized = false;
-
-  let componentID = $component.id;
-  let id = Math.random() * 10;
-  let childCssVariables = {};
-  let cssVariables = {};
-  let builderCssVariables = {};
-
-  // Memoize the props to avoid reactivity issues
-  const allprops = memo($$props);
-  $: allprops.set($$props);
-
-  // The State machine that handles the parent role of the super container
-  const state = fsm(mode, {
-    "*": {
-      registerContainer(
-        componentID,
-        id,
-        state,
-        title,
-        icon,
-        color,
-        disabled,
-        isTabSection
-      ) {
-        containers = [
-          ...containers,
-          {
-            componentID,
-            id,
-            state,
-            title,
-            icon,
-            color,
-            disabled,
-            isTabSection,
-          },
-        ];
-      },
-      updateContainer(
-        id,
-        title,
-        icon,
-        color,
-        tabDisabled,
-        isTabSection,
-        reqcolSpan = 1,
-        reqrowSpan = 1
-      ) {
-        let index = containers.findIndex((e) => e.id == id);
-        if (index > -1) {
-          containers[index].title = title;
-          containers[index].icon = icon;
-          containers[index].color = color;
-          containers[index].disabled = tabDisabled;
-          containers[index].isTabSection = isTabSection;
+    switch (effectiveChildMode) {
+      case "containerItem":
+        return {
+          flex: flex == "grow" ? flexFactor : "none",
+        };
+      case "panelItem":
+        return {
+          flex: flex == "grow" ? flexFactor + " 1 auto" : "0 0 auto",
+        };
+      case "gridItem":
+        if (parentParams) {
+          return {
+            "grid-column": gridColumn
+              ? gridColumn
+              : "span " + Math.min(colSpan, parentParams.gridColumns),
+            "grid-row": gridRow
+              ? gridRow
+              : "span " + Math.min(rowSpan, parentParams.gridRows),
+            "align-self": alignSelf,
+            "justify-self": justifySelf,
+            ...(gridZIndex && { "z-index": gridZIndex }),
+            override: "hidden",
+          };
         }
-        containers = containers;
-      },
-      unregisterContainer(id) {
-        let index = containers.findIndex((e) => e.id == id);
-        if (index > -1) {
-          containers.splice(index, 1);
-          containers = containers;
-          if (mode == "tabs" && containers.length > 0)
-            selectedTab = containers[0].id;
-        }
-      },
-      setMode(mode) {
-        return mode;
-      },
-      refresh() {},
-      selectChild(compID) {
-        if (mode == "tabs") {
-          let pos = containers.findIndex((v) => v.componentID == compID);
-          if (pos > -1) this.selectTab(containers[pos].id);
-        }
-      },
-      setResizing(pos) {
-        grabberPosition = pos;
-      },
-      startResizing(e) {
-        resizing = true;
-        startPointX = e.clientX;
-        startPointY = e.clientY;
-        initialWidth = container.clientWidth;
-        initialHeight = container.clientHeight;
-      },
-      resize(e) {
-        if (grabberPosition == "right") {
-          width = initialWidth + (e.clientX - startPointX);
-        } else {
-          height = initialHeight + (e.clientY - startPointY);
-        }
+        return {
+          "grid-column": gridColumn ? gridColumn : "span " + colSpan * 6,
+          "grid-row": gridRow ? gridRow : "span " + rowSpan,
+          "align-self": alignSelf,
+          "justify-self": justifySelf,
+          ...(gridZIndex && { "z-index": gridZIndex }),
+        };
+      case "tabsItem":
+        return {
+          flex: "auto",
+        };
+      case "fieldgroupItem":
+        return {
+          fieldgroupitem: "yes",
+          "grid-column": gridColumn ? gridColumn : "span " + colSpan * 6,
+          "grid-row": gridRow ? gridRow : "span " + rowSpan,
+          "align-self": alignSelf,
+          "justify-self": justifySelf,
+          ...(gridZIndex && { "z-index": gridZIndex }),
+        };
+      default:
+        return {};
+    }
+  });
 
-        childState?.refresh?.();
-      },
-      stopResizing(e) {
-        resizing = false;
-      },
-      hide() {
-        childState.deactivate();
-      },
-      show() {
-        onShow?.();
-        childState.activate();
-      },
-      synchProperties() {
-        this.refresh();
-        childState?.refresh?.();
-        return mode;
-      },
+  let containerParams = $derived.by(() => ({
+    layout: mode,
+    gridColumns,
+    gridRows,
+    selectedTab: mode === "tabs" ? selectedTab : undefined,
+    hiddenTabs,
+    theme,
+  }));
+
+  const superContainer = {
+    registerContainer(componentId, title, icon, color, disabled, isTabSection) {
+      if (containers.some((entry) => entry.id == componentId)) return;
+
+      containers = [
+        ...containers,
+        {
+          id: componentId,
+          title,
+          icon,
+          color,
+          disabled,
+          isTabSection,
+        },
+      ];
     },
-    disabled: {},
-    container: {
-      _enter() {
-        this.refresh();
-      },
-      refresh() {
-        cssVariables = {
+    updateContainer(
+      componentId,
+      title,
+      icon,
+      color,
+      tabDisabled,
+      isTabSection,
+    ) {
+      const index = containers.findIndex((e) => e.id == componentId);
+      if (index === -1) return;
+
+      const entry = containers[index];
+      if (
+        entry.title === title &&
+        entry.icon === icon &&
+        entry.color === color &&
+        entry.disabled === tabDisabled &&
+        entry.isTabSection === isTabSection
+      ) {
+        return;
+      }
+
+      containers = containers.map((item, i) =>
+        i === index
+          ? {
+              ...item,
+              title,
+              icon,
+              color,
+              disabled: tabDisabled,
+              isTabSection,
+            }
+          : item,
+      );
+    },
+    unregisterContainer(componentId) {
+      const index = containers.findIndex((e) => e.id == componentId);
+      if (index === -1) return;
+
+      containers = containers.filter((e) => e.id != componentId);
+
+      if (mode == "tabs" && containers.length > 0) {
+        this.selectTab(containers[0].id);
+      }
+    },
+    selectTab(tabId) {
+      if (mode !== "tabs" || tabId == selectedTab) return;
+
+      selectedTab = tabId;
+      if (tabChangeInitialized) {
+        onTabChange?.({ tabTitle: title });
+      }
+      tabChangeInitialized = true;
+    },
+    selectChild(componentId) {
+      if (mode !== "tabs") return;
+      if (containers.some((entry) => entry.id == componentId)) {
+        this.selectTab(componentId);
+      }
+    },
+    hide() {
+      forceHidden = true;
+    },
+    show() {
+      forceHidden = false;
+      onShow?.();
+    },
+  };
+
+  let cssVariables = $derived.by(() => {
+    switch (mode) {
+      case "container":
+        return {
           "flex-direction": direction,
           "flex-wrap": wrap ? "wrap" : "nowrap",
           "justify-content": direction == "row" ? hAlign : vAlign,
           "align-items": direction == "row" ? vAlign : hAlign,
           "align-content": wrap ? (direction == "row" ? vAlign : hAlign) : null,
           gap: gap + "rem",
-          "--container-flex-mode":
-            (direction == "row" && hAlign == "stretch") ||
-            (direction == "column" && vAlign == "stretch")
-              ? "1"
-              : null,
         };
-
-        if (collapsible) {
-          cssVariables["padding-top"] =
-            collapseSide != "top" ? "2.4rem" : "unset";
-          cssVariables["padding-bottom"] =
-            collapseSide == "top" ? "2.4rem" : "unset";
-          if (collapsed) {
-            if (collapseSide == "left" || collapseSide == "right") {
-              cssVariables["min-width"] =
-                collapseSize ?? "3rem " + " !important";
-              cssVariables["max-width"] =
-                collapseSize ?? "3rem " + " !important";
-            } else
-              cssVariables["height"] = collapseSize ?? "3rem " + " !important";
-          } else {
-            cssVariables["min-width"] = "unset";
-            cssVariables["max-width"] = "unset";
-            cssVariables["height"] = "unset";
-          }
-        }
-
-        builderCssVariables = {
-          "--spectrum-opacity-checkerboard-square-dark":
-            "var(--spectrum-global-color-gray-75)",
-          "--spectrum-opacity-checkerboard-square-light":
-            "var(--spectrum-global-color-gray-100)",
-          "--spectrum-opacity-checkerboard-square-size": "8px",
-          "--spectrum-opacity-checkerboard-position": "left top",
-        };
-      },
-    },
-    grid: {
-      _enter() {
-        this.refresh();
-      },
-      refresh() {
-        cssVariables = {
+      case "grid":
+        return {
           display: "grid",
-          "align-content": gridContentAlign,
-          "justify-items": hAlign,
-          "align-items": vAlign,
+          "grid-template-columns":
+            gridColumns > 0 ? `repeat(${gridColumns}, 1fr)` : "auto",
+          "grid-template-rows":
+            gridRows > 0 ? `repeat(${gridRows}, 1fr)` : "auto",
+          "grid-auto-rows": gridAutoRows,
+          "grid-auto-columns": gridAutoColumns,
+          "justify-items": gridJustifyItems,
+          "align-items": gridAlignItems,
+          "justify-content": gridJustifyContent,
+          "align-content": gridAlignContent,
+          "column-gap": gap ? gap + "rem" : null,
+          "row-gap": gap ? gap + "rem" : null,
           "--grid-columns": gridColumns,
           "--grid-column-gap": gap + "rem",
           "--grid-row-gap": gap + "rem",
-          "--grid-content-align": gridContentAlign,
+          "--grid-content-align": gridAlignContent,
         };
-
-        builderCssVariables = {};
-      },
-    },
-    splitview: {
-      _enter() {
-        this.refresh();
-      },
-      refresh() {
-        cssVariables = {
-          "flex-direction": direction,
-          "justify-content": "stretch",
-        };
-        this.setResizingGrabbers.debounce(20);
-      },
-      setResizingGrabbers() {
-        containers.forEach(({ state }, idx) => {
-          if (direction == "row" && idx < containers.length - 1)
-            state.setResizing("right");
-          else if (direction == "column" && idx < containers.length - 1)
-            state.setResizing("bottom");
-        });
-      },
-      _exit() {
-        containers.forEach(({ state }) => {
-          state.setResizing(null);
-        });
-      },
-    },
-    tabs: {
-      _enter() {
-        this.refresh();
-      },
-      _exit() {
-        selectedTab == undefined;
-      },
-      refresh() {
-        if (selectedTab) this.selectTab(selectedTab);
-        else {
-          if (containers.length > 0) this.selectTab(containers[0].id);
-        }
-        cssVariables = {
+      case "tabs":
+        return {
           gap: theme == "list" ? "0rem" : gap,
           "flex-direction":
             tabsPosition == "left" || theme == "list" ? "row" : "column",
         };
-      },
-      selectTab(tabId) {
-        if (tabId == selectedTab) return;
-        else {
-          selectedTab = tabId;
-          if (tabChangeInitialized) {
-            onTabChange?.({ tabTitle: title });
-          }
-          tabChangeInitialized = true;
-        }
-      },
-    },
-    fieldgroup: {
-      _enter() {
-        this.refresh();
-      },
-      refresh() {
-        cssVariables = {
+      case "fieldgroup":
+        return {
           display: "grid",
           "justify-items": "stretch",
-          "align-items": vAlign,
+          "align-items": "stretch",
           "align-content": "start",
           "--grid-columns": gridColumns * 6,
-          "--grid-column-gap":
-            labelPos == "left" ? 0.85 * gap + "rem" : 0.75 * gap + "rem",
-          "--grid-row-gap": "0.25rem",
+          "--field-group-column-gap": fgcolumnGap || "0.5rem",
+          "--field-group-row-gap": fgrowGap || "0.25rem",
         };
-      },
+      default:
+        return {};
+    }
+  });
+
+  let enrichedStyles = $derived({
+    ...$component.styles,
+    normal: {
+      ...$component.styles?.normal,
+      ...cssVariables,
+      ...childCssVariables,
+      "--container-hover-background": hoverBackground,
+      "--container-hover-border": hoverBorder,
+      "--container-hover-color": hoverText,
     },
   });
 
-  // The State machine that handles the child role of the super container if nested
-  const childState = fsm(childMode ?? "containerItem", {
-    "*": {
-      synch(parentState) {
-        if (!parentState || parentState == "container") {
-          return "containerItem";
-        } else return parentState + "Item";
-      },
-    },
-    disabled: {},
-    containerItem: {
-      _enter() {
-        this.refresh();
-      },
-      refresh() {
-        childCssVariables = {
-          flex: flex == "grow" ? flexFactor + " 1 auto" : "0 0 auto",
-        };
-      },
-    },
-    panelItem: {
-      _enter() {
-        this.refresh();
-      },
-      refresh() {
-        childCssVariables = {
-          flex: flex == "grow" ? flexFactor + " 1 auto" : "0 0 auto",
-        };
-      },
-    },
-    splitviewItem: {
-      _enter() {
-        this.refresh();
-      },
-      refresh() {
-        childCssVariables = {
-          flex: flexFactor + " 1 auto",
-          "min-width": width ? width : "auto",
-          "max-width": width ? width : "auto",
-          "min-height": height ? height : "auto",
-          "max-height": height ? height : "auto",
-        };
-      },
-    },
-    gridItem: {
-      _enter() {
-        this.refresh();
-      },
-      refresh() {
-        if (parentParams) {
-          childCssVariables = {
-            "grid-column":
-              "span " + Math.min(colSpan, $parentParams?.gridColumns),
-            "grid-row": "span " + Math.min(rowSpan, $parentParams?.gridRows),
-            override: "hidden",
-          };
-
-          builderCssVariables = {};
-        } else {
-          childCssVariables = {
-            "grid-column": "span " + colSpan * 6,
-            "grid-row": "span " + rowSpan,
-          };
-        }
-      },
-    },
-    tabsItem: {
-      _enter() {
-        this.refresh();
-      },
-      activate() {
-        return "activeTabsItem";
-      },
-      refresh() {
-        childCssVariables = {
-          flex: "auto",
-        };
-      },
-    },
-    activeTabsItem: {
-      _enter() {
-        this.refresh();
-      },
-      deactivate() {
-        return "tabsItem";
-      },
-      refresh() {
-        childCssVariables = {
-          flex: "auto",
-        };
-      },
-    },
-    fieldgroupItem: {
-      _enter() {
-        this.refresh();
-      },
-      refresh() {
-        childCssVariables = {
-          fieldgroupitem: "yes",
-          "grid-column": "span " + colSpan * 6,
-          "grid-row": "span " + rowSpan,
-        };
-      },
-    },
+  $effect(() => {
+    if (mode !== "tabs") {
+      selectedTab = undefined;
+    }
   });
 
-  $: childState?.synch?.($parentState);
-  $: state.selectTab(containers[activeTab]?.id);
+  $effect(() => {
+    if (mode !== "tabs" || containers.length === 0) return;
 
-  // Update on property changes
-  $: state.synchProperties($allprops);
+    const index = Number(activeTab);
+    if (!Number.isFinite(index) || index < 0 || index >= containers.length) {
+      return;
+    }
 
-  $: if ($childState == "tabsItem" && $parentParams?.selectedTab == id)
-    childState.activate();
-  else if ($childState == "activeTabsItem" && $parentParams?.selectedTab != id)
-    childState.deactivate();
+    const tabId = containers[index]?.id;
+    if (tabId == null) return;
 
-  // If a Child , keep in sync with parent
-  $: parentState?.updateContainer(
-    id,
-    title,
-    icon,
-    color,
-    tabDisabled,
-    isTabSection
-  );
+    untrack(() => {
+      if (selectedTab !== tabId) {
+        superContainer.selectTab(tabId);
+      }
+    });
+  });
 
-  // Inside Builder specigic code
-  $: inBuilder = $builderStore.inBuilder;
-  $: selected = $component.selected || $component.inSelectedPath;
+  let wasActiveTab = false;
 
-  $: {
+  $effect(() => {
+    if (effectiveChildMode != "tabsItem") {
+      wasActiveTab = false;
+      return;
+    }
+
+    if (isActiveTab && !wasActiveTab) {
+      onShow?.();
+    }
+
+    wasActiveTab = isActiveTab;
+  });
+
+  $effect(() => {
+    parentState?.updateContainer(
+      componentID,
+      title,
+      effectiveIcon,
+      color,
+      tabDisabled,
+      isTabSection,
+    );
+  });
+
+  $effect(() => {
     if (inBuilder && selected && parentState) {
       parentState.selectChild($component.id);
-      if (childMode != $parentState + "Item") {
-        builderStore.actions.updateProp("childMode", $parentState + "Item");
-        childMode = $parentState + "Item";
+      if (childMode != parentParams.layout + "Item") {
+        builderStore.actions.updateProp(
+          "childMode",
+          parentParams.layout + "Item",
+        );
       }
     } else if (
       inBuilder &&
@@ -481,112 +385,53 @@
     ) {
       builderStore.actions.updateProp("childMode", "containerItem");
     }
-  }
-
-  $: if (mode == "fieldgroup") {
-    setContext("field-group", labelPos);
-    setContext("field-group-columns", gridColumns);
-    setContext("field-group-label-width", labelWidth);
-    setContext("field-group-disabled", disabled);
-  } else {
-    setContext("field-group", null);
-    setContext("field-group-columns", null);
-    setContext("field-group-label-width", null);
-    setContext("field-group-disabled", null);
-  }
+  });
 
   onMount(() => {
-    if (mode == "tabs" && containers.length > 0) {
-      if (Number(activeTab) >= 0 && Number(activeTab) < containers.length)
-        state.selectTab(containers[Number(activeTab)].id);
-    }
     parentState?.registerContainer(
       componentID,
-      id,
-      state,
       title,
-      icon,
+      effectiveIcon,
       color,
       tabDisabled,
-      isTabSection
+      isTabSection,
     );
   });
 
+  setContext("superContainer", superContainer);
+  setContext("superContainerParams", () => containerParams);
+
   onDestroy(() => {
-    parentState?.unregisterContainer(id);
+    parentState?.unregisterContainer(componentID);
   });
-
-  const params = memo({});
-  $: params.set({
-    gridColumns,
-    gridRows,
-    selectedTab,
-    theme,
-  });
-
-  const handleCollapse = () => {
-    collapsed = !collapsed;
-    state.synchProperties();
-  };
-
-  // Expose State to Children
-  setContext("superContainer", state);
-  setContext("superContainerParams", params);
-
-  // Append Compnent Styles
-  $: $component.styles = {
-    ...$component.styles,
-    normal: {
-      ...$component.styles.normal,
-      ...cssVariables,
-      ...childCssVariables,
-      ...builderCssVariables,
-      "--container-hover-background": hoverBackground,
-      "--container-hover-border": hoverBorder,
-      "--container-hover-color": hoverText,
-    },
-  };
 </script>
 
-<svelte:window
-  on:mouseup={resizing ? state.stopResizing : () => {}}
-  on:mousemove={grabberPosition
-    ? (e) => (resizing ? state.resize(e) : null)
-    : null}
-/>
-{#key mode}
-  <!-- svelte-ignore a11y-no-static-element-interactions -->
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <div
-    bind:this={container}
-    class:collapsed
-    class:hoverable={hoverBackground || hoverBorder || hoverText}
-    class:collapsible
-    class:clickable={onClick}
-    class:super-container={$state == "container"}
-    class:super-grid={$state == "grid"}
-    class:tabs={$state == "tabs"}
-    class:splitview={$state == "splitview"}
-    class:super-fieldgroup={$state == "fieldgroup"}
-    class:super-container-item={$childState == "containerItem"}
-    class:tab-item={$childState == "activeTabsItem"}
-    class:tab-item-hidden={$childState == "tabsItem"}
-    class:splitview-item={$childState == "splitviewItem"}
-    class:super-fieldgroup-item={$childState == "fieldgroupItem"}
-    class:in-builder={inBuilder}
-    class:spectrum-OpacityCheckerboard={$builderStore.inBuilder &&
-      $component.empty}
-    style:display={$childState == "tabsItem" ? "none" : "flex"}
-    use:styleable={$component.styles}
-    on:click={onClick ? onClick : () => {}}
-    on:contextmenu={(e) => {
-      if (onRightClick) {
-        e.preventDefault();
-        onRightClick();
-      }
-    }}
-  >
-    {#if !collapsed}
+{#key refreshKey}
+  <!-- svelte-ignore event_directive_deprecated -->
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  {#if shouldRender}
+    <div
+      class:hoverable={hoverBackground || hoverBorder || hoverText}
+      class:clickable={onClick}
+      class:super-container={mode == "container"}
+      class:super-grid={mode == "grid"}
+      class:tabs={mode == "tabs"}
+      class:super-fieldgroup={mode == "fieldgroup"}
+      class:super-container-item={effectiveChildMode == "containerItem"}
+      class:tab-item={effectiveChildMode == "tabsItem" && isActiveTab}
+      class:tab-item-hidden={effectiveChildMode == "tabsItem" && !isActiveTab}
+      class:super-fieldgroup-item={effectiveChildMode == "fieldgroupItem"}
+      class:in-builder={inBuilder}
+      use:styleable={enrichedStyles}
+      on:click={onClick ? onClick : () => {}}
+      on:contextmenu={(e) => {
+        if (onRightClick) {
+          e.preventDefault();
+          onRightClick();
+        }
+      }}
+    >
       {#if mode == "tabs" && containers?.length > 0}
         <SuperTabs
           {containers}
@@ -594,68 +439,49 @@
           {direction}
           {theme}
           {tabsPosition}
+          {tabsWidth}
           {tabsAlignment}
           {buttonsAlignment}
           {tabsIconsOnly}
           {list_icon}
           {list_title}
+          {listBackground}
           on:change={(e) => {
-            state.selectTab(e.detail.id);
+            superContainer.selectTab(e.detail.id);
           }}
         />
       {/if}
 
-      {#if mode == "container" && childMode == "tabsItem" && $parentParams?.theme == "list" && showTabHeading && direction == "column"}
-        <div class="tab-title"><span>{tabHeading}</span></div>
-      {/if}
-
-      {#key labelWidth}
-        {#key labelPos}
-          {#key disabled}
-            <slot />
-          {/key}
+      {#if mode == "fieldgroup"}
+        {#key `${labelPos}-${gridColumns}-${labelWidth}-${disabled}-${readonly}`}
+          <FieldGroupProvider
+            {labelPos}
+            {gridColumns}
+            {labelWidth}
+            {disabled}
+            {readonly}
+          >
+            {@render children?.()}
+          </FieldGroupProvider>
         {/key}
-      {/key}
-
-      {#if grabberPosition}
-        <Grabber {grabberPosition} {resizing} {state} />
+      {:else}
+        {@render children?.()}
       {/if}
-    {:else}
-      <!-- svelte-ignore a11y-click-events-have-key-events -->
-      <!-- svelte-ignore a11y-no-static-element-interactions -->
-      <div class="collapsed-title" on:click={handleCollapse}>
-        <span>{collapseTitle?.toUpperCase() || ""}</span>
-      </div>
-    {/if}
-
-    <!-- svelte-ignore a11y-no-static-element-interactions -->
-    {#if collapsible}
-      <!-- svelte-ignore a11y-click-events-have-key-events -->
-      <div
-        class="collapser"
-        class:collapsed
-        class:right={collapseSide == "right"}
-        class:top={collapseSide == "top"}
-        on:click={handleCollapse}
-      >
-        {#if !collapsed}
-          <span> {panelTitle?.toUpperCase() || ""}</span>
-        {/if}
-        <Expander {collapsed} {collapseIcon} />
-      </div>
-    {/if}
-  </div>
+    </div>
+  {/if}
 {/key}
 
 <style>
   :global(.super-grid > .component > *) {
     overflow: hidden;
   }
+
   .super-container {
+    flex-shrink: 1;
     display: flex;
-    position: relative;
     overflow: hidden;
     transition: background-color 0.2s ease-in-out;
+    min-width: 0;
 
     &:hover {
       &.hoverable {
@@ -667,85 +493,16 @@
       &.clickable {
         cursor: pointer;
       }
-      & > .collapsed-title {
-        color: var(--spectrum-global-color-gray-700);
-      }
-      & > .collapser {
-        color: var(--spectrum-global-color-gray-700);
-      }
-    }
-
-    &.collapsible {
-      border: 1px solid var(--spectrum-global-color-gray-200);
-      width: 260px;
-    }
-    &.collapsed {
-      cursor: pointer;
-      background-color: var(--spectrum-global-color-gray-100);
-
-      &:hover {
-        background-color: var(--spectrum-global-color-gray-200);
-        & > .collapser {
-          background-color: var(--spectrum-global-color-gray-200);
-          color: var(--spectrum-global-color-gray-900);
-        }
-      }
-    }
-    & > .collapser {
-      position: absolute;
-      top: 0px;
-      left: 0px;
-      right: 0px;
-      height: 2.4rem;
-      cursor: pointer;
-      color: var(--spectrum-global-color-gray-600);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 12px;
-      font-weight: 600;
-      padding: 0.5rem;
-      z-index: 1;
-
-      &:hover {
-        color: var(--spectrum-global-color-gray-900);
-      }
-
-      &.collapsed {
-        justify-content: center;
-      }
-
-      &.right {
-        left: 8px;
-        right: unset;
-      }
-      &.top {
-        top: unset;
-        bottom: 8px;
-      }
-    }
-
-    & > .collapsed-title {
-      flex: auto;
-      display: flex;
-      justify-content: center;
-      padding: 0.75rem;
-      color: var(--spectrum-global-color-gray-500);
-      & > span {
-        writing-mode: vertical-rl;
-        text-orientation: upright;
-        font-size: 16px;
-        font-weight: 600;
-        letter-spacing: 1.2;
-      }
     }
   }
   .super-container-item {
-    flex: var(--flex-factor);
+    flex: 1;
+    min-width: 0;
   }
   .super-grid {
     display: grid;
     position: relative;
+    overflow: hidden;
     grid-template-columns: repeat(var(--grid-columns), 1fr);
     grid-template-rows: var(--grid-rows);
     column-gap: var(--grid-column-gap);
@@ -753,17 +510,16 @@
     align-content: var(--grid-content-align);
   }
 
-  :global(.super-grid.in-builder > .component) {
-    border: 1px dashed var(--spectrum-global-color-gray-400);
-    background-color: var(--spectrum-global-color-gray-75);
-  }
-
   .super-fieldgroup {
     display: grid;
     position: relative;
     grid-template-columns: repeat(var(--grid-columns), 1fr);
-    column-gap: var(--grid-column-gap);
-    row-gap: var(--grid-row-gap);
+    column-gap: var(--field-group-column-gap, 0.5rem);
+    row-gap: var(--field-group-row-gap, 0.5rem);
+  }
+
+  :global(.super-fieldgroup > .component > *) {
+    grid-column: span 6;
   }
 
   .tabs {
@@ -771,45 +527,15 @@
     flex-direction: column;
     align-items: stretch;
     justify-content: stretch;
+    overflow: hidden;
   }
 
   .tab-item {
     display: flex;
-    flex: 1 1 auto;
+    overflow: hidden;
   }
 
   .tab-item-hidden {
     display: none !important;
-  }
-
-  .splitview {
-    display: flex;
-    align-items: stretch;
-    justify-content: stretch;
-  }
-  .splitview-item {
-    flex: 1 1 auto;
-  }
-
-  .spectrum-OpacityCheckerboard {
-    block-size: unset;
-    inline-size: unset;
-  }
-
-  .tab-title {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    width: 100%;
-    font-size: 12px;
-    color: var(--spectrum-global-color-gray-800);
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    font-weight: 500;
-    border-bottom: 1px solid var(--spectrum-global-color-gray-300);
-    height: 3rem;
-    & > span {
-      opacity: 0.9;
-    }
   }
 </style>
