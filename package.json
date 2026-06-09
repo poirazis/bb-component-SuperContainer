@@ -4,7 +4,7 @@
   "version": "3.0.0",
   "description": "A Multi Layout Data Aware Container Component for Budibase",
   "author": "Michael Poirazi",
-  "packageManager": "bun@1.0.0",
+  "packageManager": "bun@1.4.0",
   "license": "MIT",
   "svelte": "index.js",
   "module": "dist/plugin.min.js",
